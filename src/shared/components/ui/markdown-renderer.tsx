@@ -5,6 +5,34 @@ import rehypeRaw from "rehype-raw";
 import { cn } from "@/utils/common/classnames";
 import { deliveryImageUrl } from "@/utils/common";
 
+function cleanHtmlArtifacts(content: string): string {
+  return content
+    .replace(/<\/?p\s*\/?>/gi, "")
+    .replace(/<\/?div\s*\/?>/gi, "")
+    .replace(/<br\s*\/?>/gi, "");
+}
+
+function addAutoHeadings(content: string): string {
+  if (/^#{2,6}\s/m.test(content)) return content;
+  return content
+    .split("\n")
+    .map((line) => {
+      const t = line.trim();
+      if (
+        t.length >= 5 &&
+        t.length <= 90 &&
+        !/^[\s>|*+\-#`"'[(<]/.test(t) &&
+        !/[.!?;:,)%…]$/.test(t) &&
+        /^[A-ZÀ-Ý]/.test(t) &&
+        t.split(/\s+/).length >= 2
+      ) {
+        return `### ${t}`;
+      }
+      return line;
+    })
+    .join("\n");
+}
+
 interface MarkdownRendererProps {
   content: string;
   variant?: "chat" | "reading";
@@ -70,6 +98,8 @@ export function MarkdownRenderer({
 }: MarkdownRendererProps) {
   const isReading = variant === "reading";
   const isChat = variant === "chat";
+
+  const normalizedContent = isReading ? addAutoHeadings(cleanHtmlArtifacts(content)) : content;
 
   const clickableWordsSet = clickableWords?.length
     ? new Set(clickableWords.map((w) => w.toLowerCase()))
@@ -230,7 +260,7 @@ export function MarkdownRenderer({
         rehypePlugins={[rehypeRaw]}
         components={components}
       >
-        {content}
+        {normalizedContent}
       </ReactMarkdown>
     </div>
   );

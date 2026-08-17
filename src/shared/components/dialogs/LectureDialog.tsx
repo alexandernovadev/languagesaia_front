@@ -66,7 +66,7 @@ const htmlToMarkdown = (html: string): string => {
     .replace(/<ol>/gi, '')
     .replace(/<\/ol>/gi, '\n')
     .replace(/<li>(.*?)<\/li>/gi, '- $1\n')
-    .replace(/<p>(.*?)<\/p>/gi, '$1\n\n')
+    .replace(/<p>([\s\S]*?)<\/p>/gi, '$1\n\n')
     .replace(/<br\s*\/?>/gi, '\n')
     // Remove orphan p tags from Quill output (e.g. </p><p>...</p> leaves </p>)
     .replace(/<\/p>\s*<p>/gi, '\n\n')

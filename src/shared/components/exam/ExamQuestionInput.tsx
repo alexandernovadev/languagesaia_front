@@ -143,10 +143,6 @@ export function ExamQuestionInput({ question: q, index, value, onChange, shuffle
             />
           </div>
         )}
-
-        <p className="text-xs text-muted-foreground">
-          <span className="font-medium">Tema:</span> {q.grammarTopic}
-        </p>
       </div>
     </div>
   );
