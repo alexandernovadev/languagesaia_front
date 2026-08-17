@@ -4,6 +4,9 @@
   "private": true,
   "author": "NovaAlex Labs",
   "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "node scripts/build-date.js && vite build",
