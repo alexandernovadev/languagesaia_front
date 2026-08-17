@@ -52,6 +52,10 @@ export default function LectureDetailPage() {
     setError(null);
     try {
       const data = await lectureService.getLectureById(id);
+      if (!data) {
+        setError("Lectura no encontrada");
+        return;
+      }
       setLecture(data);
     } catch (err: any) {
       const errorMsg = err.response?.data?.message || err.message || "Error al cargar la lectura";
@@ -146,77 +150,82 @@ export default function LectureDetailPage() {
         loading={loading}
         error={error ?? (!lecture ? "Lectura no encontrada" : null)}
         onRetry={loadLecture}
+        onBack={() => (window.history.length > 1 ? navigate(-1) : navigate("/lectures"))}
         skeletonRows={5}
       >
 
-      {/* Image */}
-      <Card>
-        <CardContent className="p-0">
-          {lecture!.img ? (
-            <img
-              src={deliveryImageUrl(lecture!.img)}
-              alt={lecture!.typeWrite || "Lecture"}
-              className="w-full h-auto max-h-96 object-cover rounded-t-lg"
-            />
-          ) : (
-            <div className="flex items-center justify-center h-48 bg-muted/50 rounded-t-lg text-muted-foreground text-sm">
-              Image should appear here
-            </div>
+      {lecture && (
+        <>
+          {/* Image */}
+          <Card>
+            <CardContent className="p-0">
+              {lecture.img ? (
+                <img
+                  src={deliveryImageUrl(lecture.img)}
+                  alt={lecture.typeWrite || "Lecture"}
+                  className="w-full h-auto max-h-96 object-cover rounded-t-lg"
+                />
+              ) : (
+                <div className="flex items-center justify-center h-48 bg-muted/50 rounded-t-lg text-muted-foreground text-sm">
+                  Image should appear here
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Metadata */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex flex-wrap gap-2 items-center">
+                <Badge variant={getDifficultyVariant(lecture.difficulty)}>
+                  {lecture.difficulty || "N/A"}
+                </Badge>
+                {lecture.time && (
+                  <Badge variant="secondary" className="flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    {lecture.time} min
+                  </Badge>
+                )}
+                {lecture.typeWrite && (
+                  <Badge variant="outline" className="flex items-center gap-1">
+                    <BookOpen className="h-3 w-3" />
+                    {lecture.typeWrite}
+                  </Badge>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Audio Player */}
+          {lecture.urlAudio && (
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Volume2 className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-sm font-medium">Audio</span>
+                </div>
+                <audio controls className="w-full">
+                  <source src={lecture.urlAudio} type="audio/mpeg" />
+                  Tu navegador no soporta el elemento de audio.
+                </audio>
+              </CardContent>
+            </Card>
           )}
-        </CardContent>
-      </Card>
 
-      {/* Metadata */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-wrap gap-2 items-center">
-            <Badge variant={getDifficultyVariant(lecture!.difficulty)}>
-              {lecture!.difficulty || "N/A"}
-            </Badge>
-            {lecture!.time && (
-              <Badge variant="secondary" className="flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                {lecture!.time} min
-              </Badge>
-            )}
-            {lecture!.typeWrite && (
-              <Badge variant="outline" className="flex items-center gap-1">
-                <BookOpen className="h-3 w-3" />
-                {lecture!.typeWrite}
-              </Badge>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Audio Player */}
-      {lecture!.urlAudio && (
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Volume2 className="h-5 w-5 text-muted-foreground" />
-              <span className="text-sm font-medium">Audio</span>
-            </div>
-            <audio controls className="w-full">
-              <source src={lecture?.urlAudio} type="audio/mpeg" />
-              Tu navegador no soporta el elemento de audio.
-            </audio>
-          </CardContent>
-        </Card>
+          {/* Content */}
+          <Card>
+            <CardContent className="p-4 sm:p-6 md:p-8">
+              <div className="select-text" title="Clic en una palabra para verla en el diccionario">
+                <MarkdownRenderer
+                  content={removeFirstH1(lecture.content)}
+                  variant="reading"
+                  onWordClick={handleWordClick}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </>
       )}
-
-      {/* Content */}
-      <Card>
-        <CardContent className="p-4 sm:p-6 md:p-8">
-          <div className="select-text" title="Clic en una palabra para verla en el diccionario">
-            <MarkdownRenderer
-              content={removeFirstH1(lecture!.content)}
-              variant="reading"
-              onWordClick={handleWordClick}
-            />
-          </div>
-        </CardContent>
-      </Card>
 
       {wordPanelOpen && (
         <WordLookupPanel

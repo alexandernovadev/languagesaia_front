@@ -1,12 +1,14 @@
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { Skeleton } from "@/shared/components/ui/skeleton";
-import { AlertTriangle, RefreshCw } from "lucide-react";
+import { AlertTriangle, RefreshCw, ArrowLeft } from "lucide-react";
 
 interface PageLoaderProps {
   loading: boolean;
   error?: string | null;
   onRetry?: () => void;
+  /** Renders a back button next to the retry button on error */
+  onBack?: () => void;
   /** Number of skeleton rows to show while loading (default: 4) */
   skeletonRows?: number;
   children: React.ReactNode;
@@ -16,6 +18,7 @@ export function PageLoader({
   loading,
   error,
   onRetry,
+  onBack,
   skeletonRows = 4,
   children,
 }: PageLoaderProps) {
@@ -43,6 +46,12 @@ export function PageLoader({
             <Button variant="outline" size="sm" onClick={onRetry}>
               <RefreshCw className="h-4 w-4 mr-2" />
               Reintentar
+            </Button>
+          )}
+          {onBack && (
+            <Button variant="outline" size="sm" onClick={onBack}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Volver
             </Button>
           )}
         </CardContent>
