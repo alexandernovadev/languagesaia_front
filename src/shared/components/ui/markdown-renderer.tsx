@@ -12,11 +12,89 @@ function cleanHtmlArtifacts(content: string): string {
     .replace(/<br\s*\/?>/gi, "");
 }
 
+// GFM requires table rows to be on consecutive lines; some AI-generated
+// content puts a blank line between every row, which breaks table parsing.
+// This joins pipe-delimited rows that are only separated by blank lines.
+function collapseBrokenTableRows(content: string): string {
+  const lines = content.split("\n");
+  const result: string[] = [];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (line.trim() === "") {
+      const prev = result[result.length - 1];
+      let j = i + 1;
+      while (j < lines.length && lines[j].trim() === "") j++;
+      const next = lines[j];
+      if (prev?.includes("|") && next?.includes("|")) {
+        continue;
+      }
+    }
+    result.push(line);
+  }
+  return result.join("\n");
+}
+
+// Double-quoted text (e.g. example sentences) should render as bold italic.
+// Code spans/blocks are left untouched so quotes inside code aren't affected.
+function emphasizeQuotedText(content: string): string {
+  const segments = content.split(/(```[\s\S]*?```|`[^`\n]*`)/g);
+  return segments
+    .map((segment, idx) => {
+      const isCode = idx % 2 === 1;
+      if (isCode) return segment;
+      return segment.replace(/"([^"\n]+)"/g, "***$1***");
+    })
+    .join("");
+}
+
+// Short parenthetical glosses (e.g. "take over (assume control)") are
+// highlighted in bold blue. Skips code spans/blocks and markdown link
+// targets like [text](url), which also use parentheses.
+function highlightParentheticals(content: string): string {
+  const segments = content.split(/(```[\s\S]*?```|`[^`\n]*`)/g);
+  return segments
+    .map((segment, idx) => {
+      const isCode = idx % 2 === 1;
+      if (isCode) return segment;
+      return segment.replace(
+        /(?<!\])\(([^()\n]{1,60})\)/g,
+        '<span class="text-blue-600 dark:text-blue-400 font-bold">($1)</span>'
+      );
+    })
+    .join("");
+}
+
+const TABLE_DELIMITER_ROW = /^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?\s*$/;
+
+function findTableLineIndices(lines: string[]): Set<number> {
+  const tableLines = new Set<number>();
+  for (let i = 1; i < lines.length; i++) {
+    const delimiterCandidate = lines[i].trim();
+    const headerCandidate = lines[i - 1].trim();
+    if (
+      delimiterCandidate.includes("|") &&
+      TABLE_DELIMITER_ROW.test(delimiterCandidate) &&
+      headerCandidate.length > 0
+    ) {
+      tableLines.add(i - 1);
+      tableLines.add(i);
+      let j = i + 1;
+      while (j < lines.length && lines[j].trim().length > 0 && lines[j].includes("|")) {
+        tableLines.add(j);
+        j++;
+      }
+    }
+  }
+  return tableLines;
+}
+
 function addAutoHeadings(content: string): string {
   if (/^#{2,6}\s/m.test(content)) return content;
-  return content
-    .split("\n")
-    .map((line) => {
+  const lines = content.split("\n");
+  const tableLines = findTableLineIndices(lines);
+  return lines
+    .map((line, idx) => {
+      if (tableLines.has(idx)) return line;
       const t = line.trim();
       if (
         t.length >= 5 &&
@@ -99,7 +177,11 @@ export function MarkdownRenderer({
   const isReading = variant === "reading";
   const isChat = variant === "chat";
 
-  const normalizedContent = isReading ? addAutoHeadings(cleanHtmlArtifacts(content)) : content;
+  const normalizedContent = isReading
+    ? addAutoHeadings(
+        highlightParentheticals(emphasizeQuotedText(collapseBrokenTableRows(cleanHtmlArtifacts(content))))
+      )
+    : highlightParentheticals(emphasizeQuotedText(collapseBrokenTableRows(content)));
 
   const clickableWordsSet = clickableWords?.length
     ? new Set(clickableWords.map((w) => w.toLowerCase()))
@@ -119,10 +201,10 @@ export function MarkdownRenderer({
     h4: ({ children }: any) => <h4 className="text-sm font-medium mb-2 mt-2 first:mt-0 text-primary/70">{wrapIfClickable(children)}</h4>,
     h5: ({ children }: any) => <h5 className="text-xs font-medium mb-2 mt-2 first:mt-0 text-primary/60">{wrapIfClickable(children)}</h5>,
     h6: ({ children }: any) => <h6 className="text-xs font-normal mb-2 mt-2 first:mt-0 text-primary/50">{wrapIfClickable(children)}</h6>,
-    ul: ({ children }: any) => <ul className="list-disc list-outside mb-2 ml-4 space-y-1 [&>li>p>strong]:text-yellow-500 [&>li>strong]:text-yellow-500">{children}</ul>,
-    ol: ({ children }: any) => <ol className="list-decimal list-outside mb-2 ml-4 space-y-1 [&>li>p>strong]:text-yellow-500 [&>li>strong]:text-yellow-500">{children}</ol>,
+    ul: ({ children }: any) => <ul className="list-disc list-outside mb-2 ml-4 space-y-1 [&>li>p>strong]:text-purple-600 [&>li>strong]:text-purple-600 dark:[&>li>p>strong]:text-purple-400 dark:[&>li>strong]:text-purple-400">{children}</ul>,
+    ol: ({ children }: any) => <ol className="list-decimal list-outside mb-2 ml-4 space-y-1 [&>li>p>strong]:text-purple-600 [&>li>strong]:text-purple-600 dark:[&>li>p>strong]:text-purple-400 dark:[&>li>strong]:text-purple-400">{children}</ol>,
     li: ({ children }: any) => <li className="text-sm pl-1">{wrapIfClickable(children)}</li>,
-    strong: ({ children }: any) => <strong className="font-bold text-yellow-500">{children}</strong>,
+    strong: ({ children }: any) => <strong className="font-bold text-purple-600 dark:text-purple-400">{children}</strong>,
     em: ({ children }: any) => <em className="italic">{children}</em>,
     code: ({ children, className: codeClassName }: any) => {
       const isInline = !codeClassName;
@@ -197,7 +279,7 @@ export function MarkdownRenderer({
     ul: ({ children }: any) => <ul className="list-disc list-outside mb-4 sm:mb-6 ml-4 sm:ml-6 space-y-2 text-base sm:text-lg">{children}</ul>,
     ol: ({ children }: any) => <ol className="list-decimal list-outside mb-4 sm:mb-6 ml-4 sm:ml-6 space-y-2 text-base sm:text-lg">{children}</ol>,
     li: ({ children }: any) => <li className="pl-2 text-base sm:text-lg leading-relaxed">{wrapIfClickable(children)}</li>,
-    strong: ({ children }: any) => <strong className="font-bold text-foreground">{children}</strong>,
+    strong: ({ children }: any) => <strong className="font-bold text-purple-600 dark:text-purple-400">{children}</strong>,
     em: ({ children }: any) => <em className="italic">{children}</em>,
     code: ({ children, className: codeClassName }: any) => {
       const isInline = !codeClassName;
