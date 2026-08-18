@@ -87,7 +87,7 @@ export function ExamAttemptResultCard({ aq, index }: ExamAttemptResultCardProps)
         {hasOptions ? (
           <div className="space-y-1.5">
             <p className="text-xs font-medium text-muted-foreground mb-2">
-              Opciones
+              Tema: {aq.grammarTopic}
             </p>
             <ul className="space-y-1.5">
               {aq.options!.map((opt, i) => {

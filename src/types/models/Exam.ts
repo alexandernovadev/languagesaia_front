@@ -41,6 +41,7 @@ export interface IAttemptQuestion {
   correctIndex?: number;
   correctIndices?: number[];
   correctAnswer?: string;
+  grammarTopic?: string;
   userAnswer: number | number[] | string;
   isCorrect: boolean;
   partialScore?: number;
