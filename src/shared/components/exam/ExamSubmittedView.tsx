@@ -63,7 +63,7 @@ export function ExamSubmittedView({ submittedAttempt, exam }: ExamSubmittedViewP
               <Button
                 size="sm"
                 variant="secondary"
-                onClick={() => navigate("/exams", { state: { openAttemptsExam: exam ?? resultExam } })}
+                onClick={() => navigate(`/exams/${(exam ?? resultExam)?._id}/attempts`)}
               >
                 Ver intentos
               </Button>

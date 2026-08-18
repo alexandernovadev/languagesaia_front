@@ -32,6 +32,7 @@ import {
   ExamGeneratorPage,
   ExamStartPage,
   ExamAttemptPage,
+  ExamAttemptsHistoryPage,
 } from "./routes";
 
 // Componente para manejar rutas desconocidas
@@ -132,6 +133,14 @@ export default function App() {
                     element={
                       <ProtectedRoute>
                         <ExamAttemptPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/exams/:id/attempts/:attemptId?"
+                    element={
+                      <ProtectedRoute>
+                        <ExamAttemptsHistoryPage />
                       </ProtectedRoute>
                     }
                   />
