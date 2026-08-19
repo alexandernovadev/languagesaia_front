@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { PageHeader } from "@/shared/components/ui/page-header";
 import { Button } from "@/shared/components/ui/button";
@@ -10,7 +10,7 @@ import { lectureService } from "@/services/lectureService";
 import { wordService } from "@/services/wordService";
 import { ILecture } from "@/types/models/Lecture";
 import { IWord } from "@/types/models/Word";
-import { ArrowLeft, Clock, BookOpen, Volume2, Loader2 } from "lucide-react";
+import { ArrowLeft, Clock, BookOpen, Volume2, Loader2, Subtitles } from "lucide-react";
 import { deliveryImageUrl, getDifficultyVariant } from "@/utils/common";
 import { cn } from "@/utils/common/classnames";
 import { useSidebar } from "@/shared/components/ui/sidebar";
@@ -19,6 +19,7 @@ import { getSpeechLocale } from "@/utils/common/speech";
 import { toast } from "sonner";
 import { WordDetailModal } from "@/shared/components/dialogs/WordDetailModal";
 import { WordLookupPanel } from "@/shared/components/lecture/WordLookupPanel";
+import KaraokeView from "@/shared/components/lecture/KaraokeView";
 
 export default function LectureDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -39,6 +40,10 @@ export default function LectureDetailPage() {
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [detailModalWordId, setDetailModalWordId] = useState<string | null>(null);
   const [audioGenerating, setAudioGenerating] = useState(false);
+  const [karaokeOn, setKaraokeOn] = useState(true);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [audioDuration, setAudioDuration] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     if (id) {
@@ -76,7 +81,8 @@ export default function LectureDetailPage() {
     setWordLookupLoading(true);
     try {
       const foundWord = await wordService.getWordByName(cleanWord);
-      setWordLookup({ exists: true, word: foundWord });
+      const wordData = foundWord?.data ?? foundWord;
+      setWordLookup({ exists: true, word: wordData });
     } catch (err: any) {
       if (err.response?.status === 404 || err.status === 404) {
         setWordLookup({ exists: false });
@@ -155,6 +161,16 @@ export default function LectureDetailPage() {
     }
   }, [lecture]);
 
+  const handleKaraokeWordClick = useCallback(
+    (word: string, start?: number) => {
+      if (start != null && audioRef.current) {
+        audioRef.current.currentTime = start;
+      }
+      handleWordClick(word);
+    },
+    [handleWordClick]
+  );
+
   return (
     <div>
       <PageHeader
@@ -175,6 +191,16 @@ export default function LectureDetailPage() {
                 {lecture.urlAudio ? "Regenerar audio" : "Generar audio"}
               </Button>
             )}
+            {!loading && lecture?.urlAudio && (
+              <Button
+                variant={karaokeOn ? "default" : "outline"}
+                size="sm"
+                onClick={() => setKaraokeOn((v) => !v)}
+              >
+                <Subtitles className="h-4 w-4 mr-2" />
+                {karaokeOn ? "Lectura" : "Karaoke"}
+              </Button>
+            )}
             <Button variant="outline" onClick={() => navigate("/lectures")} size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Volver
@@ -183,7 +209,15 @@ export default function LectureDetailPage() {
 }
         footer={
           lecture?.urlAudio ? (
-            <audio controls className="w-full h-9 pt-1" preload="none">
+            <audio
+              ref={audioRef}
+              controls
+              className="w-full h-9 pt-1"
+              preload="metadata"
+              onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+              onLoadedMetadata={(e) => setAudioDuration(e.currentTarget.duration)}
+              onDurationChange={(e) => setAudioDuration(e.currentTarget.duration)}
+            >
               <source src={lecture.urlAudio} type="audio/mpeg" />
               Tu navegador no soporta el elemento de audio.
             </audio>
@@ -251,13 +285,25 @@ export default function LectureDetailPage() {
           {/* Content */}
           <Card>
             <CardContent className="p-4 sm:p-6 md:p-8">
-              <div className="select-text" title="Clic en una palabra para verla en el diccionario">
-                <MarkdownRenderer
-                  content={removeFirstH1(lecture.content)}
-                  variant="reading"
-                  onWordClick={handleWordClick}
+              {karaokeOn ? (
+                <KaraokeView
+                  content={lecture.content}
+                  currentTime={currentTime}
+                  duration={audioDuration}
+                  onWordClick={handleKaraokeWordClick}
                 />
-              </div>
+              ) : (
+                <div
+                  className="select-text"
+                  title="Clic en una palabra para verla en el diccionario"
+                >
+                  <MarkdownRenderer
+                    content={removeFirstH1(lecture.content)}
+                    variant="reading"
+                    onWordClick={handleWordClick}
+                  />
+                </div>
+              )}
             </CardContent>
           </Card>
         </>
