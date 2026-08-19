@@ -149,33 +149,33 @@ export function LecturesTable({
                 )}
 
                 {/* Actions */}
-                <div className="flex flex-col sm:flex-row flex-wrap gap-1 sm:gap-2 mt-2">
+                <div className="flex flex-row flex-wrap gap-1 sm:gap-2 mt-2">
                   <Button
                     variant="default"
-                    size="sm"
+                    size="icon"
                     onClick={() => navigate(`/lectures/${lecture._id}`)}
-                    className="w-full sm:w-auto sm:flex-initial text-xs sm:text-sm"
+                    className="rounded-none"
+                    title="Leer"
                   >
-                    <BookOpen className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                    Leer
+                    <BookOpen />
                   </Button>
                   <Button
                     variant="outline"
-                    size="sm"
+                    size="icon"
                     onClick={() => onEdit(lecture)}
-                    className="w-full sm:w-auto sm:flex-initial text-xs sm:text-sm"
+                    className="rounded-none"
+                    title="Editar"
                   >
-                    <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                    Edit
+                    <Edit />
                   </Button>
                   <Button
                     variant="destructive"
-                    size="sm"
+                    size="icon"
                     onClick={() => onDelete(lecture)}
-                    className="w-full sm:w-auto sm:flex-initial text-xs sm:text-sm"
+                    className="rounded-none"
+                    title="Eliminar"
                   >
-                    <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                    Delete
+                    <Trash2 />
                   </Button>
                 </div>
               </div>

@@ -152,7 +152,6 @@ export default function LectureDetailPage() {
   return (
     <div>
       <PageHeader
-        title={lectureTitle}
         actions={
           <>
             {!loading && lecture && (
@@ -210,6 +209,13 @@ export default function LectureDetailPage() {
                   Image should appear here
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Title */}
+          <Card>
+            <CardContent className="p-4 sm:p-6">
+              <h1 className="text-2xl sm:text-3xl font-bold break-words">{lectureTitle}</h1>
             </CardContent>
           </Card>
 

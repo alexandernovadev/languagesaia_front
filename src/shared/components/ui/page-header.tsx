@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { SidebarTrigger } from "./sidebar";
 
 interface PageHeaderProps {
-  title: ReactNode;
+  title?: ReactNode;
   actions?: ReactNode;
   filters?: ReactNode;
   footer?: ReactNode;
@@ -23,7 +23,7 @@ export function PageHeader({
           <SidebarTrigger className="h-8 w-8 border-none" />
         </div>
         <div className="flex-1 min-w-0">
-          <h1 className="text-lg sm:text-xl md:text-3xl font-bold">{title}</h1>
+          {title && <h1 className="text-lg sm:text-xl md:text-3xl font-bold">{title}</h1>}
         </div>
         {actions && <div className="flex gap-2 shrink-0">{actions}</div>}
       </div>
