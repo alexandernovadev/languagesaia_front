@@ -148,14 +148,14 @@ Focus on extreme simplicity and tiny file size. BUT NOT bits images. `.replace(/
                       </h3>
                       <button
                         onClick={() => speak(word.word, getSpeechLocale(word.language), 1)}
-                        className="p-1 border rounded hover:bg-muted transition-colors flex-shrink-0"
+                        className="size-10 border border-white rounded-lg hover:bg-muted transition-colors flex-shrink-0 flex items-center justify-center"
                         title="Play normal speed"
                       >
-                        <Volume2 className="h-4 w-4 sm:h-4 sm:w-4 md:h-5 md:w-5" />
+                        <Volume2 className="h-5 w-5" />
                       </button>
                       <button
                         onClick={() => speak(word.word, getSpeechLocale(word.language), 0.1)}
-                        className="p-1 sm:p-1 border rounded hover:bg-muted transition-colors text-xl sm:text-xl leading-none flex-shrink-0"
+                        className="size-10 border border-white rounded-lg hover:bg-muted transition-colors text-xl leading-none flex-shrink-0 flex items-center justify-center"
                         title="Play very slow speed"
                       >
                         🐢
@@ -211,31 +211,28 @@ Focus on extreme simplicity and tiny file size. BUT NOT bits images. `.replace(/
                   {onView && (
                     <Button
                       variant="default"
-                      size="sm"
+                      size="icon"
                       onClick={() => onView(word)}
-                      className="sm:flex-initial text-sm sm:text-sm"
+                      title="Ver Detalle"
                     >
-                      <Eye className="h-4 w-4 sm:mr-1" />
-                      <span className="hidden sm:inline">Ver Detalle</span>
+                      <Eye />
                     </Button>
                   )}
                   <Button
                     variant="outline"
-                    size="sm"
+                    size="icon"
                     onClick={() => onEdit(word)}
-                    className="sm:flex-initial text-sm sm:text-sm"
+                    title="Editar"
                   >
-                    <Edit className="h-4 w-4 sm:mr-1" />
-                    <span className="hidden sm:inline">Edit</span>
+                    <Edit />
                   </Button>
                   <Button
                     variant="destructive"
-                    size="sm"
+                    size="icon"
                     onClick={() => onDelete(word)}
-                    className="sm:flex-initial text-sm sm:text-sm"
+                    title="Eliminar"
                   >
-                    <Trash2 className="h-4 w-4 sm:mr-1" />
-                    <span className="hidden sm:inline">Delete</span>
+                    <Trash2 />
                   </Button>
                 </div>
               </div>

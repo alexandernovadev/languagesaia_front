@@ -172,19 +172,19 @@ export function ExpressionsTable({
                 <div className="flex gap-2 mt-2">
                   <Button
                     variant="outline"
-                    size="sm"
+                    size="icon"
                     onClick={() => onEdit(expression)}
+                    title="Editar"
                   >
-                    <Edit className="h-4 w-4 mr-1" />
-                    Edit
+                    <Edit />
                   </Button>
                   <Button
                     variant="destructive"
-                    size="sm"
+                    size="icon"
                     onClick={() => onDelete(expression)}
+                    title="Eliminar"
                   >
-                    <Trash2 className="h-4 w-4 mr-1" />
-                    Delete
+                    <Trash2 />
                   </Button>
                 </div>
               </div>

@@ -41,14 +41,14 @@ export function WordImageSection({ word, onRefresh, loading }: WordImageSectionP
           <div className="absolute bottom-3 left-3 flex items-center gap-2 z-10">
             <button
               onClick={() => speak(word.word, getSpeechLocale(word.language), 1)}
-              className="p-2 border rounded-lg hover:bg-muted transition-colors hover:scale-110 shadow-lg backdrop-blur-sm bg-background/80"
+              className="size-12 border border-white rounded-lg hover:bg-muted transition-colors hover:scale-110 shadow-lg backdrop-blur-sm bg-background/80 flex items-center justify-center"
               title="Reproducir velocidad normal"
             >
-              <Volume2 className="h-4 w-4" />
+              <Volume2 className="h-6 w-6" />
             </button>
             <button
               onClick={() => speak(word.word, getSpeechLocale(word.language), 0.01)}
-              className="p-2 border rounded-lg hover:bg-muted transition-colors hover:scale-110 shadow-lg backdrop-blur-sm bg-background/80 text-base leading-none"
+              className="size-12 border border-white rounded-lg hover:bg-muted transition-colors hover:scale-110 shadow-lg backdrop-blur-sm bg-background/80 text-[32px] leading-none flex items-center justify-center"
               title="Reproducir velocidad lenta"
             >
               🐢

@@ -113,6 +113,12 @@ export default function LectureDetailPage() {
     }
   }, [selectedWord, speakWord]);
 
+  const handleCloseWordLookup = useCallback(() => {
+    setSelectedWord(null);
+    setWordLookup(null);
+    setWordLookupLoading(false);
+  }, []);
+
   const handleAddWord = useCallback(async () => {
     if (!selectedWord || !lecture) return;
     setAddingWord(true);
@@ -177,7 +183,7 @@ export default function LectureDetailPage() {
 }
         footer={
           lecture?.urlAudio ? (
-            <audio controls className="w-full h-9" preload="none">
+            <audio controls className="w-full h-9 pt-1" preload="none">
               <source src={lecture.urlAudio} type="audio/mpeg" />
               Tu navegador no soporta el elemento de audio.
             </audio>
@@ -268,6 +274,7 @@ export default function LectureDetailPage() {
           onSpeak={speakWord}
           onOpenDetail={handleOpenDetail}
           onAddWord={handleAddWord}
+          onClose={handleCloseWordLookup}
         />
       )}
 

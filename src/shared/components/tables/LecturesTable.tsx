@@ -154,7 +154,6 @@ export function LecturesTable({
                     variant="default"
                     size="icon"
                     onClick={() => navigate(`/lectures/${lecture._id}`)}
-                    className="rounded-none"
                     title="Leer"
                   >
                     <BookOpen />
@@ -163,7 +162,6 @@ export function LecturesTable({
                     variant="outline"
                     size="icon"
                     onClick={() => onEdit(lecture)}
-                    className="rounded-none"
                     title="Editar"
                   >
                     <Edit />
@@ -172,7 +170,6 @@ export function LecturesTable({
                     variant="destructive"
                     size="icon"
                     onClick={() => onDelete(lecture)}
-                    className="rounded-none"
                     title="Eliminar"
                   >
                     <Trash2 />
