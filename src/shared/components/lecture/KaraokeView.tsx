@@ -84,6 +84,12 @@ function cleanHtmlArtifacts(content: string): string {
     .replace(/<br\s*\/?>/gi, "");
 }
 
+// Some AI-generated content writes "#Title" without the space after the
+// hashes, which the heading parser doesn't recognize. Fix it.
+function normalizeHeadingMarks(content: string): string {
+  return content.replace(/^(#{1,6})(?=\S)/gm, "$1 ");
+}
+
 // Same heuristic as MarkdownRenderer reading variant: lines that look like
 // titles (no explicit # heading anywhere in the content) become H3.
 function autoHeadingCandidate(line: string): boolean {
@@ -150,7 +156,7 @@ function tokenize(text: string, timed = true): Segment[] {
 }
 
 function parseContent(content: string): ParsedPara[] {
-  const cleaned = cleanHtmlArtifacts(content);
+  const cleaned = normalizeHeadingMarks(cleanHtmlArtifacts(content));
   const blocks = cleaned.split(/\n\s*\n/).map((b) => b.trim()).filter(Boolean);
   const paras: ParsedPara[] = [];
   const hasExplicitHeading = /^#{2,6}\s/m.test(cleaned);

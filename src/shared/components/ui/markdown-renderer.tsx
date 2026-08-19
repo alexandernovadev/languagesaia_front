@@ -12,6 +12,12 @@ function cleanHtmlArtifacts(content: string): string {
     .replace(/<br\s*\/?>/gi, "");
 }
 
+// Some AI-generated content writes "#Title" without the space after the
+// hashes, which markdown parsers don't recognize as a heading. Fix it.
+function normalizeHeadingMarks(content: string): string {
+  return content.replace(/^(#{1,6})(?=\S)/gm, "$1 ");
+}
+
 // GFM requires table rows to be on consecutive lines; some AI-generated
 // content puts a blank line between every row, which breaks table parsing.
 // This joins pipe-delimited rows that are only separated by blank lines.
@@ -179,7 +185,7 @@ export function MarkdownRenderer({
 
   const normalizedContent = isReading
     ? addAutoHeadings(
-        highlightParentheticals(emphasizeQuotedText(collapseBrokenTableRows(cleanHtmlArtifacts(content))))
+        highlightParentheticals(emphasizeQuotedText(collapseBrokenTableRows(normalizeHeadingMarks(cleanHtmlArtifacts(content)))))
       )
     : highlightParentheticals(emphasizeQuotedText(collapseBrokenTableRows(content)));
 
