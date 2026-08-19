@@ -2,7 +2,7 @@ import { ILecture } from "@/types/models/Lecture";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent } from "@/shared/components/ui/card";
-import { Edit, Trash2, Image as ImageIcon, BookOpen, Clock } from "lucide-react";
+import { Edit, Trash2, Image as ImageIcon, BookOpen, Clock, Volume2 } from "lucide-react";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { deliveryImageUrl, getDifficultyVariant } from "@/utils/common";
 import { getMarkdownTitle, stripMarkdown, removeFirstH1 } from "@/utils/common/string/markdown";
@@ -120,6 +120,12 @@ export function LecturesTable({
                         <Badge variant="secondary" className="text-xs flex items-center gap-1">
                           <Clock className="h-3 w-3" />
                           {lecture.time} min
+                        </Badge>
+                      )}
+                      {lecture.urlAudio && (
+                        <Badge variant="outline" className="text-xs flex items-center gap-1">
+                          <Volume2 className="h-3 w-3" />
+                          Audio
                         </Badge>
                       )}
                     </div>

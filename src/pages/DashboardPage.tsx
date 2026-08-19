@@ -79,7 +79,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="">
+    <div className="space-y-4">
       <PageHeader 
         title="Dashboard Gerencial"
       />

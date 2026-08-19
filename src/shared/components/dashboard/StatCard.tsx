@@ -41,7 +41,7 @@ export function StatCard({
       <CardContent className="relative p-4 sm:p-6">
         <div className="flex items-start justify-between gap-2 sm:gap-4">
           <div className="flex-1 min-w-0">
-            <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1 truncate">
+            <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1.5 sm:mb-2 truncate">
               {title}
             </p>
             <div className="flex items-baseline gap-1 sm:gap-2 flex-wrap">
@@ -58,7 +58,7 @@ export function StatCard({
               )}
             </div>
             {subtitle && (
-              <p className="text-xs text-muted-foreground mt-1 sm:mt-2 truncate">{subtitle}</p>
+              <p className="text-xs text-muted-foreground mt-1.5 sm:mt-2.5 truncate">{subtitle}</p>
             )}
           </div>
           <div

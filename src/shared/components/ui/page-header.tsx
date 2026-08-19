@@ -5,12 +5,14 @@ interface PageHeaderProps {
   title: ReactNode;
   actions?: ReactNode;
   filters?: ReactNode;
+  footer?: ReactNode;
 }
 
 export function PageHeader({
   title,
   actions,
   filters,
+  footer,
 }: PageHeaderProps) {
   return (
     <div className="sticky top-[-0.1rem] z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 -mx-4 px-4 mb-4">
@@ -28,6 +30,9 @@ export function PageHeader({
 
       {/* Filters Section */}
       {filters && <div className="mt-4 pb-4">{filters}</div>}
+
+      {/* Footer Section (sticky, always visible) */}
+      {footer && <div className="pb-4">{footer}</div>}
     </div>
   );
 }

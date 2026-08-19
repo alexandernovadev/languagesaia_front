@@ -10,7 +10,7 @@ import { lectureService } from "@/services/lectureService";
 import { wordService } from "@/services/wordService";
 import { ILecture } from "@/types/models/Lecture";
 import { IWord } from "@/types/models/Word";
-import { ArrowLeft, Clock, BookOpen, Volume2 } from "lucide-react";
+import { ArrowLeft, Clock, BookOpen, Volume2, Loader2 } from "lucide-react";
 import { deliveryImageUrl, getDifficultyVariant } from "@/utils/common";
 import { cn } from "@/utils/common/classnames";
 import { useSidebar } from "@/shared/components/ui/sidebar";
@@ -38,6 +38,7 @@ export default function LectureDetailPage() {
   const [addingWord, setAddingWord] = useState(false);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [detailModalWordId, setDetailModalWordId] = useState<string | null>(null);
+  const [audioGenerating, setAudioGenerating] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -134,15 +135,54 @@ export default function LectureDetailPage() {
     : getMarkdownTitle(lecture?.content!) || lecture?.typeWrite || "Lectura";
   const wordPanelOpen = !!(selectedWord || wordLookupLoading || wordLookup);
 
+  const handleGenerateAudio = useCallback(async () => {
+    if (!lecture) return;
+    setAudioGenerating(true);
+    try {
+      const result = await lectureService.generateLectureAudio(lecture._id, "nova");
+      setLecture((prev) => (prev ? { ...prev, urlAudio: result.urlAudio, voice: "nova" } : prev));
+      toast.success("Audio generado correctamente");
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || "Error al generar el audio");
+    } finally {
+      setAudioGenerating(false);
+    }
+  }, [lecture]);
+
   return (
     <div>
       <PageHeader
         title={lectureTitle}
         actions={
-          <Button variant="outline" onClick={() => navigate("/lectures")} size="sm">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver
-          </Button>
+          <>
+            {!loading && lecture && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleGenerateAudio}
+                disabled={audioGenerating}
+              >
+                {audioGenerating ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Volume2 className="h-4 w-4 mr-2" />
+                )}
+                {lecture.urlAudio ? "Regenerar audio" : "Generar audio"}
+              </Button>
+            )}
+            <Button variant="outline" onClick={() => navigate("/lectures")} size="sm">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Volver
+            </Button>
+          </>
+}
+        footer={
+          lecture?.urlAudio ? (
+            <audio controls className="w-full h-9" preload="none">
+              <source src={lecture.urlAudio} type="audio/mpeg" />
+              Tu navegador no soporta el elemento de audio.
+            </audio>
+          ) : undefined
         }
       />
 
@@ -195,22 +235,6 @@ export default function LectureDetailPage() {
               </div>
             </CardContent>
           </Card>
-
-          {/* Audio Player */}
-          {lecture.urlAudio && (
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Volume2 className="h-5 w-5 text-muted-foreground" />
-                  <span className="text-sm font-medium">Audio</span>
-                </div>
-                <audio controls className="w-full">
-                  <source src={lecture.urlAudio} type="audio/mpeg" />
-                  Tu navegador no soporta el elemento de audio.
-                </audio>
-              </CardContent>
-            </Card>
-          )}
 
           {/* Content */}
           <Card>

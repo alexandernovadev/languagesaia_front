@@ -46,6 +46,11 @@ export const lectureService = {
     return res.data;
   },
 
+  async generateLectureAudio(id: string, voice = "nova") {
+    const res = await api.post(`/api/lectures/${id}/generate-audio`, { voice });
+    return res.data.data as { urlAudio: string; recordId: string };
+  },
+
   async importLectures(file: File, duplicateStrategy: string, batchSize: number, validateOnly: boolean) {
     const formData = new FormData();
     formData.append("file", file);
