@@ -14,3 +14,4 @@ export type {
   GeneratedExam,
   ValidationResult,
 } from './Exam';
+export type { IStory, IChapter, IStoryProgress, VocabReport } from './Story';

@@ -33,6 +33,10 @@ import {
   ExamStartPage,
   ExamAttemptPage,
   ExamAttemptsHistoryPage,
+  StoriesPage,
+  StoryDetailPage,
+  StoryEditorPage,
+  ChapterReaderPage,
 } from "./routes";
 
 // Componente para manejar rutas desconocidas
@@ -223,6 +227,48 @@ export default function App() {
                     element={
                       <ProtectedRoute>
                         <GrammarPage />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Story routes */}
+                  <Route
+                    path="/stories"
+                    element={
+                      <ProtectedRoute>
+                        <StoriesPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/stories/create"
+                    element={
+                      <ProtectedRoute>
+                        <StoryEditorPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/stories/:id"
+                    element={
+                      <ProtectedRoute>
+                        <StoryDetailPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/stories/:id/edit"
+                    element={
+                      <ProtectedRoute>
+                        <StoryEditorPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/stories/:id/chapter/:chapterIndex"
+                    element={
+                      <ProtectedRoute>
+                        <ChapterReaderPage />
                       </ProtectedRoute>
                     }
                   />
