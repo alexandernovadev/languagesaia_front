@@ -3,25 +3,18 @@ import { useParams, useNavigate } from "react-router-dom";
 import { PageHeader } from "@/shared/components/ui/page-header";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent } from "@/shared/components/ui/card";
-import { Badge } from "@/shared/components/ui/badge";
 import { PageLoader } from "@/shared/components/ui/page-loader";
 import { storyService } from "@/services/storyService";
 import { IStory } from "@/types/models/Story";
 import { CertificationLevel } from "@/types/business";
 import { storyGenres, StoryGenre } from "@/types/business/storyGenres";
-import { ArrowLeft, Loader2, X, Sparkles } from "lucide-react";
+import { ArrowLeft, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
-import { cn } from "@/utils/common/classnames";
 
 const LEVELS: CertificationLevel[] = ["A1", "A2", "B1", "B2", "C1", "C2"];
-const GRAMMAR_OPTIONS = [
-  "Present Simple", "Present Continuous", "Past Simple", "Past Continuous",
-  "Future (will)", "Future (going to)", "Present Perfect", "Past Perfect",
-  "Conditionals", "Passive Voice", "Modal Verbs", "Reported Speech",
-];
 
 export default function StoryEditorPage() {
   const { id } = useParams<{ id: string }>();
@@ -34,9 +27,6 @@ export default function StoryEditorPage() {
   const [description, setDescription] = useState("");
   const [genre, setGenre] = useState<StoryGenre>("mystery");
   const [level, setLevel] = useState<CertificationLevel>("A1");
-  const [targetVocab, setTargetVocab] = useState<string[]>([]);
-  const [vocabInput, setVocabInput] = useState("");
-  const [targetGrammar, setTargetGrammar] = useState<string[]>([]);
   const [img, setImg] = useState("");
 
   useEffect(() => {
@@ -52,8 +42,6 @@ export default function StoryEditorPage() {
       setDescription(story.description);
       setGenre(story.genre);
       setLevel(story.languageLevel);
-      setTargetVocab(story.targetVocabulary || []);
-      setTargetGrammar(story.targetGrammar || []);
       setImg(story.img || "");
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Error loading story");
@@ -61,24 +49,6 @@ export default function StoryEditorPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleAddVocab = () => {
-    const word = vocabInput.trim().toLowerCase();
-    if (word && !targetVocab.includes(word) && targetVocab.length < 20) {
-      setTargetVocab((prev) => [...prev, word]);
-      setVocabInput("");
-    }
-  };
-
-  const handleRemoveVocab = (word: string) => {
-    setTargetVocab((prev) => prev.filter((w) => w !== word));
-  };
-
-  const toggleGrammar = (g: string) => {
-    setTargetGrammar((prev) =>
-      prev.includes(g) ? prev.filter((x) => x !== g) : [...prev, g]
-    );
   };
 
   const handleAIFill = async () => {
@@ -113,8 +83,6 @@ export default function StoryEditorPage() {
         description: description.trim(),
         genre,
         languageLevel: level,
-        targetVocabulary: targetVocab,
-        targetGrammar,
         img,
       };
 
@@ -215,52 +183,6 @@ export default function StoryEditorPage() {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-            </div>
-
-            {/* Target Vocabulary */}
-            <div>
-              <Label>Target vocabulary ({targetVocab.length}/20)</Label>
-              <div className="flex gap-2 mt-2">
-                <Input
-                  placeholder="Add a word..."
-                  value={vocabInput}
-                  onChange={(e) => setVocabInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddVocab())}
-                  disabled={targetVocab.length >= 20}
-                />
-                <Button type="button" onClick={handleAddVocab} disabled={targetVocab.length >= 20}>
-                  Add
-                </Button>
-              </div>
-              {targetVocab.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {targetVocab.map((word) => (
-                    <Badge key={word} variant="secondary" className="gap-1">
-                      {word}
-                      <button onClick={() => handleRemoveVocab(word)} className="ml-1 hover:text-destructive">
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Target Grammar */}
-            <div>
-              <Label>Target grammar (optional)</Label>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {GRAMMAR_OPTIONS.map((g) => (
-                  <Badge
-                    key={g}
-                    variant={targetGrammar.includes(g) ? "default" : "outline"}
-                    className={cn("cursor-pointer", targetGrammar.includes(g) && "bg-primary text-primary-foreground")}
-                    onClick={() => toggleGrammar(g)}
-                  >
-                    {g}
-                  </Badge>
-                ))}
               </div>
             </div>
 

@@ -7,6 +7,8 @@ export interface IChapter {
   urlAudio?: string;
   audioRecordId?: string;
   voice?: string;
+  targetVocabulary?: string[];
+  targetGrammar?: string[];
   createdAt?: Date;
 }
 
@@ -16,8 +18,6 @@ export interface IStory {
   description: string;
   img: string;
   languageLevel: CertificationLevel;
-  targetVocabulary: string[];
-  targetGrammar: string[];
   genre: StoryGenre;
   chapters: IChapter[];
   userId: string;

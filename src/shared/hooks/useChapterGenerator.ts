@@ -9,7 +9,9 @@ interface UseChapterGeneratorReturn {
   generateChapter: (
     instructions: string,
     requestEnding: boolean,
-    chapterNumber: number
+    chapterNumber: number,
+    targetVocabulary: string[],
+    targetGrammar: string[]
   ) => Promise<IStory | null>;
   cancelGenerate: () => void;
 }
@@ -20,7 +22,13 @@ export function useChapterGenerator(storyId: string | undefined): UseChapterGene
   const abortRef = useRef<AbortController | null>(null);
 
   const generateChapter = useCallback(
-    async (instructions: string, requestEnding: boolean, chapterNumber: number): Promise<IStory | null> => {
+    async (
+      instructions: string,
+      requestEnding: boolean,
+      chapterNumber: number,
+      targetVocabulary: string[],
+      targetGrammar: string[]
+    ): Promise<IStory | null> => {
       if (!storyId) return null;
       setGenerating(true);
       setGeneratingChapter("");
@@ -29,7 +37,14 @@ export function useChapterGenerator(storyId: string | undefined): UseChapterGene
       abortRef.current = controller;
 
       try {
-        const response = await storyService.generateChapter(storyId, instructions, requestEnding, controller.signal);
+        const response = await storyService.generateChapter(
+          storyId,
+          instructions,
+          requestEnding,
+          targetVocabulary,
+          targetGrammar,
+          controller.signal
+        );
         const reader = response.body?.getReader();
         if (!reader) throw new Error("No reader available");
 
@@ -47,6 +62,8 @@ export function useChapterGenerator(storyId: string | undefined): UseChapterGene
         const saved = await storyService.saveChapter(storyId, {
           title: `Chapter ${chapterNumber}`,
           content: acc,
+          targetVocabulary,
+          targetGrammar,
         });
         toast.success("Chapter saved!");
         return saved;

@@ -41,7 +41,14 @@ export const storyService = {
     return res.data;
   },
 
-  async generateChapter(storyId: string, instructions?: string, requestEnding?: boolean, signal?: AbortSignal) {
+  async generateChapter(
+    storyId: string,
+    instructions?: string,
+    requestEnding?: boolean,
+    targetVocabulary?: string[],
+    targetGrammar?: string[],
+    signal?: AbortSignal
+  ) {
     const token = useUserStore.getState().token;
     const response = await fetch(`${import.meta.env.VITE_BACK_URL}/api/stories/${storyId}/chapters`, {
       method: "POST",
@@ -49,7 +56,7 @@ export const storyService = {
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: JSON.stringify({ instructions, requestEnding }),
+      body: JSON.stringify({ instructions, requestEnding, targetVocabulary, targetGrammar }),
       signal,
     });
 
@@ -61,7 +68,10 @@ export const storyService = {
     return response;
   },
 
-  async saveChapter(storyId: string, chapterData: { title: string; content: string }) {
+  async saveChapter(
+    storyId: string,
+    chapterData: { title: string; content: string; targetVocabulary?: string[]; targetGrammar?: string[] }
+  ) {
     const res = await api.post(`/api/stories/${storyId}/chapters/save`, chapterData);
     return res.data.data;
   },

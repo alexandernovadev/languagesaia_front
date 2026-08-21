@@ -20,9 +20,8 @@ import { WordLookupPanel } from "@/shared/components/lecture/WordLookupPanel";
 import KaraokeView from "@/shared/components/lecture/KaraokeView";
 import { MarkdownRenderer } from "@/shared/components/ui/markdown-renderer";
 import { ModalNova } from "@/shared/components/ui/modal-nova";
-import { Input } from "@/shared/components/ui/input";
-import { Label } from "@/shared/components/ui/label";
 import { useSidebar } from "@/shared/components/ui/sidebar";
+import { GenerateChapterModal } from "@/shared/components/story/GenerateChapterModal";
 
 export default function ChapterReaderPage() {
   const { id, chapterIndex } = useParams<{ id: string; chapterIndex: string }>();
@@ -54,8 +53,6 @@ export default function ChapterReaderPage() {
 
   // Generate next chapter
   const [nextGenOpen, setNextGenOpen] = useState(false);
-  const [nextInstructions, setNextInstructions] = useState("");
-  const [nextRequestEnding, setNextRequestEnding] = useState(false);
   const { generating, generatingChapter, generateChapter, cancelGenerate } = useChapterGenerator(id);
 
   const chapter = story?.chapters[idx];
@@ -189,15 +186,29 @@ export default function ChapterReaderPage() {
     }
   }, [id]);
 
-  const handleGenerateNext = useCallback(async () => {
-    if (!story || !id) return;
-    setNextGenOpen(false);
-    const saved = await generateChapter(nextInstructions, nextRequestEnding, story.chapters.length + 1);
-    if (saved) {
-      setStory(saved);
-      navigate(`/stories/${id}/chapter/${saved.chapters.length - 1}`);
-    }
-  }, [story, id, nextInstructions, nextRequestEnding, generateChapter, navigate]);
+  const handleGenerateNext = useCallback(
+    async (params: {
+      instructions: string;
+      requestEnding: boolean;
+      targetVocabulary: string[];
+      targetGrammar: string[];
+    }) => {
+      if (!story || !id) return;
+      setNextGenOpen(false);
+      const saved = await generateChapter(
+        params.instructions,
+        params.requestEnding,
+        story.chapters.length + 1,
+        params.targetVocabulary,
+        params.targetGrammar
+      );
+      if (saved) {
+        setStory(saved);
+        navigate(`/stories/${id}/chapter/${saved.chapters.length - 1}`);
+      }
+    },
+    [story, id, generateChapter, navigate]
+  );
 
   const hasPrev = idx > 0;
   const hasNext = story && idx < story.chapters.length - 1;
@@ -208,7 +219,7 @@ export default function ChapterReaderPage() {
         title={chapter?.title || "Chapter"}
         actions={
           <>
-            {!loading && story && story.targetVocabulary.length > 0 && (
+            {!loading && story && story.chapters.some((ch) => (ch.targetVocabulary?.length ?? 0) > 0) && (
               <Button variant="outline" size="sm" onClick={handleLoadVocabReport} disabled={vocabReportLoading}>
                 <ListTodo className="h-4 w-4 mr-2" />
                 Vocab report
@@ -403,49 +414,15 @@ export default function ChapterReaderPage() {
       </ModalNova>
 
       {/* Generate next chapter modal */}
-      <ModalNova
-        open={nextGenOpen}
-        onOpenChange={(open) => {
-          setNextGenOpen(open);
-          if (!open) {
-            setNextInstructions("");
-            setNextRequestEnding(false);
-          }
-        }}
-        title="Generate next chapter"
-        footer={
-          <div className="flex gap-2 justify-end">
-            <Button variant="outline" onClick={() => setNextGenOpen(false)}>Cancel</Button>
-            <Button onClick={handleGenerateNext} disabled={generating}>
-              {generating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <BookPlus className="h-4 w-4 mr-2" />}
-              Generate
-            </Button>
-          </div>
-        }
-      >
-        <div className="space-y-4">
-          <div>
-            <Label>Instructions (optional)</Label>
-            <Input
-              placeholder="e.g. Set in Paris, introduce a new character..."
-              value={nextInstructions}
-              onChange={(e) => setNextInstructions(e.target.value)}
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="nextRequestEnding"
-              checked={nextRequestEnding}
-              onChange={(e) => setNextRequestEnding(e.target.checked)}
-              className="rounded"
-            />
-            <Label htmlFor="nextRequestEnding" className="cursor-pointer">
-              This is the final chapter (end the story)
-            </Label>
-          </div>
-        </div>
-      </ModalNova>
+      {story && (
+        <GenerateChapterModal
+          open={nextGenOpen}
+          onOpenChange={setNextGenOpen}
+          story={story}
+          generating={generating}
+          onGenerate={handleGenerateNext}
+        />
+      )}
     </div>
   );
 }

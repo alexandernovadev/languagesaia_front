@@ -14,10 +14,8 @@ import { ArrowLeft, BookOpen, BookPlus, Loader2, Edit, Trash2, BookOpenText } fr
 import { deliveryImageUrl, getDifficultyVariant } from "@/utils/common";
 import { cn } from "@/utils/common/classnames";
 import { toast } from "sonner";
-import { ModalNova } from "@/shared/components/ui/modal-nova";
-import { Input } from "@/shared/components/ui/input";
-import { Label } from "@/shared/components/ui/label";
 import { AlertDialogNova } from "@/shared/components/ui/alert-dialog-nova";
+import { GenerateChapterModal } from "@/shared/components/story/GenerateChapterModal";
 
 export default function StoryDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -26,8 +24,6 @@ export default function StoryDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [continueOpen, setContinueOpen] = useState(false);
-  const [contInstructions, setContInstructions] = useState("");
-  const [requestEnding, setRequestEnding] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const { generating, generatingChapter, generateChapter, cancelGenerate } = useChapterGenerator(id);
@@ -52,10 +48,21 @@ export default function StoryDetailPage() {
     }
   };
 
-  const handleGenerateChapter = async () => {
+  const handleGenerateChapter = async (params: {
+    instructions: string;
+    requestEnding: boolean;
+    targetVocabulary: string[];
+    targetGrammar: string[];
+  }) => {
     if (!story || !id) return;
     setContinueOpen(false);
-    const saved = await generateChapter(contInstructions, requestEnding, story.chapters.length + 1);
+    const saved = await generateChapter(
+      params.instructions,
+      params.requestEnding,
+      story.chapters.length + 1,
+      params.targetVocabulary,
+      params.targetGrammar
+    );
     if (saved) {
       setStory(saved);
       navigate(`/stories/${id}/chapter/${saved.chapters.length - 1}`);
@@ -137,9 +144,6 @@ export default function StoryDetailPage() {
                 <div className="flex flex-wrap gap-2">
                   <Badge variant={getDifficultyVariant(story.languageLevel)}>{story.languageLevel}</Badge>
                   <Badge variant="secondary">{genreLabel}</Badge>
-                  {story.targetVocabulary.length > 0 && (
-                    <Badge variant="outline">{story.targetVocabulary.length} target words</Badge>
-                  )}
                 </div>
               </CardContent>
             </Card>
@@ -202,49 +206,15 @@ export default function StoryDetailPage() {
       </PageLoader>
 
       {/* Continue modal */}
-      <ModalNova
-        open={continueOpen}
-        onOpenChange={(open) => {
-          setContinueOpen(open);
-          if (!open) {
-            setContInstructions("");
-            setRequestEnding(false);
-          }
-        }}
-        title="Generate new chapter"
-        footer={
-          <div className="flex gap-2 justify-end">
-            <Button variant="outline" onClick={() => setContinueOpen(false)}>Cancel</Button>
-            <Button onClick={handleGenerateChapter} disabled={generating}>
-              {generating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <BookPlus className="h-4 w-4 mr-2" />}
-              Generate
-            </Button>
-          </div>
-        }
-      >
-        <div className="space-y-4">
-          <div>
-            <Label>Instructions (optional)</Label>
-            <Input
-              placeholder="e.g. Set in Paris, introduce a new character..."
-              value={contInstructions}
-              onChange={(e) => setContInstructions(e.target.value)}
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="requestEnding"
-              checked={requestEnding}
-              onChange={(e) => setRequestEnding(e.target.checked)}
-              className="rounded"
-            />
-            <Label htmlFor="requestEnding" className="cursor-pointer">
-              This is the final chapter (end the story)
-            </Label>
-          </div>
-        </div>
-      </ModalNova>
+      {story && (
+        <GenerateChapterModal
+          open={continueOpen}
+          onOpenChange={setContinueOpen}
+          story={story}
+          generating={generating}
+          onGenerate={handleGenerateChapter}
+        />
+      )}
 
       {/* Delete confirmation */}
       <AlertDialogNova
