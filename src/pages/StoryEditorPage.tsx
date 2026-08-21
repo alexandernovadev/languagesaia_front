@@ -29,6 +29,7 @@ export default function StoryEditorPage() {
   const isEdit = !!id;
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
+  const [filling, setFilling] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [genre, setGenre] = useState<StoryGenre>("mystery");
@@ -78,6 +79,21 @@ export default function StoryEditorPage() {
     setTargetGrammar((prev) =>
       prev.includes(g) ? prev.filter((x) => x !== g) : [...prev, g]
     );
+  };
+
+  const handleAIFill = async () => {
+    setFilling(true);
+    try {
+      const seed = [title.trim(), description.trim()].filter(Boolean).join(". ") || undefined;
+      const idea = await storyService.generateStoryIdea(seed, genre, level);
+      setTitle(idea.title);
+      setDescription(idea.description);
+      toast.success(seed ? "Title & description expanded" : "Story idea generated");
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || "Error generating idea");
+    } finally {
+      setFilling(false);
+    }
   };
 
   const handleSave = async () => {
@@ -141,7 +157,21 @@ export default function StoryEditorPage() {
           <CardContent className="p-6 space-y-6">
             {/* Title */}
             <div>
-              <Label>Title</Label>
+              <div className="flex items-center justify-between mb-1">
+                <Label>Title</Label>
+                <Button type="button" variant="outline" size="sm" onClick={handleAIFill} disabled={filling}>
+                  {filling ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-4 w-4 mr-2" />
+                  )}
+                  {filling
+                    ? "Generating..."
+                    : title.trim() || description.trim()
+                    ? "AI to fill"
+                    : "AI: random idea"}
+                </Button>
+              </div>
               <Input
                 placeholder="Enter story title"
                 value={title}

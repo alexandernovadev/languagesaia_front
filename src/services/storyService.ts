@@ -1,4 +1,5 @@
 import { axiosClient as api } from "./api/HttpClient";
+import { useUserStore } from "@/lib/store/user-store";
 import type { IStory, IStoryProgress, VocabReport } from "@/types/models/Story";
 
 export const storyService = {
@@ -17,7 +18,7 @@ export const storyService = {
       }
     });
     const res = await api.get(`/api/stories?${params.toString()}`, { signal });
-    return res.data;
+    return res.data.data;
   },
 
   async getStoryById(id: string) {
@@ -41,12 +42,23 @@ export const storyService = {
   },
 
   async generateChapter(storyId: string, instructions?: string, requestEnding?: boolean, signal?: AbortSignal) {
-    const res = await api.post(
-      `/api/stories/${storyId}/chapters`,
-      { instructions, requestEnding },
-      { signal, responseType: "stream" }
-    );
-    return res.data;
+    const token = useUserStore.getState().token;
+    const response = await fetch(`${import.meta.env.VITE_BACK_URL}/api/stories/${storyId}/chapters`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ instructions, requestEnding }),
+      signal,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || "Failed to generate chapter");
+    }
+
+    return response;
   },
 
   async saveChapter(storyId: string, chapterData: { title: string; content: string }) {
@@ -82,5 +94,10 @@ export const storyService = {
   async generateChapterAudio(storyId: string, chapterIndex: number, voice = "nova") {
     const res = await api.post(`/api/stories/${storyId}/chapters/${chapterIndex}/generate-audio`, { voice });
     return res.data.data as { urlAudio: string; recordId: string };
+  },
+
+  async generateStoryIdea(seed?: string, genre?: string, languageLevel?: string) {
+    const res = await api.post(`/api/stories/generate-idea`, { seed, genre, languageLevel });
+    return res.data.data as { title: string; description: string };
   },
 };

@@ -413,25 +413,24 @@ export default function LectureDetailPage() {
           {/* Content */}
           <Card>
             <CardContent className="p-4 sm:p-6 md:p-8">
-              {karaokeOn ? (
-                <KaraokeView
-                  content={lecture.content}
-                  currentTime={currentTime}
-                  duration={audioDuration}
-                  onWordClick={handleKaraokeWordClick}
-                />
-              ) : (
-                <div
-                  className="select-text"
-                  title="Clic en una palabra para verla en el diccionario"
-                >
-                  <MarkdownRenderer
-                    content={removeFirstH1(lecture.content)}
-                    variant="reading"
-                    onWordClick={handleWordClick}
+              <div className="pb-12">
+                {karaokeOn ? (
+                  <KaraokeView
+                    content={lecture.content}
+                    currentTime={currentTime}
+                    duration={audioDuration}
+                    onWordClick={handleKaraokeWordClick}
                   />
-                </div>
-              )}
+                ) : (
+                  <div className="select-text">
+                    <MarkdownRenderer
+                      content={removeFirstH1(lecture.content)}
+                      variant="reading"
+                      onWordClick={handleWordClick}
+                    />
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
 

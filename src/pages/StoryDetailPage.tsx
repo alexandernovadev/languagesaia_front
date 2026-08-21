@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { PageHeader } from "@/shared/components/ui/page-header";
 import { Button } from "@/shared/components/ui/button";
@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { PageLoader } from "@/shared/components/ui/page-loader";
 import { storyService } from "@/services/storyService";
+import { useChapterGenerator } from "@/shared/hooks/useChapterGenerator";
 import { IStory, IChapter } from "@/types/models/Story";
 import { CertificationLevel } from "@/types/business";
 import { storyGenres } from "@/types/business/storyGenres";
@@ -24,14 +25,12 @@ export default function StoryDetailPage() {
   const [story, setStory] = useState<IStory | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [generating, setGenerating] = useState(false);
-  const [generatingChapter, setGeneratingChapter] = useState("");
   const [continueOpen, setContinueOpen] = useState(false);
   const [contInstructions, setContInstructions] = useState("");
   const [requestEnding, setRequestEnding] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const generateAbortRef = useRef<AbortController | null>(null);
+  const { generating, generatingChapter, generateChapter, cancelGenerate } = useChapterGenerator(id);
 
   useEffect(() => {
     if (id) loadStory();
@@ -55,48 +54,11 @@ export default function StoryDetailPage() {
 
   const handleGenerateChapter = async () => {
     if (!story || !id) return;
-    setGenerating(true);
-    setGeneratingChapter("");
     setContinueOpen(false);
-
-    const controller = new AbortController();
-    generateAbortRef.current = controller;
-
-    try {
-      const response = await storyService.generateChapter(
-        id,
-        contInstructions,
-        requestEnding,
-        controller.signal
-      );
-
-      const reader = response.getReader();
-      const decoder = new TextDecoder();
-      let acc = "";
-      let done = false;
-
-      while (!done) {
-        const { value, done: streamDone } = await reader.read();
-        done = streamDone;
-        acc += decoder.decode(value, { stream: true });
-        setGeneratingChapter(acc);
-      }
-
-      // Save the generated chapter
-      const chapterTitle = `Chapter ${story.chapters.length + 1}`;
-      await storyService.saveChapter(id, { title: chapterTitle, content: acc });
-      await loadStory();
-      toast.success("Chapter saved!");
-      navigate(`/stories/${id}/chapter/${story.chapters.length}`);
-    } catch (err: any) {
-      if (err.name !== "AbortError") {
-        const msg = err.response?.data?.message || err.message || "Error generating chapter";
-        toast.error(msg);
-      }
-    } finally {
-      setGenerating(false);
-      setGeneratingChapter("");
-      generateAbortRef.current = null;
+    const saved = await generateChapter(contInstructions, requestEnding, story.chapters.length + 1);
+    if (saved) {
+      setStory(saved);
+      navigate(`/stories/${id}/chapter/${saved.chapters.length - 1}`);
     }
   };
 
@@ -222,9 +184,14 @@ export default function StoryDetailPage() {
             {generating && generatingChapter && (
               <Card className="border-primary/40">
                 <CardContent className="p-4">
-                  <div className="flex items-center gap-2 mb-2 text-primary">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="text-sm font-semibold">Generating chapter...</span>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2 text-primary">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span className="text-sm font-semibold">Generating chapter...</span>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={cancelGenerate}>
+                      Cancel
+                    </Button>
                   </div>
                   <p className="text-sm text-muted-foreground line-clamp-4">{generatingChapter}</p>
                 </CardContent>

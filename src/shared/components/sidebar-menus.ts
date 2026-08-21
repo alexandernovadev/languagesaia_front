@@ -17,6 +17,8 @@ import {
   ClipboardList,
   FileEdit,
   BookText,
+  BookOpenText,
+  BookPlus,
 } from "lucide-react";
 
 export const menuItems = [
@@ -29,6 +31,11 @@ export const menuItems = [
     title: "Lecturas",
     url: "/lectures",
     icon: BookOpen,
+  },
+  {
+    title: "Historias",
+    url: "/stories",
+    icon: BookOpenText,
   },
   {
     title: "Exámenes",
@@ -70,6 +77,11 @@ export const generatorItems = [
     title: "Generador de Exámenes",
     url: "/exams/generator",
     icon: FileEdit,
+  },
+  {
+    title: "Generador de Historias",
+    url: "/stories/create",
+    icon: BookPlus,
   },
 ];
 

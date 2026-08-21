@@ -7,9 +7,10 @@ import { Badge } from "@/shared/components/ui/badge";
 import { PageLoader } from "@/shared/components/ui/page-loader";
 import { storyService } from "@/services/storyService";
 import { wordService } from "@/services/wordService";
+import { useChapterGenerator } from "@/shared/hooks/useChapterGenerator";
 import { IStory, VocabReport } from "@/types/models/Story";
 import { IWord } from "@/types/models/Word";
-import { ArrowLeft, Volume2, Loader2, Subtitles, BookOpen, ChevronLeft, ChevronRight, ListTodo } from "lucide-react";
+import { ArrowLeft, Volume2, Loader2, Subtitles, BookOpen, BookPlus, ChevronLeft, ChevronRight, ListTodo } from "lucide-react";
 import { deliveryImageUrl } from "@/utils/common";
 import { cn } from "@/utils/common/classnames";
 import { getSpeechLocale } from "@/utils/common/speech";
@@ -19,10 +20,14 @@ import { WordLookupPanel } from "@/shared/components/lecture/WordLookupPanel";
 import KaraokeView from "@/shared/components/lecture/KaraokeView";
 import { MarkdownRenderer } from "@/shared/components/ui/markdown-renderer";
 import { ModalNova } from "@/shared/components/ui/modal-nova";
+import { Input } from "@/shared/components/ui/input";
+import { Label } from "@/shared/components/ui/label";
+import { useSidebar } from "@/shared/components/ui/sidebar";
 
 export default function ChapterReaderPage() {
   const { id, chapterIndex } = useParams<{ id: string; chapterIndex: string }>();
   const navigate = useNavigate();
+  const { state: sidebarState, isMobile } = useSidebar();
   const idx = parseInt(chapterIndex || "0");
 
   const [story, setStory] = useState<IStory | null>(null);
@@ -46,6 +51,12 @@ export default function ChapterReaderPage() {
   const [vocabReportOpen, setVocabReportOpen] = useState(false);
   const [vocabReport, setVocabReport] = useState<VocabReport[]>([]);
   const [vocabReportLoading, setVocabReportLoading] = useState(false);
+
+  // Generate next chapter
+  const [nextGenOpen, setNextGenOpen] = useState(false);
+  const [nextInstructions, setNextInstructions] = useState("");
+  const [nextRequestEnding, setNextRequestEnding] = useState(false);
+  const { generating, generatingChapter, generateChapter, cancelGenerate } = useChapterGenerator(id);
 
   const chapter = story?.chapters[idx];
   const wordPanelOpen = !!(selectedWord || wordLookupLoading || wordLookup);
@@ -178,6 +189,16 @@ export default function ChapterReaderPage() {
     }
   }, [id]);
 
+  const handleGenerateNext = useCallback(async () => {
+    if (!story || !id) return;
+    setNextGenOpen(false);
+    const saved = await generateChapter(nextInstructions, nextRequestEnding, story.chapters.length + 1);
+    if (saved) {
+      setStory(saved);
+      navigate(`/stories/${id}/chapter/${saved.chapters.length - 1}`);
+    }
+  }, [story, id, nextInstructions, nextRequestEnding, generateChapter, navigate]);
+
   const hasPrev = idx > 0;
   const hasNext = story && idx < story.chapters.length - 1;
 
@@ -264,36 +285,66 @@ export default function ChapterReaderPage() {
               <span className="text-sm text-muted-foreground">
                 Chapter {idx + 1} of {story.chapters.length}
               </span>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={!hasNext}
-                onClick={() => navigate(`/stories/${id}/chapter/${idx + 1}`)}
-              >
-                Next
-                <ChevronRight className="h-4 w-4 ml-1" />
-              </Button>
+              {hasNext ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate(`/stories/${id}/chapter/${idx + 1}`)}
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              ) : (
+                <Button size="sm" onClick={() => setNextGenOpen(true)} disabled={generating}>
+                  {generating ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <BookPlus className="h-4 w-4 mr-2" />
+                  )}
+                  {generating ? "Generating..." : "Generate next chapter"}
+                </Button>
+              )}
             </div>
+
+            {/* Live generation preview */}
+            {generating && generatingChapter && (
+              <Card className="border-primary/40 mb-4">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2 text-primary">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span className="text-sm font-semibold">Generating next chapter...</span>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={cancelGenerate}>
+                      Cancel
+                    </Button>
+                  </div>
+                  <p className="text-sm text-muted-foreground line-clamp-4">{generatingChapter}</p>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Content */}
             <Card>
               <CardContent className="p-4 sm:p-6 md:p-8">
-                {chapter.urlAudio && karaokeOn ? (
-                  <KaraokeView
-                    content={chapter.content}
-                    currentTime={currentTime}
-                    duration={audioDuration}
-                    onWordClick={handleKaraokeWordClick}
-                  />
-                ) : (
-                  <div className="select-text" title="Click a word to look it up">
-                    <MarkdownRenderer
+                <div className="pb-12">
+                  {chapter.urlAudio && karaokeOn ? (
+                    <KaraokeView
                       content={chapter.content}
-                      variant="reading"
-                      onWordClick={handleWordClick}
+                      currentTime={currentTime}
+                      duration={audioDuration}
+                      onWordClick={handleKaraokeWordClick}
                     />
-                  </div>
-                )}
+                  ) : (
+                    <div className="select-text">
+                      <MarkdownRenderer
+                        content={chapter.content}
+                        variant="reading"
+                        onWordClick={handleWordClick}
+                      />
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </>
@@ -307,8 +358,8 @@ export default function ChapterReaderPage() {
           wordLookup={wordLookup}
           wordLookupLoading={wordLookupLoading}
           addingWord={addingWord}
-          isMobile={false}
-          sidebarState="collapsed"
+          isMobile={isMobile}
+          sidebarState={sidebarState}
           onSpeak={speakWord}
           onOpenDetail={handleOpenDetail}
           onAddWord={handleAddWord}
@@ -349,6 +400,51 @@ export default function ChapterReaderPage() {
             ))}
           </div>
         )}
+      </ModalNova>
+
+      {/* Generate next chapter modal */}
+      <ModalNova
+        open={nextGenOpen}
+        onOpenChange={(open) => {
+          setNextGenOpen(open);
+          if (!open) {
+            setNextInstructions("");
+            setNextRequestEnding(false);
+          }
+        }}
+        title="Generate next chapter"
+        footer={
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" onClick={() => setNextGenOpen(false)}>Cancel</Button>
+            <Button onClick={handleGenerateNext} disabled={generating}>
+              {generating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <BookPlus className="h-4 w-4 mr-2" />}
+              Generate
+            </Button>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          <div>
+            <Label>Instructions (optional)</Label>
+            <Input
+              placeholder="e.g. Set in Paris, introduce a new character..."
+              value={nextInstructions}
+              onChange={(e) => setNextInstructions(e.target.value)}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="nextRequestEnding"
+              checked={nextRequestEnding}
+              onChange={(e) => setNextRequestEnding(e.target.checked)}
+              className="rounded"
+            />
+            <Label htmlFor="nextRequestEnding" className="cursor-pointer">
+              This is the final chapter (end the story)
+            </Label>
+          </div>
+        </div>
       </ModalNova>
     </div>
   );
