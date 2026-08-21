@@ -104,4 +104,20 @@ export const lectureService = {
     });
     return res;
   },
+
+  // Stream the continuation of an existing lecture (native fetch)
+  async continueLecture(id: string, body: Record<string, any>, signal?: AbortSignal) {
+    const token = localStorage.getItem("user-storage")
+      ? JSON.parse(localStorage.getItem("user-storage") || "{}")?.state?.token
+      : null;
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (token) headers.Authorization = `Bearer ${token}`;
+
+    return fetch(`${import.meta.env.VITE_BACK_URL}/api/lectures/${id}/continue`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
+      signal,
+    });
+  },
 };

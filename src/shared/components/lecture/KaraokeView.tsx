@@ -85,9 +85,10 @@ function cleanHtmlArtifacts(content: string): string {
 }
 
 // Some AI-generated content writes "#Title" without the space after the
-// hashes, which the heading parser doesn't recognize. Fix it.
+// hashes, or doubled markers like "## # Subtitle", which the heading
+// parser doesn't recognize (or renders with a literal "#"). Fix both.
 function normalizeHeadingMarks(content: string): string {
-  return content.replace(/^(#{1,6})(?=\S)/gm, "$1 ");
+  return content.replace(/^(#{1,6})(?:[ \t]*#+)*[ \t]*(?=\S)/gm, "$1 ");
 }
 
 // Same heuristic as MarkdownRenderer reading variant: lines that look like

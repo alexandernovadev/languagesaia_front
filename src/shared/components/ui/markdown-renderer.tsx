@@ -13,9 +13,10 @@ function cleanHtmlArtifacts(content: string): string {
 }
 
 // Some AI-generated content writes "#Title" without the space after the
-// hashes, which markdown parsers don't recognize as a heading. Fix it.
+// hashes, or doubled markers like "## # Subtitle", which markdown parsers
+// don't recognize as a heading (or render with a literal "#"). Fix both.
 function normalizeHeadingMarks(content: string): string {
-  return content.replace(/^(#{1,6})(?=\S)/gm, "$1 ");
+  return content.replace(/^(#{1,6})(?:[ \t]*#+)*[ \t]*(?=\S)/gm, "$1 ");
 }
 
 // GFM requires table rows to be on consecutive lines; some AI-generated

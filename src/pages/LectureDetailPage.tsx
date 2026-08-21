@@ -10,7 +10,7 @@ import { lectureService } from "@/services/lectureService";
 import { wordService } from "@/services/wordService";
 import { ILecture } from "@/types/models/Lecture";
 import { IWord } from "@/types/models/Word";
-import { ArrowLeft, Clock, BookOpen, Volume2, Loader2, Subtitles } from "lucide-react";
+import { ArrowLeft, Clock, BookOpen, Volume2, Loader2, Subtitles, BookPlus } from "lucide-react";
 import { deliveryImageUrl, getDifficultyVariant } from "@/utils/common";
 import { cn } from "@/utils/common/classnames";
 import { useSidebar } from "@/shared/components/ui/sidebar";
@@ -20,6 +20,9 @@ import { toast } from "sonner";
 import { WordDetailModal } from "@/shared/components/dialogs/WordDetailModal";
 import { WordLookupPanel } from "@/shared/components/lecture/WordLookupPanel";
 import KaraokeView from "@/shared/components/lecture/KaraokeView";
+import { ModalNova } from "@/shared/components/ui/modal-nova";
+import { Input } from "@/shared/components/ui/input";
+import { Label } from "@/shared/components/ui/label";
 
 export default function LectureDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -44,6 +47,15 @@ export default function LectureDetailPage() {
   const [currentTime, setCurrentTime] = useState(0);
   const [audioDuration, setAudioDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Continue story state
+  const [continueOpen, setContinueOpen] = useState(false);
+  const [contRangeMin, setContRangeMin] = useState(150);
+  const [contRangeMax, setContRangeMax] = useState(250);
+  const [contInstructions, setContInstructions] = useState("");
+  const [continuing, setContinuing] = useState(false);
+  const [continuationText, setContinuationText] = useState("");
+  const continueAbortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (id) {
@@ -171,11 +183,127 @@ export default function LectureDetailPage() {
     [handleWordClick]
   );
 
+  const openContinueModal = useCallback(() => {
+    if (!lecture?.content?.trim()) return;
+    setContRangeMin(150);
+    setContRangeMax(250);
+    setContInstructions("");
+    setContinueOpen(true);
+  }, [lecture?.content]);
+
+  // Mirrors the backend sanitizer so the live preview shows paragraph
+  // breaks even when the model streams everything on a single line.
+  const normalizeParagraphs = useCallback((text: string): string => {
+    if (!text.trim()) return text;
+    if (!text.includes("\n")) {
+      const sentences = (text.match(/[^.!?]+[.!?]+["'"”]?|\S+$/g) || []).map((s) => s.trim());
+      const paras: string[] = [];
+      for (let i = 0; i < sentences.length; i += 3) {
+        paras.push(sentences.slice(i, i + 3).join(" "));
+      }
+      return paras.filter(Boolean).join("\n\n");
+    }
+    const lines = text.split("\n");
+    const out: string[] = [];
+    for (let i = 0; i < lines.length; i++) {
+      out.push(lines[i]);
+      const next = lines[i + 1];
+      if (!next) continue;
+      const a = lines[i].trim();
+      const b = next.trim();
+      if (!a || !b) continue;
+      if (/^[#>|\-*+\d.]/.test(a) || /^[#>|\-*+\d.]/.test(b)) continue;
+      if (/[.!?]["'"”]?$/.test(a) && /^[A-ZÀ-Ý"“]/.test(b)) {
+        out.push("");
+      }
+    }
+    return out.join("\n");
+  }, []);
+
+  const handleContinue = useCallback(async () => {
+    if (!lecture || !id) return;
+    setContinueOpen(false);
+    setContinuing(true);
+    setContinuationText("");
+
+    const abortController = new AbortController();
+    continueAbortRef.current = abortController;
+
+    try {
+      const response = await lectureService.continueLecture(
+        id,
+        {
+          rangeMin: contRangeMin || 150,
+          rangeMax: contRangeMax || 250,
+          instructions: contInstructions.trim(),
+        },
+        abortController.signal
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to continue lecture");
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error("No reader available");
+
+      const decoder = new TextDecoder();
+      let acc = "";
+      let done = false;
+      while (!done) {
+        const { value, done: streamDone } = await reader.read();
+        done = streamDone;
+        acc += decoder.decode(value, { stream: true });
+        setContinuationText(normalizeParagraphs(acc));
+      }
+
+      const continuation = acc.trim();
+      if (!continuation) {
+        toast.error("No se generó ninguna continuación");
+        return;
+      }
+
+      const newContent = `${lecture.content.trimEnd()}\n\n${continuation}`;
+      const updated = await lectureService.updateLecture(id, { content: newContent });
+      setLecture(updated);
+      toast.success("Historia continuada y guardada");
+    } catch (err: any) {
+      if (err.name === "AbortError") return;
+      toast.error(err.response?.data?.message || err.message || "Error al continuar la historia");
+    } finally {
+      setContinuing(false);
+      setContinuationText("");
+      continueAbortRef.current = null;
+    }
+  }, [lecture, id, contRangeMin, contRangeMax, contInstructions]);
+
+  useEffect(() => {
+    return () => {
+      continueAbortRef.current?.abort();
+    };
+  }, []);
+
   return (
     <div>
       <PageHeader
         actions={
           <>
+            {!loading && lecture && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={openContinueModal}
+                disabled={continuing || !lecture.content?.trim()}
+              >
+                {continuing ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <BookPlus className="h-4 w-4 mr-2" />
+                )}
+                {continuing ? "Continuando..." : "Continuar historia"}
+              </Button>
+            )}
             {!loading && lecture && (
               <Button
                 variant="outline"
@@ -306,6 +434,21 @@ export default function LectureDetailPage() {
               )}
             </CardContent>
           </Card>
+
+          {/* Live continuation preview */}
+          {continuing && (
+            <Card className="border-primary/40">
+              <CardContent className="p-4 sm:p-6 md:p-8">
+                <div className="flex items-center gap-2 mb-4 text-primary">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span className="text-sm font-semibold">Generando continuación...</span>
+                </div>
+                <div className="select-text">
+                  <MarkdownRenderer content={continuationText} variant="reading" />
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </>
       )}
 
@@ -332,6 +475,69 @@ export default function LectureDetailPage() {
         onOpenChange={setDetailModalOpen}
         wordId={detailModalWordId}
       />
+
+      {/* Continue story modal */}
+      <ModalNova
+        open={continueOpen}
+        onOpenChange={setContinueOpen}
+        title="Continuar historia"
+        description="Genera la siguiente parte de esta lectura y se guarda automáticamente."
+        size="md"
+        height="h-auto"
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setContinueOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleContinue} disabled={continuing}>
+              {continuing ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <BookPlus className="h-4 w-4 mr-2" />
+              )}
+              Generar continuación
+            </Button>
+          </>
+        }
+      >
+        <div className="px-6 py-4 space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="cont-range-min">Palabras mínimas</Label>
+              <Input
+                id="cont-range-min"
+                type="number"
+                min={50}
+                max={1000}
+                value={contRangeMin}
+                onChange={(e) => setContRangeMin(Number(e.target.value) || 0)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="cont-range-max">Palabras máximas</Label>
+              <Input
+                id="cont-range-max"
+                type="number"
+                min={50}
+                max={1000}
+                value={contRangeMax}
+                onChange={(e) => setContRangeMax(Number(e.target.value) || 0)}
+              />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="cont-instructions">Instrucción opcional</Label>
+            <textarea
+              id="cont-instructions"
+              value={contInstructions}
+              onChange={(e) => setContInstructions(e.target.value)}
+              placeholder="Ej: que el personaje viaje a otra ciudad"
+              rows={3}
+              className="w-full rounded-md border-2 border-input bg-background px-2 py-2 text-base placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring md:text-sm resize-none"
+            />
+          </div>
+        </div>
+      </ModalNova>
     </div>
   );
 }
