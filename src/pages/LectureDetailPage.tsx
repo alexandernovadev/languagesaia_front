@@ -15,6 +15,7 @@ import { deliveryImageUrl, getDifficultyVariant } from "@/utils/common";
 import { cn } from "@/utils/common/classnames";
 import { useSidebar } from "@/shared/components/ui/sidebar";
 import { getMarkdownTitle, removeFirstH1 } from "@/utils/common/string/markdown";
+import { cleanWord } from "@/utils/common/string";
 import { getSpeechLocale } from "@/utils/common/speech";
 import { toast } from "sonner";
 import { WordDetailModal } from "@/shared/components/dialogs/WordDetailModal";
@@ -85,14 +86,14 @@ export default function LectureDetailPage() {
   };
 
   const handleWordClick = useCallback(async (word: string) => {
-    const cleanWord = word.trim().replace(/^\W+|\W+$/g, "");
-    if (!cleanWord || /\s/.test(cleanWord)) return;
+    const cleaned = cleanWord(word.trim());
+    if (!cleaned || /\s/.test(cleaned)) return;
 
-    setSelectedWord(cleanWord);
+    setSelectedWord(cleaned);
     setWordLookup(null);
     setWordLookupLoading(true);
     try {
-      const foundWord = await wordService.getWordByName(cleanWord);
+      const foundWord = await wordService.getWordByName(cleaned);
       const wordData = foundWord?.data ?? foundWord;
       setWordLookup({ exists: true, word: wordData });
     } catch (err: any) {

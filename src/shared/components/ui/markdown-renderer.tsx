@@ -4,6 +4,7 @@ import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import { cn } from "@/utils/common/classnames";
 import { deliveryImageUrl } from "@/utils/common";
+import { cleanWord, isWordLike } from "@/utils/common/string";
 
 function cleanHtmlArtifacts(content: string): string {
   return content
@@ -137,18 +138,18 @@ function processChildrenWithWordClick(
       return (
         <React.Fragment key={idx}>
           {parts.map((part, i) => {
-            const cleanWord = part.replace(/^\W+|\W+$/g, "");
+            const word = cleanWord(part);
             const isClickable =
-              cleanWord.length >= 1 &&
-              /^[a-zA-Z'-]+$/.test(cleanWord) &&
-              (!clickableWordsSet || clickableWordsSet.has(cleanWord.toLowerCase()));
+              word.length >= 1 &&
+              isWordLike(word) &&
+              (!clickableWordsSet || clickableWordsSet.has(word.toLowerCase()));
             if (isClickable) {
               return (
                 <span
                   key={i}
                   onClick={(e) => {
                     e.stopPropagation();
-                    onWordClick(cleanWord);
+                    onWordClick(word);
                   }}
                   className="cursor-pointer hover:bg-primary/10 rounded px-0.5 transition-colors inline"
                 >

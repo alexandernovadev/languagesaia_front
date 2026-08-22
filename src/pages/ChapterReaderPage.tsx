@@ -14,6 +14,7 @@ import { ArrowLeft, Volume2, Loader2, Subtitles, BookOpen, BookPlus, ChevronLeft
 import { deliveryImageUrl } from "@/utils/common";
 import { cn } from "@/utils/common/classnames";
 import { getSpeechLocale } from "@/utils/common/speech";
+import { cleanWord } from "@/utils/common/string";
 import { toast } from "sonner";
 import { WordDetailModal } from "@/shared/components/dialogs/WordDetailModal";
 import { WordLookupPanel } from "@/shared/components/lecture/WordLookupPanel";
@@ -22,10 +23,12 @@ import { MarkdownRenderer } from "@/shared/components/ui/markdown-renderer";
 import { ModalNova } from "@/shared/components/ui/modal-nova";
 import { useSidebar } from "@/shared/components/ui/sidebar";
 import { GenerateChapterModal } from "@/shared/components/story/GenerateChapterModal";
+import { useAuth } from "@/shared/hooks/useAuth";
 
 export default function ChapterReaderPage() {
   const { id, chapterIndex } = useParams<{ id: string; chapterIndex: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { state: sidebarState, isMobile } = useSidebar();
   const idx = parseInt(chapterIndex || "0");
 
@@ -81,14 +84,14 @@ export default function ChapterReaderPage() {
   };
 
   const handleWordClick = useCallback(async (word: string) => {
-    const cleanWord = word.trim().replace(/^\W+|\W+$/g, "");
-    if (!cleanWord || /\s/.test(cleanWord)) return;
+    const cleaned = cleanWord(word.trim());
+    if (!cleaned || /\s/.test(cleaned)) return;
 
-    setSelectedWord(cleanWord);
+    setSelectedWord(cleaned);
     setWordLookup(null);
     setWordLookupLoading(true);
     try {
-      const foundWord = await wordService.getWordByName(cleanWord);
+      const foundWord = await wordService.getWordByName(cleaned);
       const wordData = foundWord?.data ?? foundWord;
       setWordLookup({ exists: true, word: wordData });
     } catch (err: any) {
@@ -113,11 +116,11 @@ export default function ChapterReaderPage() {
     (word: string, rate: number = 1) => {
       if (!word || !("speechSynthesis" in window)) return;
       const utterance = new SpeechSynthesisUtterance(word);
-      utterance.lang = getSpeechLocale("en");
+      utterance.lang = getSpeechLocale(user?.language);
       utterance.rate = rate;
       window.speechSynthesis.speak(utterance);
     },
-    []
+    [user?.language]
   );
 
   useEffect(() => {
