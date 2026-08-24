@@ -10,7 +10,8 @@ import { wordService } from "@/services/wordService";
 import { useChapterGenerator } from "@/shared/hooks/useChapterGenerator";
 import { IStory, VocabReport } from "@/types/models/Story";
 import { IWord } from "@/types/models/Word";
-import { ArrowLeft, Volume2, Loader2, Subtitles, BookOpen, BookPlus, ChevronLeft, ChevronRight, ListTodo } from "lucide-react";
+import { ArrowLeft, Volume2, Loader2, Subtitles, BookOpen, ChevronLeft, ChevronRight, ListTodo, Sparkles } from "lucide-react";
+import { ActionButtonsHeader, HeaderAction } from "@/shared/components/ui/action-buttons-header";
 import { deliveryImageUrl } from "@/utils/common";
 import { cn } from "@/utils/common/classnames";
 import { getSpeechLocale } from "@/utils/common/speech";
@@ -216,49 +217,54 @@ export default function ChapterReaderPage() {
   const hasPrev = idx > 0;
   const hasNext = story && idx < story.chapters.length - 1;
 
+  const chapterActionsRaw: (HeaderAction | null)[] = [
+    !loading && story && story.chapters.some((ch) => (ch.targetVocabulary?.length ?? 0) > 0)
+      ? {
+          id: "vocab-report",
+          icon: <ListTodo className="h-4 w-4" />,
+          label: "Vocab report",
+          onClick: handleLoadVocabReport,
+          disabled: vocabReportLoading,
+        }
+      : null,
+    !loading && chapter
+      ? {
+          id: "audio",
+          icon: audioGenerating ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Volume2 className="h-4 w-4" />
+          ),
+          label: chapter.urlAudio ? "Regenerate audio" : "Generate audio",
+          onClick: handleGenerateAudio,
+          disabled: audioGenerating,
+        }
+      : null,
+    !loading && chapter?.urlAudio
+      ? {
+          id: "karaoke",
+          icon: <Subtitles className="h-4 w-4" />,
+          label: karaokeOn ? "Reading" : "Karaoke",
+          onClick: () => setKaraokeOn((v) => !v),
+          variant: karaokeOn ? "default" : "outline",
+        }
+      : null,
+    {
+      id: "back",
+      icon: <ArrowLeft className="h-4 w-4" />,
+      label: "Back to story",
+      onClick: () => navigate(`/stories/${id}`),
+    },
+  ];
+  const chapterActions: HeaderAction[] = chapterActionsRaw.filter(
+    (a): a is HeaderAction => a !== null
+  );
+
   return (
     <div className="">
       <PageHeader
         title={chapter?.title || "Chapter"}
-        actions={
-          <>
-            {!loading && story && story.chapters.some((ch) => (ch.targetVocabulary?.length ?? 0) > 0) && (
-              <Button variant="outline" size="sm" onClick={handleLoadVocabReport} disabled={vocabReportLoading}>
-                <ListTodo className="h-4 w-4 mr-2" />
-                Vocab report
-              </Button>
-            )}
-            {!loading && chapter && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleGenerateAudio}
-                disabled={audioGenerating}
-              >
-                {audioGenerating ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Volume2 className="h-4 w-4 mr-2" />
-                )}
-                {chapter.urlAudio ? "Regenerate audio" : "Generate audio"}
-              </Button>
-            )}
-            {!loading && chapter?.urlAudio && (
-              <Button
-                variant={karaokeOn ? "default" : "outline"}
-                size="sm"
-                onClick={() => setKaraokeOn((v) => !v)}
-              >
-                <Subtitles className="h-4 w-4 mr-2" />
-                {karaokeOn ? "Reading" : "Karaoke"}
-              </Button>
-            )}
-            <Button variant="outline" onClick={() => navigate(`/stories/${id}`)} size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to story
-            </Button>
-          </>
-        }
+        actions={<ActionButtonsHeader actions={chapterActions} />}
         footer={
           chapter?.urlAudio ? (
             <audio
@@ -289,12 +295,12 @@ export default function ChapterReaderPage() {
             <div className="flex items-center justify-between mb-4">
               <Button
                 variant="outline"
-                size="sm"
+                size="icon"
                 disabled={!hasPrev}
                 onClick={() => navigate(`/stories/${id}/chapter/${idx - 1}`)}
+                title="Previous chapter"
               >
-                <ChevronLeft className="h-4 w-4 mr-1" />
-                Previous
+                <ChevronLeft className="h-4 w-4" />
               </Button>
               <span className="text-sm text-muted-foreground">
                 Chapter {idx + 1} of {story.chapters.length}
@@ -302,20 +308,24 @@ export default function ChapterReaderPage() {
               {hasNext ? (
                 <Button
                   variant="outline"
-                  size="sm"
+                  size="icon"
                   onClick={() => navigate(`/stories/${id}/chapter/${idx + 1}`)}
+                  title="Next chapter"
                 >
-                  Next
-                  <ChevronRight className="h-4 w-4 ml-1" />
+                  <ChevronRight className="h-4 w-4" />
                 </Button>
               ) : (
-                <Button size="sm" onClick={() => setNextGenOpen(true)} disabled={generating}>
+                <Button
+                  size="icon"
+                  onClick={() => setNextGenOpen(true)}
+                  disabled={generating}
+                  title={generating ? "Generating..." : "Generate next chapter"}
+                >
                   {generating ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    <BookPlus className="h-4 w-4 mr-2" />
+                    <Sparkles className="h-4 w-4" />
                   )}
-                  {generating ? "Generating..." : "Generate next chapter"}
                 </Button>
               )}
             </div>

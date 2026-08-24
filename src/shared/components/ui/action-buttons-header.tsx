@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { ReactNode } from "react";
 import { Button } from "./button";
 import { MoreVertical } from "lucide-react";
 import {
@@ -7,124 +7,67 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./dropdown-menu";
-import Tippy from '@tippyjs/react';
-import 'tippy.js/dist/tippy.css';
-import './tippy-custom.css';
 
-interface ActionButton {
+export interface HeaderAction {
   id: string;
   icon: ReactNode;
+  label: string;
   onClick: () => void;
-  tooltip: string;
-  variant?: "default" | "outline" | "secondary";
   disabled?: boolean;
-  loading?: boolean;
-  badge?: {
-    count?: number;
-    text?: string;
-    variant?: "default" | "secondary";
-  };
-  detailedTooltip?: ReactNode;
+  variant?: "default" | "outline";
 }
 
 interface ActionButtonsHeaderProps {
-  actions: ActionButton[];
-  className?: string;
+  actions: HeaderAction[];
 }
 
-export function ActionButtonsHeader({ actions, className = "" }: ActionButtonsHeaderProps) {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+/**
+ * Responsive action list for PageHeader: full icon+label buttons on desktop,
+ * collapsed into a three-dot dropdown menu on mobile so the header never
+ * overflows/wraps.
+ */
+export function ActionButtonsHeader({ actions }: ActionButtonsHeaderProps) {
+  if (actions.length === 0) return null;
 
   return (
-    <div className={`flex items-center gap-1 ${className}`}>
-      {/* Desktop Actions */}
-      <div className="hidden sm:flex items-center gap-1.5">
+    <>
+      <div className="hidden sm:flex items-center gap-2">
         {actions.map((action) => (
-          <Tippy
+          <Button
             key={action.id}
-            content={
-              action.detailedTooltip ? (
-                <div className="tippy-content-wrapper">
-                  {action.detailedTooltip}
-                </div>
-              ) : (
-                action.tooltip
-              )
-            }
-            delay={[0, 0]}
-            placement="top"
-            className="z-[9999]"
-            arrow={true}
-            theme="custom-dark"
-            maxWidth={300}
-            offset={[0, 8]}
-            animation="scale"
-            allowHTML={true}
+            variant={action.variant || "outline"}
+            size="sm"
+            onClick={action.onClick}
+            disabled={action.disabled}
           >
-            <Button
-              variant={action.variant || "outline"}
-              size="sm"
-              onClick={action.onClick}
-              disabled={action.disabled || action.loading}
-              className="h-8 w-8 p-0 relative"
-            >
-              {action.icon}
-              {action.badge && (action.badge.count || action.badge.text) && (
-                <span className={`absolute -top-1 -right-1 h-4 w-4 p-0 text-[10px] flex items-center justify-center rounded-full ${
-                  action.badge.variant === "default" 
-                    ? "bg-green-600 text-white" 
-                    : "bg-secondary text-secondary-foreground"
-                }`}>
-                  {action.badge.count || action.badge.text}
-                </span>
-              )}
-            </Button>
-          </Tippy>
+            <span className="mr-2 flex items-center">{action.icon}</span>
+            {action.label}
+          </Button>
         ))}
       </div>
-      
-      {/* Mobile Actions Menu */}
+
       <div className="sm:hidden">
-        <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+        <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 w-8 p-0"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
+            <Button variant="outline" size="sm" className="h-8 w-8 p-0">
               <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuContent align="end" className="w-56">
             {actions.map((action) => (
               <DropdownMenuItem
                 key={action.id}
-                onClick={() => {
-                  action.onClick();
-                  setIsMenuOpen(false);
-                }}
-                disabled={action.disabled || action.loading}
+                onClick={action.onClick}
+                disabled={action.disabled}
                 className="flex items-center gap-3 cursor-pointer"
               >
-                <div className="flex items-center justify-center w-5 h-5">
-                  {action.icon}
-                </div>
-                <span className="flex-1">{action.tooltip}</span>
-                {action.badge && (action.badge.count || action.badge.text) && (
-                  <span className={`ml-auto px-1.5 py-0.5 text-[10px] rounded-full ${
-                    action.badge.variant === "default" 
-                      ? "bg-green-600 text-white" 
-                      : "bg-secondary text-secondary-foreground"
-                  }`}>
-                    {action.badge.count || action.badge.text}
-                  </span>
-                )}
+                {action.icon}
+                <span>{action.label}</span>
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-    </div>
+    </>
   );
 }

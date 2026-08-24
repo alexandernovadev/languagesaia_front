@@ -11,6 +11,7 @@ import { wordService } from "@/services/wordService";
 import { ILecture } from "@/types/models/Lecture";
 import { IWord } from "@/types/models/Word";
 import { ArrowLeft, Clock, BookOpen, Volume2, Loader2, Subtitles, BookPlus } from "lucide-react";
+import { ActionButtonsHeader, HeaderAction } from "@/shared/components/ui/action-buttons-header";
 import { deliveryImageUrl, getDifficultyVariant } from "@/utils/common";
 import { cn } from "@/utils/common/classnames";
 import { useSidebar } from "@/shared/components/ui/sidebar";
@@ -285,57 +286,57 @@ export default function LectureDetailPage() {
     };
   }, []);
 
+  const lectureActionsRaw: (HeaderAction | null)[] = [
+    !loading && lecture
+      ? {
+          id: "continue",
+          icon: continuing ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <BookPlus className="h-4 w-4" />
+          ),
+          label: continuing ? "Continuando..." : "Continuar historia",
+          onClick: openContinueModal,
+          disabled: continuing || !lecture.content?.trim(),
+        }
+      : null,
+    !loading && lecture
+      ? {
+          id: "audio",
+          icon: audioGenerating ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Volume2 className="h-4 w-4" />
+          ),
+          label: lecture.urlAudio ? "Regenerar audio" : "Generar audio",
+          onClick: handleGenerateAudio,
+          disabled: audioGenerating,
+        }
+      : null,
+    !loading && lecture?.urlAudio
+      ? {
+          id: "karaoke",
+          icon: <Subtitles className="h-4 w-4" />,
+          label: karaokeOn ? "Lectura" : "Karaoke",
+          onClick: () => setKaraokeOn((v) => !v),
+          variant: karaokeOn ? "default" : "outline",
+        }
+      : null,
+    {
+      id: "back",
+      icon: <ArrowLeft className="h-4 w-4" />,
+      label: "Volver",
+      onClick: () => navigate("/lectures"),
+    },
+  ];
+  const lectureActions: HeaderAction[] = lectureActionsRaw.filter(
+    (a): a is HeaderAction => a !== null
+  );
+
   return (
     <div>
       <PageHeader
-        actions={
-          <>
-            {!loading && lecture && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={openContinueModal}
-                disabled={continuing || !lecture.content?.trim()}
-              >
-                {continuing ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <BookPlus className="h-4 w-4 mr-2" />
-                )}
-                {continuing ? "Continuando..." : "Continuar historia"}
-              </Button>
-            )}
-            {!loading && lecture && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleGenerateAudio}
-                disabled={audioGenerating}
-              >
-                {audioGenerating ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Volume2 className="h-4 w-4 mr-2" />
-                )}
-                {lecture.urlAudio ? "Regenerar audio" : "Generar audio"}
-              </Button>
-            )}
-            {!loading && lecture?.urlAudio && (
-              <Button
-                variant={karaokeOn ? "default" : "outline"}
-                size="sm"
-                onClick={() => setKaraokeOn((v) => !v)}
-              >
-                <Subtitles className="h-4 w-4 mr-2" />
-                {karaokeOn ? "Lectura" : "Karaoke"}
-              </Button>
-            )}
-            <Button variant="outline" onClick={() => navigate("/lectures")} size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver
-            </Button>
-          </>
-}
+        actions={<ActionButtonsHeader actions={lectureActions} />}
         footer={
           lecture?.urlAudio ? (
             <audio

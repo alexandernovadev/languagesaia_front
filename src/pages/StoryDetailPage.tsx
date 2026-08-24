@@ -11,6 +11,7 @@ import { IStory, IChapter } from "@/types/models/Story";
 import { CertificationLevel } from "@/types/business";
 import { storyGenres } from "@/types/business/storyGenres";
 import { ArrowLeft, BookOpen, BookPlus, Loader2, Edit, Trash2, BookOpenText } from "lucide-react";
+import { ActionButtonsHeader, HeaderAction } from "@/shared/components/ui/action-buttons-header";
 import { deliveryImageUrl, getDifficultyVariant } from "@/utils/common";
 import { cn } from "@/utils/common/classnames";
 import { toast } from "sonner";
@@ -86,30 +87,39 @@ export default function StoryDetailPage() {
 
   const genreLabel = storyGenres.find((g) => g.value === story?.genre)?.label || story?.genre;
 
+  const storyActionsRaw: (HeaderAction | null)[] = [
+    !loading && story
+      ? {
+          id: "edit",
+          icon: <Edit className="h-4 w-4" />,
+          label: "Edit",
+          onClick: () => navigate(`/stories/${id}/edit`),
+        }
+      : null,
+    !loading && story
+      ? {
+          id: "delete",
+          icon: <Trash2 className="h-4 w-4" />,
+          label: "Delete",
+          onClick: () => setDeleteOpen(true),
+        }
+      : null,
+    {
+      id: "back",
+      icon: <ArrowLeft className="h-4 w-4" />,
+      label: "Back",
+      onClick: () => navigate("/stories"),
+    },
+  ];
+  const storyActions: HeaderAction[] = storyActionsRaw.filter(
+    (a): a is HeaderAction => a !== null
+  );
+
   return (
     <div className="">
       <PageHeader
         title={story?.title || "Story"}
-        actions={
-          <>
-            {!loading && story && (
-              <Button variant="outline" size="sm" onClick={() => navigate(`/stories/${id}/edit`)}>
-                <Edit className="h-4 w-4 mr-2" />
-                Edit
-              </Button>
-            )}
-            {!loading && story && (
-              <Button variant="outline" size="sm" onClick={() => setDeleteOpen(true)}>
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete
-              </Button>
-            )}
-            <Button variant="outline" onClick={() => navigate("/stories")} size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Button>
-          </>
-        }
+        actions={<ActionButtonsHeader actions={storyActions} />}
       />
 
       <PageLoader
