@@ -37,14 +37,13 @@ export function GenerateChapterModal({
   const [targetGrammar, setTargetGrammar] = useState<string[]>([]);
 
   const chapterNumber = story.chapters.length + 1;
-  const lastChapter = story.chapters[story.chapters.length - 1];
 
   useEffect(() => {
     if (open) {
       setInstructions("");
       setRequestEnding(false);
-      setTargetVocab(lastChapter?.targetVocabulary || []);
-      setTargetGrammar(lastChapter?.targetGrammar || []);
+      setTargetVocab([]);
+      setTargetGrammar([]);
     }
   }, [open]);
 
