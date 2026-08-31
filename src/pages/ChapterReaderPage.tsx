@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { PageHeader } from "@/shared/components/ui/page-header";
 import { Button } from "@/shared/components/ui/button";
@@ -10,7 +10,7 @@ import { wordService } from "@/services/wordService";
 import { useChapterGenerator } from "@/shared/hooks/useChapterGenerator";
 import { IStory, VocabReport } from "@/types/models/Story";
 import { IWord } from "@/types/models/Word";
-import { ArrowLeft, Volume2, Loader2, Subtitles, BookOpen, ChevronLeft, ChevronRight, ListTodo, Sparkles, Edit } from "lucide-react";
+import { ArrowLeft, Volume2, Loader2, BookOpen, ChevronLeft, ChevronRight, ListTodo, Sparkles, Edit } from "lucide-react";
 import { Input } from "@/shared/components/ui/input";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { Label } from "@/shared/components/ui/label";
@@ -22,7 +22,6 @@ import { cleanWord } from "@/utils/common/string";
 import { toast } from "sonner";
 import { WordDetailModal } from "@/shared/components/dialogs/WordDetailModal";
 import { WordLookupPanel } from "@/shared/components/lecture/WordLookupPanel";
-import KaraokeView from "@/shared/components/lecture/KaraokeView";
 import { MarkdownRenderer } from "@/shared/components/ui/markdown-renderer";
 import { ModalNova } from "@/shared/components/ui/modal-nova";
 import { useSidebar } from "@/shared/components/ui/sidebar";
@@ -40,10 +39,6 @@ export default function ChapterReaderPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [audioGenerating, setAudioGenerating] = useState(false);
-  const [karaokeOn, setKaraokeOn] = useState(true);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [audioDuration, setAudioDuration] = useState(0);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Word lookup state
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
@@ -162,22 +157,20 @@ export default function ChapterReaderPage() {
     }
   }, [selectedWord]);
 
-  const handleKaraokeWordClick = useCallback(
-    (word: string, start?: number) => {
-      if (start != null && audioRef.current) {
-        audioRef.current.currentTime = start;
-      }
-      handleWordClick(word);
-    },
-    [handleWordClick]
-  );
-
   const handleGenerateAudio = useCallback(async () => {
     if (!story || !id) return;
     setAudioGenerating(true);
     try {
-      // TODO: Implement chapter audio endpoint
-      toast.info("Audio generation coming soon");
+      const audio = await storyService.generateChapterAudio(id, idx);
+      setStory((current) => current ? {
+        ...current,
+        chapters: current.chapters.map((currentChapter, chapterIdx) =>
+          chapterIdx === idx
+            ? { ...currentChapter, urlAudio: audio.urlAudio, audioRecordId: audio.recordId, voice: audio.voice }
+            : currentChapter
+        ),
+      } : current);
+      toast.success("Audio generated successfully");
     } catch (err: any) {
       toast.error(err.response?.data?.message || err.message || "Error generating audio");
     } finally {
@@ -324,15 +317,6 @@ export default function ChapterReaderPage() {
           disabled: audioGenerating,
         }
       : null,
-    !loading && chapter?.urlAudio
-      ? {
-          id: "karaoke",
-          icon: <Subtitles className="h-4 w-4" />,
-          label: karaokeOn ? "Reading" : "Karaoke",
-          onClick: () => setKaraokeOn((v) => !v),
-          variant: karaokeOn ? "default" : "outline",
-        }
-      : null,
     {
       id: "back",
       icon: <ArrowLeft className="h-4 w-4" />,
@@ -352,13 +336,10 @@ export default function ChapterReaderPage() {
         footer={
           chapter?.urlAudio ? (
             <audio
-              ref={audioRef}
+              key={chapter.urlAudio}
               controls
               className="w-full h-9 pt-1"
               preload="metadata"
-              onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
-              onLoadedMetadata={(e) => setAudioDuration(e.currentTarget.duration)}
-              onDurationChange={(e) => setAudioDuration(e.currentTarget.duration)}
             >
               <source src={chapter.urlAudio} type="audio/mpeg" />
               Your browser does not support the audio element.
@@ -400,23 +381,13 @@ export default function ChapterReaderPage() {
             <Card>
               <CardContent className="p-4 sm:p-6 md:p-8">
                 <div className="pb-12">
-                  {chapter.urlAudio && karaokeOn ? (
-                    <KaraokeView
+                  <div className="select-text">
+                    <MarkdownRenderer
                       content={chapter.content}
-                      currentTime={currentTime}
-                      duration={audioDuration}
-                      onWordClick={handleKaraokeWordClick}
+                      variant="reading"
+                      onWordClick={handleWordClick}
                     />
-                  ) : (
-                    <div className="select-text">
-                      <MarkdownRenderer
-                        content={chapter.content}
-                        variant="reading"
-                        onWordClick={handleWordClick}
-                        highlightWords={chapter.targetVocabulary}
-                      />
-                    </div>
-                  )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
