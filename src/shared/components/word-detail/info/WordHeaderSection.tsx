@@ -1,58 +1,18 @@
-import { useState } from "react";
-import { Languages, TrendingUp, Sparkles } from "lucide-react";
+import { Languages, TrendingUp } from "lucide-react";
 import { IWord } from "@/types/models/Word";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
-import { AlertDialogNova } from "@/shared/components/ui/alert-dialog-nova";
 import { getDifficultyVariant } from "@/utils/common";
-import { cn } from "@/utils/common/classnames";
 
 interface WordHeaderSectionProps {
   word: IWord;
-  onRefreshAll?: () => void;
-  loadingAll?: boolean;
   onUpdateDifficulty?: (difficulty: string) => void;
 }
 
-export function WordHeaderSection({ word, onRefreshAll, loadingAll = false, onUpdateDifficulty }: WordHeaderSectionProps) {
-  const [refreshConfirmOpen, setRefreshConfirmOpen] = useState(false);
-
+export function WordHeaderSection({ word, onUpdateDifficulty }: WordHeaderSectionProps) {
   return (
     <section className="relative">
-      {onRefreshAll && (
-        <>
-          <Button
-            onClick={() => setRefreshConfirmOpen(true)}
-            disabled={loadingAll}
-            variant="outline"
-            size="icon"
-            title="Refresh All Data with AI"
-            className={cn(
-              "absolute top-2 right-2 sm:top-3 sm:right-3 z-10 shadow-md h-9 w-9"
-            )}
-          >
-            <Sparkles className={cn("h-4 w-4", loadingAll && "animate-spin")} />
-          </Button>
-          <AlertDialogNova
-            open={refreshConfirmOpen}
-            onOpenChange={setRefreshConfirmOpen}
-            title="¿Rehacer toda la información?"
-            description={
-              <span>
-                ¿Está seguro de rehacer toda la información de &quot;{word.word}&quot;? La IA regenerará definición, ejemplos, sinónimos y más.
-              </span>
-            }
-            onConfirm={() => {
-              setRefreshConfirmOpen(false);
-              onRefreshAll();
-            }}
-            confirmText="Sí, rehacer"
-            cancelText="Cancelar"
-            loading={loadingAll}
-          />
-        </>
-      )}
-      <div className={cn(onRefreshAll && "pr-12 sm:pr-14")}>
+      <div>
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">

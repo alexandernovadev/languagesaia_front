@@ -108,11 +108,11 @@ export default function ChapterReaderPage() {
     (word: string, rate: number = 1) => {
       if (!word || !("speechSynthesis" in window)) return;
       const utterance = new SpeechSynthesisUtterance(word);
-      utterance.lang = getSpeechLocale(user?.language);
+      utterance.lang = getSpeechLocale(story?.language || user?.language);
       utterance.rate = rate;
       window.speechSynthesis.speak(utterance);
     },
-    [user?.language]
+    [story?.language, user?.language]
   );
 
   const handleWordClick = useCallback(async (word: string) => {
@@ -174,7 +174,7 @@ export default function ChapterReaderPage() {
     if (!selectedWord) return;
     setAddingWord(true);
     try {
-      const response = await wordService.generateWord(selectedWord, "en");
+      const response = await wordService.generateWord(selectedWord, story?.language || user?.language || "en");
       const wordData = response?.data ?? response;
       setWordLookup({ exists: true, word: wordData });
       setDetailModalWordId(wordData._id);
@@ -185,7 +185,7 @@ export default function ChapterReaderPage() {
     } finally {
       setAddingWord(false);
     }
-  }, [selectedWord]);
+  }, [selectedWord, story?.language, user?.language]);
 
   const handleGenerateAudio = useCallback(async () => {
     if (!story || !id) return;

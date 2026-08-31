@@ -66,7 +66,7 @@ export function WordDetailModal({
       height="h-[95dvh]"
       title={word.word[0]?.toUpperCase() + word.word.slice(1)}
     >
-      <div className="flex flex-col h-full pb-4">
+      <div className="flex flex-col h-full pb-5">
         <div className="flex-1 min-h-0">
           <WordDetailTabs
             word={word}

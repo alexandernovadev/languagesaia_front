@@ -1,4 +1,8 @@
+import { useState } from "react";
+import { Sparkles } from "lucide-react";
 import { IWord } from "@/types/models/Word";
+import { Button } from "@/shared/components/ui/button";
+import { AlertDialogNova } from "@/shared/components/ui/alert-dialog-nova";
 import { WordImageSection } from "./WordImageSection";
 import { WordHeaderSection } from "./WordHeaderSection";
 import { WordDefinitionSection } from "./WordDefinitionSection";
@@ -40,6 +44,8 @@ export function WordInfoTab({
   onRefreshAll,
   onUpdateDifficulty,
 }: WordInfoTabProps) {
+  const [refreshConfirmOpen, setRefreshConfirmOpen] = useState(false);
+
   return (
     <div className="px-4 sm:px-6 py-4 flex-1 min-h-0 space-y-6">
       <WordImageSection
@@ -50,8 +56,6 @@ export function WordInfoTab({
       
       <WordHeaderSection 
         word={word}
-        onRefreshAll={onRefreshAll}
-        loadingAll={loadingAll}
         onUpdateDifficulty={onUpdateDifficulty}
       />
       
@@ -80,6 +84,36 @@ export function WordInfoTab({
         onRefresh={onRefreshCodeSwitching}
         loading={loadingCodeSwitching}
       />
+
+      {onRefreshAll && (
+        <>
+          <Button
+            className="w-full mb-2"
+            onClick={() => setRefreshConfirmOpen(true)}
+            disabled={loadingAll}
+          >
+            <Sparkles className={loadingAll ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
+            REGENERAR TODO
+          </Button>
+          <AlertDialogNova
+            open={refreshConfirmOpen}
+            onOpenChange={setRefreshConfirmOpen}
+            title="¿Rehacer toda la información?"
+            description={
+              <span>
+                ¿Está seguro de rehacer toda la información de &quot;{word.word}&quot;? La IA regenerará definición, ejemplos, sinónimos y más.
+              </span>
+            }
+            onConfirm={() => {
+              setRefreshConfirmOpen(false);
+              onRefreshAll();
+            }}
+            confirmText="Sí, rehacer"
+            cancelText="Cancelar"
+            loading={loadingAll}
+          />
+        </>
+      )}
     </div>
   );
 }

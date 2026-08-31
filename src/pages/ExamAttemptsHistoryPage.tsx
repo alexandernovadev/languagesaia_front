@@ -106,13 +106,16 @@ export default function ExamAttemptsHistoryPage() {
   const loading = examLoading || attemptsLoading;
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <PageHeader title={exam ? `Intentos: ${exam.title}` : "Intentos"} />
-
-      <Button variant="outline" size="sm" onClick={() => navigate("/exams")} className="mb-4">
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Volver a Exámenes
-      </Button>
+    <div className="">
+      <PageHeader
+        title={exam ? `Intentos: ${exam.title}` : "Intentos"}
+        actions={
+          <Button variant="outline" size="sm" onClick={() => navigate("/exams")}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Volver
+          </Button>
+        }
+      />
 
       {loading ? (
         <div className="space-y-3">

@@ -81,7 +81,7 @@ export function AnkiCard({ word, isFlipped, onFlip }: AnkiCardProps) {
 
   return (
     <div
-      className="relative w-full h-[90dvh] cursor-pointer"
+      className="relative w-full h-[90dvh] cursor-pointer pb-6"
       style={{ perspective: '1000px' }}
       onClick={handleFlip}
     >
@@ -122,17 +122,17 @@ export function AnkiCard({ word, isFlipped, onFlip }: AnkiCardProps) {
             {/* Info: zona inferior fija */}
             <div className="flex flex-col items-center gap-2 px-6 pb-6 pt-3">
               <div className="flex items-center gap-2">
-                <button
-                  onClick={(e) => handleAudioClick(e, 1)}
-                  className="p-2 border rounded-lg hover:bg-muted transition-colors hover:scale-110"
-                  title="Reproducir velocidad normal"
-                >
-                  <Volume2 className="h-5 w-5" />
-                </button>
-                <button
-                  onClick={(e) => handleAudioClick(e, 0.1)}
-                  className="p-2 border rounded-lg hover:bg-muted transition-colors hover:scale-110 text-xl leading-none"
-                  title="Reproducir velocidad lenta"
+                  <button
+                   onClick={(e) => handleAudioClick(e, 1)}
+                   className="size-12 border border-white rounded-lg hover:bg-muted transition-colors hover:scale-110 shadow-lg backdrop-blur-sm bg-background/80 flex items-center justify-center"
+                   title="Reproducir velocidad normal"
+                 >
+                   <Volume2 className="h-6 w-6" />
+                 </button>
+                 <button
+                   onClick={(e) => handleAudioClick(e, 0.1)}
+                   className="size-12 border border-white rounded-lg hover:bg-muted transition-colors hover:scale-110 shadow-lg backdrop-blur-sm bg-background/80 text-[32px] leading-none flex items-center justify-center"
+                   title="Reproducir velocidad lenta"
                 >
                   🐢
                 </button>
