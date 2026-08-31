@@ -9,11 +9,9 @@ import { Toaster } from "./shared/components/ui/sonner";
 
 // Importar todas las rutas lazy load
 import {
-  DashboardPage,
   LecturesPage,
   LectureDetailPage,
   AnkiGamePage,
-  LectureGeneratorPage,
   SettingsPage,
   ImportSettingsPage,
   ExportSettingsPage,
@@ -66,14 +64,7 @@ export default function App() {
               <DashboardLayout>
                 <Routes>
                   {/* Rutas protegidas */}
-                  <Route
-                    path="/"
-                    element={
-                      <ProtectedRoute>
-                        <DashboardPage />
-                      </ProtectedRoute>
-                    }
-                  />
+                  <Route path="/" element={<Navigate to="/lectures" replace />} />
                   <Route
                     path="/lectures"
                     element={
@@ -95,14 +86,6 @@ export default function App() {
                     element={
                       <ProtectedRoute>
                         <AnkiGamePage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/generator/lecture"
-                    element={
-                      <ProtectedRoute>
-                        <LectureGeneratorPage />
                       </ProtectedRoute>
                     }
                   />

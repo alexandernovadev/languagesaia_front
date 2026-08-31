@@ -1,7 +1,6 @@
 import { axiosClient as api } from "./api/HttpClient";
 import { wordService } from "./wordService";
 import { expressionService } from "./expressionService";
-import { lectureService } from "./lectureService";
 import { userService } from "./userService";
 
 /**
@@ -70,33 +69,6 @@ export const exportService = {
     } catch (error: any) {
       throw new Error(
         error.response?.data?.message || "Error al exportar expresiones"
-      );
-    }
-  },
-
-  /**
-   * Export lectures to JSON file
-   */
-  async exportLectures() {
-    try {
-      const response = await api.get("/api/lectures/export-file", {
-        responseType: "blob",
-      });
-
-      const contentDisposition = response.headers["content-disposition"];
-      let filename = "lectures-export.json";
-      if (contentDisposition) {
-        const filenameMatch = contentDisposition.match(/filename="?(.+)"?/i);
-        if (filenameMatch) {
-          filename = filenameMatch[1];
-        }
-      }
-
-      downloadFile(response.data, filename);
-      return { success: true, filename };
-    } catch (error: any) {
-      throw new Error(
-        error.response?.data?.message || "Error al exportar lecturas"
       );
     }
   },

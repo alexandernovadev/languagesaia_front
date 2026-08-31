@@ -4,9 +4,9 @@ import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { exportService } from "@/services/exportService";
 import { toast } from "sonner";
-import { Download, Loader2, BookOpen, MessageSquare, Users, FileText, GraduationCap } from "lucide-react";
+import { Download, Loader2, BookOpen, MessageSquare, Users, GraduationCap } from "lucide-react";
 
-type ExportType = "words" | "expressions" | "lectures" | "users" | "exams" | null;
+type ExportType = "words" | "expressions" | "users" | "exams" | null;
 
 export default function ExportSettingsPage() {
   const [loading, setLoading] = useState<ExportType>(null);
@@ -25,10 +25,6 @@ export default function ExportSettingsPage() {
         case "expressions":
           result = await exportService.exportExpressions();
           toast.success(`Expresiones exportadas exitosamente: ${result.filename}`);
-          break;
-        case "lectures":
-          result = await exportService.exportLectures();
-          toast.success(`Lecturas exportadas exitosamente: ${result.filename}`);
           break;
         case "users":
           result = await exportService.exportUsers();
@@ -60,13 +56,6 @@ export default function ExportSettingsPage() {
       description: "Exporta todas las expresiones idiomáticas a un archivo JSON",
       icon: MessageSquare,
       color: "text-green-600",
-    },
-    {
-      type: "lectures" as ExportType,
-      title: "Exportar Lecturas",
-      description: "Exporta todas las lecturas y contenido educativo a un archivo JSON",
-      icon: FileText,
-      color: "text-purple-600",
     },
     {
       type: "users" as ExportType,

@@ -77,34 +77,6 @@ export const lectureService = {
     return res.data.data;
   },
 
-  async putLectureImage(idlecture: string, lectureString: string, imgOld: string) {
-    const trimmedLectureString = lectureString.slice(0, 3500);
-    const res = await api.post(`/api/lectures/generate-image/${idlecture}`, {
-      lectureString: trimmedLectureString,
-      imgOld,
-    });
-    return res.data;
-  },
-
-  // --- AI Generation ---
-  // Note: Streaming is handled directly with fetch in useLectureGenerator hook
-  // These methods are kept for backward compatibility but may not be used
-  async generateLectureText(body: Record<string, any>) {
-    // body: { prompt, level, typeWrite, addEasyWords, language, ... }
-    const res = await api.post(`/api/lectures/generate-text`, body, {
-      responseType: "stream", // Si usas streaming en el frontend
-    });
-    return res;
-  },
-
-  async generateLectureTopic(body: Record<string, any>) {
-    // body: { existingText, type }
-    const res = await api.post(`/api/lectures/generate-topic-stream`, body, {
-      responseType: "stream", // Si usas streaming en el frontend
-    });
-    return res;
-  },
-
   // Stream the continuation of an existing lecture (native fetch)
   async continueLecture(id: string, body: Record<string, any>, signal?: AbortSignal) {
     const token = localStorage.getItem("user-storage")

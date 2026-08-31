@@ -1,5 +1,4 @@
 import {
-  Home,
   Settings,
   BookOpen,
   RotateCcw,
@@ -9,7 +8,6 @@ import {
   FileUp,
   FileSpreadsheet,
   Info,
-  BookOpenCheck,
   Quote,
   Sparkles,
   FileCode,
@@ -20,11 +18,6 @@ import {
 } from "lucide-react";
 
 export const menuItems = [
-  {
-    title: "Inicio",
-    url: "/",
-    icon: Home,
-  },
   {
     title: "Lecturas",
     url: "/lectures",
@@ -53,11 +46,6 @@ export const menuItems = [
 ];
 
 export const generatorItems = [
-  {
-    title: "Generador de Lecturas",
-    url: "/generator/lecture",
-    icon: BookOpenCheck,
-  },
   {
     title: "Generador de Exámenes",
     url: "/exams/generator",

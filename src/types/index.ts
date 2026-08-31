@@ -13,6 +13,3 @@ export * from './business/index';
 
 // Domain models
 export * from './models/index';
-
-// Statistics types
-export * from './stats';
