@@ -120,4 +120,14 @@ export const storyService = {
     const res = await api.post(`/api/stories/generate-idea`, { seed, genre, languageLevel });
     return res.data.data as { title: string; description: string };
   },
+
+  async translateSelection(text: string, targetLanguage: string) {
+    const res = await api.post(`/api/stories/selection/translate`, { text, targetLanguage });
+    return res.data.data as { translation: string };
+  },
+
+  async classifySelection(text: string) {
+    const res = await api.post(`/api/stories/selection/classify`, { text });
+    return res.data.data as { is_phrasalVerb: boolean; is_commonWord: boolean; is_expression: boolean };
+  },
 };

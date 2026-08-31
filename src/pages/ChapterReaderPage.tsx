@@ -7,10 +7,11 @@ import { Badge } from "@/shared/components/ui/badge";
 import { PageLoader } from "@/shared/components/ui/page-loader";
 import { storyService } from "@/services/storyService";
 import { wordService } from "@/services/wordService";
+import { expressionService } from "@/services/expressionService";
 import { useChapterGenerator } from "@/shared/hooks/useChapterGenerator";
 import { IStory, VocabReport } from "@/types/models/Story";
 import { IWord } from "@/types/models/Word";
-import { ArrowLeft, Volume2, Loader2, Subtitles, BookOpen, ChevronLeft, ChevronRight, ListTodo, Sparkles, Edit } from "lucide-react";
+import { ArrowLeft, Volume2, Loader2, Subtitles, BookOpen, ChevronLeft, ChevronRight, ListTodo, Sparkles, Edit, Plus } from "lucide-react";
 import { Input } from "@/shared/components/ui/input";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { Label } from "@/shared/components/ui/label";
@@ -29,6 +30,8 @@ import { ModalNova } from "@/shared/components/ui/modal-nova";
 import { useSidebar } from "@/shared/components/ui/sidebar";
 import { GenerateChapterModal } from "@/shared/components/story/GenerateChapterModal";
 import { useAuth } from "@/shared/hooks/useAuth";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
+import { Speech } from "lucide-react";
 
 export default function ChapterReaderPage() {
   const { id, chapterIndex } = useParams<{ id: string; chapterIndex: string }>();
@@ -44,6 +47,21 @@ export default function ChapterReaderPage() {
   const [karaokeOn, setKaraokeOn] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
   const [pinnedWordIndex, setPinnedWordIndex] = useState<number | null>(null);
+  const [selectedText, setSelectedText] = useState("");
+  const [selectionBubble, setSelectionBubble] = useState(false);
+  const [selectionModalOpen, setSelectionModalOpen] = useState(false);
+  const [translationLoading, setTranslationLoading] = useState(false);
+  const [translationError, setTranslationError] = useState<string | null>(null);
+  const [selectionTranslation, setSelectionTranslation] = useState<string>("");
+  const [classificationLoading, setClassificationLoading] = useState(false);
+  const [classificationError, setClassificationError] = useState<string | null>(null);
+  const [selectionClassification, setSelectionClassification] = useState<{
+    is_phrasalVerb: boolean;
+    is_commonWord: boolean;
+    is_expression: boolean;
+  } | null>(null);
+  const [addingWordFromSelection, setAddingWordFromSelection] = useState(false);
+  const [addingExpressionFromSelection, setAddingExpressionFromSelection] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   // Set right before we programmatically seek from a karaoke word click, so the
   // resulting "seeked" event doesn't clear the pin we just set.
@@ -85,6 +103,70 @@ export default function ChapterReaderPage() {
   useEffect(() => {
     if (id) loadStory();
   }, [id]);
+
+  useEffect(() => {
+    let debounceTimer: ReturnType<typeof setTimeout>;
+    const handleSelectionChange = () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        const selection = window.getSelection();
+        if (selection && selection.toString().trim().length > 0) {
+          const text = selection.toString().trim();
+          setSelectedText(text);
+          setSelectionBubble(true);
+        }
+      }, 500);
+    };
+    document.addEventListener("selectionchange", handleSelectionChange);
+    return () => {
+      document.removeEventListener("selectionchange", handleSelectionChange);
+      clearTimeout(debounceTimer);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!selectionModalOpen || !selectedText) return;
+    let cancelled = false;
+
+    setTranslationLoading(true);
+    setTranslationError(null);
+    setSelectionTranslation("");
+    setClassificationLoading(true);
+    setClassificationError(null);
+    setSelectionClassification(null);
+
+    storyService
+      .translateSelection(selectedText, user?.explainsLanguage || "es")
+      .then((result) => {
+        if (cancelled) return;
+        setSelectionTranslation(result.translation);
+      })
+      .catch((err: any) => {
+        if (cancelled) return;
+        setTranslationError(err.response?.data?.message || err.message || "Error al traducir la selección");
+      })
+      .finally(() => {
+        if (!cancelled) setTranslationLoading(false);
+      });
+
+    storyService
+      .classifySelection(selectedText)
+      .then((result) => {
+        if (cancelled) return;
+        setSelectionClassification(result);
+      })
+      .catch((err: any) => {
+        if (cancelled) return;
+        setClassificationError(err.response?.data?.message || err.message || "Error al clasificar la selección");
+      })
+      .finally(() => {
+        if (!cancelled) setClassificationLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectionModalOpen, selectedText, user?.explainsLanguage]);
 
   const loadStory = async () => {
     if (!id) return;
@@ -186,6 +268,48 @@ export default function ChapterReaderPage() {
       setAddingWord(false);
     }
   }, [selectedWord, story?.language, user?.language]);
+
+  const handleAddWordFromSelection = useCallback(async () => {
+    if (!selectedText) return;
+    setAddingWordFromSelection(true);
+    try {
+      const response = await wordService.generateWord(selectedText, story?.language || user?.language || "en");
+      const wordData = response?.data ?? response;
+      setDetailModalWordId(wordData._id);
+      setDetailModalOpen(true);
+      toast.success("Palabra agregada al diccionario");
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || "Error al agregar la palabra");
+    } finally {
+      setAddingWordFromSelection(false);
+    }
+  }, [selectedText, story?.language, user?.language]);
+
+  const handleAddExpressionFromSelection = useCallback(async () => {
+    if (!selectedText) return;
+    setAddingExpressionFromSelection(true);
+    try {
+      const language = story?.language || user?.language || "en";
+      const generated = await expressionService.generateExpression(selectedText, language);
+      const generatedData = generated.data?.data ?? generated.data;
+      await expressionService.createExpression({
+        expression: generatedData.expression || selectedText,
+        definition: generatedData.definition || "",
+        language: generatedData.language || language,
+        difficulty: generatedData.difficulty,
+        type: generatedData.type || [],
+        context: generatedData.context,
+        examples: generatedData.examples || [],
+        img: generatedData.img,
+        spanish: generatedData.spanish,
+      });
+      toast.success("Expresión agregada al diccionario");
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || "Error al agregar la expresión");
+    } finally {
+      setAddingExpressionFromSelection(false);
+    }
+  }, [selectedText, story?.language, user?.language]);
 
   const handleGenerateAudio = useCallback(async () => {
     if (!story || !id) return;
@@ -555,6 +679,133 @@ export default function ChapterReaderPage() {
             />
           </div>
         </div>
+      </ModalNova>
+
+      {/* Selection bubble */}
+      {selectionBubble && selectedText && (
+        <button
+          type="button"
+          onClick={() => {
+            setSelectionBubble(false);
+            setSelectionModalOpen(true);
+          }}
+          className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105"
+          title="Opciones del texto seleccionado"
+        >
+          <Speech className="h-6 w-6" />
+        </button>
+      )}
+
+      {/* Selection modal */}
+      <ModalNova
+        open={selectionModalOpen}
+        onOpenChange={setSelectionModalOpen}
+        title="Texto seleccionado"
+        size="3xl"
+        height="h-[80dvh]"
+      >
+        <Tabs defaultValue="ai" className="flex h-full flex-col">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="ai">IA</TabsTrigger>
+            <TabsTrigger value="translate">Traducir</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="ai" className="flex-1 overflow-y-auto p-4">
+            <p className="mb-3 text-sm text-muted-foreground">Selección:</p>
+            <p className="rounded-md border bg-muted/40 p-3 text-sm">{selectedText}</p>
+
+            <div className="mt-4 space-y-4">
+              <div>
+                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Traducción
+                </p>
+                {translationLoading ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Traduciendo...
+                  </div>
+                ) : translationError ? (
+                  <p className="text-sm text-destructive">{translationError}</p>
+                ) : (
+                  <p className="rounded-md border bg-muted/40 p-3 text-sm">{selectionTranslation}</p>
+                )}
+              </div>
+
+              <div>
+                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Clasificación
+                </p>
+                {classificationLoading ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Clasificando...
+                  </div>
+                ) : classificationError ? (
+                  <p className="text-sm text-destructive">{classificationError}</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {selectionClassification?.is_phrasalVerb && (
+                      <Badge variant="secondary">Phrasal verb</Badge>
+                    )}
+                    {selectionClassification?.is_commonWord && (
+                      <Badge variant="secondary">Common word</Badge>
+                    )}
+                    {selectionClassification?.is_expression && (
+                      <Badge variant="secondary">Expression</Badge>
+                    )}
+                  </div>
+                )}
+
+                {selectionClassification &&
+                  !classificationLoading &&
+                  !classificationError && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {(selectionClassification.is_phrasalVerb ||
+                        selectionClassification.is_commonWord) && (
+                        <Button
+                          size="sm"
+                          onClick={handleAddWordFromSelection}
+                          disabled={addingWordFromSelection}
+                        >
+                          {addingWordFromSelection ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Plus className="h-4 w-4" />
+                          )}
+                          Añadir al diccionario
+                        </Button>
+                      )}
+                      {selectionClassification.is_expression && (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={handleAddExpressionFromSelection}
+                          disabled={addingExpressionFromSelection}
+                        >
+                          {addingExpressionFromSelection ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Plus className="h-4 w-4" />
+                          )}
+                          Añadir expresión
+                        </Button>
+                      )}
+                    </div>
+                  )}
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="translate" className="flex-1 overflow-hidden p-0">
+            <iframe
+              src={`https://translate.google.com/?sl=auto&tl=${user?.explainsLanguage || "es"}&text=${encodeURIComponent(
+                selectedText
+              )}&op=translate`}
+              className="h-[70dvh] w-full"
+              title="Google Translate"
+            />
+          </TabsContent>
+        </Tabs>
       </ModalNova>
     </div>
   );
