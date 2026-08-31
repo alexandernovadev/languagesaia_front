@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { axiosClient as api } from "@/services/api/HttpClient";
 
-export type ImportType = "words" | "expressions" | "exams";
+export type ImportType = "words" | "expressions" | "exams" | "stories";
 export type DuplicateStrategy = "skip" | "overwrite" | "merge" | "error";
 
 export interface ValidationResult {
@@ -47,6 +47,7 @@ export function useImport(type: ImportType) {
       words: "/api/words/import-file",
       expressions: "/api/expressions/import-file",
       exams: "/api/exams/import-file",
+      stories: "/api/stories/import-file",
     };
     return endpoints[type];
   };
@@ -85,7 +86,7 @@ export function useImport(type: ImportType) {
       if (response.data.success) {
         const data = response.data.data;
         setValidationResult({
-          total: data.totalWords || data.totalExpressions || data.totalExams || 0,
+           total: data.totalWords || data.totalExpressions || data.totalExams || data.totalStories || 0,
           valid: data.valid || 0,
           invalid: data.invalid || 0,
           validationResults: data.validationResults || [],
@@ -139,10 +140,10 @@ export function useImport(type: ImportType) {
         const data = response.data.data;
         
         setImportResult({
-          imported: data.imported || data.created || 0,
-          updated: data.updated || 0,
-          skipped: data.skipped || 0,
-          errors: data.failed || data.errors || 0,
+           imported: data.imported || data.created || data.totalInserted || 0,
+           updated: data.updated || data.totalUpdated || 0,
+           skipped: data.skipped || data.totalSkipped || 0,
+           errors: data.failed || data.errors || data.totalErrors || 0,
           errorDetails: data.errorDetails || [],
         });
 

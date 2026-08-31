@@ -126,4 +126,23 @@ export const exportService = {
       );
     }
   },
+
+  /** Export stories, chapters and reading progress to one JSON backup. */
+  async exportStories() {
+    try {
+      const response = await api.get("/api/stories/export-file", {
+        responseType: "blob",
+      });
+      const contentDisposition = response.headers["content-disposition"];
+      let filename = "stories-export.json";
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="?(.+)"?/i);
+        if (filenameMatch) filename = filenameMatch[1];
+      }
+      downloadFile(response.data, filename);
+      return { success: true, filename };
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "Error al exportar stories");
+    }
+  },
 };

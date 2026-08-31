@@ -10,10 +10,11 @@ export default function ImportSettingsPage() {
       />
       
       <Tabs defaultValue="words" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="words">Words</TabsTrigger>
           <TabsTrigger value="expressions">Expressions</TabsTrigger>
           <TabsTrigger value="exams">Exams</TabsTrigger>
+          <TabsTrigger value="stories">Stories</TabsTrigger>
         </TabsList>
 
         <TabsContent value="words" className="mt-4">
@@ -34,6 +35,13 @@ export default function ImportSettingsPage() {
           <ImportTab
             type="exams"
             title="Importar Exámenes"
+          />
+        </TabsContent>
+
+        <TabsContent value="stories" className="mt-4">
+          <ImportTab
+            type="stories"
+            title="Importar Stories"
           />
         </TabsContent>
       </Tabs>
