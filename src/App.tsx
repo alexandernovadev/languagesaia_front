@@ -26,8 +26,6 @@ import {
   LabsPage,
   UsersPage,
   LoginPage,
-  PronunciationGuidePage,
-  GrammarPage,
   ExamsPage,
   ExamGeneratorPage,
   ExamStartPage,
@@ -214,23 +212,6 @@ export default function App() {
                       </ProtectedRoute>
                     }
                   />
-                  <Route
-                    path="/pronunciation"
-                    element={
-                      <ProtectedRoute>
-                        <PronunciationGuidePage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/grammar"
-                    element={
-                      <ProtectedRoute>
-                        <GrammarPage />
-                      </ProtectedRoute>
-                    }
-                  />
-
                   {/* Story routes */}
                   <Route
                     path="/stories"

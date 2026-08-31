@@ -11,12 +11,10 @@ import {
   Info,
   BookOpenCheck,
   Quote,
-  Volume2,
   Sparkles,
   FileCode,
   ClipboardList,
   FileEdit,
-  BookText,
   BookOpenText,
   BookPlus,
 } from "lucide-react";
@@ -51,19 +49,6 @@ export const menuItems = [
     title: "Mis Expresiones",
     url: "/my-expressions",
     icon: Quote,
-  },
-];
-
-export const guiaItems = [
-  {
-    title: "Guía de Pronunciación",
-    url: "/pronunciation",
-    icon: Volume2,
-  },
-  {
-    title: "Grammar",
-    url: "/grammar",
-    icon: BookText,
   },
 ];
 
