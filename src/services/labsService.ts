@@ -50,11 +50,6 @@ class LabsService {
     const response = await api.post("/api/labs/migrations/sinonyms-to-synonyms");
     return response.data;
   }
-
-  async migrateLecturesToStories(): Promise<LabsResponse> {
-    const response = await api.post("/api/labs/migrations/lectures-to-stories");
-    return response.data;
-  }
 }
 
 export const labsService = new LabsService();
