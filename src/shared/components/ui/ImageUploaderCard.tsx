@@ -25,7 +25,7 @@ interface ImageUploaderCardProps {
   onGenerateImage?: (word: string, oldImage?: string) => Promise<string>;
   word?: string;
   entityId?: string;
-  entityType?: "word" | "lecture" | "expression";
+  entityType?: "word" | "lecture" | "expression" | "story";
   disabled?: boolean;
   className?: string;
 }
@@ -99,6 +99,9 @@ export function ImageUploaderCard({
       } else if (entityType === "expression") {
         endpoint = `/api/expressions/${entityId}/generate-image`;
         payload = { expressionString: word, imgOld: imageUrl || "" };
+      } else if (entityType === "story") {
+        endpoint = `/api/stories/${entityId}/generate-image`;
+        payload = { content: word, imgOld: imageUrl || "" };
       }
 
       // Llamar al endpoint de generación de imagen

@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
+import { ImageUploaderCard } from "@/shared/components/ui/ImageUploaderCard";
 
 const LEVELS: CertificationLevel[] = ["A1", "A2", "B1", "B2", "C1", "C2"];
 
@@ -185,6 +186,19 @@ export default function StoryEditorPage() {
                 </Select>
               </div>
             </div>
+
+            {/* Cover image — only once the story exists (edit mode) */}
+            {isEdit && id && (
+              <ImageUploaderCard
+                title="Cover Image"
+                description="Genera una portada con IA basada en el título y la descripción, o pega una URL."
+                imageUrl={img}
+                onImageChange={setImg}
+                word={[title.trim(), description.trim()].filter(Boolean).join(". ")}
+                entityId={id}
+                entityType="story"
+              />
+            )}
 
             {/* Save button */}
             <div className="flex justify-end gap-2 pt-4">
