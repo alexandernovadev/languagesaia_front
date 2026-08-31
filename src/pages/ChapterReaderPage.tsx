@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { PageHeader } from "@/shared/components/ui/page-header";
 import { Button } from "@/shared/components/ui/button";
@@ -10,7 +10,7 @@ import { wordService } from "@/services/wordService";
 import { useChapterGenerator } from "@/shared/hooks/useChapterGenerator";
 import { IStory, VocabReport } from "@/types/models/Story";
 import { IWord } from "@/types/models/Word";
-import { ArrowLeft, Volume2, Loader2, BookOpen, ChevronLeft, ChevronRight, ListTodo, Sparkles, Edit } from "lucide-react";
+import { ArrowLeft, Volume2, Loader2, Subtitles, BookOpen, ChevronLeft, ChevronRight, ListTodo, Sparkles, Edit } from "lucide-react";
 import { Input } from "@/shared/components/ui/input";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { Label } from "@/shared/components/ui/label";
@@ -23,6 +23,8 @@ import { toast } from "sonner";
 import { WordDetailModal } from "@/shared/components/dialogs/WordDetailModal";
 import { WordLookupPanel } from "@/shared/components/lecture/WordLookupPanel";
 import { MarkdownRenderer } from "@/shared/components/ui/markdown-renderer";
+import KaraokeView from "@/shared/components/lecture/KaraokeView";
+import AudioPlayer from "@/shared/components/lecture/AudioPlayer";
 import { ModalNova } from "@/shared/components/ui/modal-nova";
 import { useSidebar } from "@/shared/components/ui/sidebar";
 import { GenerateChapterModal } from "@/shared/components/story/GenerateChapterModal";
@@ -32,13 +34,27 @@ export default function ChapterReaderPage() {
   const { id, chapterIndex } = useParams<{ id: string; chapterIndex: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { state: sidebarState, isMobile } = useSidebar();
+  const { isMobile } = useSidebar();
   const idx = parseInt(chapterIndex || "0");
 
   const [story, setStory] = useState<IStory | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [audioGenerating, setAudioGenerating] = useState(false);
+  const [karaokeOn, setKaraokeOn] = useState(true);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [pinnedWordIndex, setPinnedWordIndex] = useState<number | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  // Set right before we programmatically seek from a karaoke word click, so the
+  // resulting "seeked" event doesn't clear the pin we just set.
+  const suppressNextSeekRef = useRef(false);
+  const pauseChapterAudio = useCallback(() => {
+    audioRef.current?.pause();
+  }, []);
+
+  useEffect(() => {
+    setPinnedWordIndex(null);
+  }, [idx]);
 
   // Word lookup state
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
@@ -88,9 +104,28 @@ export default function ChapterReaderPage() {
     }
   };
 
+  const speakWord = useCallback(
+    (word: string, rate: number = 1) => {
+      if (!word || !("speechSynthesis" in window)) return;
+      const utterance = new SpeechSynthesisUtterance(word);
+      utterance.lang = getSpeechLocale(user?.language);
+      utterance.rate = rate;
+      window.speechSynthesis.speak(utterance);
+    },
+    [user?.language]
+  );
+
   const handleWordClick = useCallback(async (word: string) => {
+    pauseChapterAudio();
     const cleaned = cleanWord(word.trim());
     if (!cleaned || /\s/.test(cleaned)) return;
+
+    // Always pronounce on click, even if it's the same word clicked again.
+    speakWord(cleaned, 1);
+
+    // Panel already open for this exact word: just re-pronounce, don't refetch.
+    // A fresh lookup only happens for a new word, or after the panel was closed.
+    if (cleaned === selectedWord) return;
 
     setSelectedWord(cleaned);
     setWordLookup(null);
@@ -108,7 +143,19 @@ export default function ChapterReaderPage() {
     } finally {
       setWordLookupLoading(false);
     }
-  }, []);
+  }, [pauseChapterAudio, selectedWord, speakWord]);
+
+  const handleKaraokeWordClick = useCallback(
+    (word: string, start: number, index: number) => {
+      pauseChapterAudio();
+      suppressNextSeekRef.current = true;
+      setCurrentTime(start);
+      if (audioRef.current) audioRef.current.currentTime = start;
+      setPinnedWordIndex(index);
+      handleWordClick(word);
+    },
+    [handleWordClick, pauseChapterAudio]
+  );
 
   const handleOpenDetail = useCallback(() => {
     if (wordLookup && wordLookup.exists) {
@@ -116,23 +163,6 @@ export default function ChapterReaderPage() {
       setDetailModalOpen(true);
     }
   }, [wordLookup]);
-
-  const speakWord = useCallback(
-    (word: string, rate: number = 1) => {
-      if (!word || !("speechSynthesis" in window)) return;
-      const utterance = new SpeechSynthesisUtterance(word);
-      utterance.lang = getSpeechLocale(user?.language);
-      utterance.rate = rate;
-      window.speechSynthesis.speak(utterance);
-    },
-    [user?.language]
-  );
-
-  useEffect(() => {
-    if (selectedWord) {
-      speakWord(selectedWord, 1);
-    }
-  }, [selectedWord, speakWord]);
 
   const handleCloseWordLookup = useCallback(() => {
     setSelectedWord(null);
@@ -166,10 +196,17 @@ export default function ChapterReaderPage() {
         ...current,
         chapters: current.chapters.map((currentChapter, chapterIdx) =>
           chapterIdx === idx
-            ? { ...currentChapter, urlAudio: audio.urlAudio, audioRecordId: audio.recordId, voice: audio.voice }
+            ? {
+                ...currentChapter,
+                urlAudio: audio.urlAudio,
+                audioRecordId: audio.recordId,
+                voice: audio.voice,
+                audioAlignment: audio.audioAlignment,
+              }
             : currentChapter
         ),
       } : current);
+      setPinnedWordIndex(null);
       toast.success("Audio generated successfully");
     } catch (err: any) {
       toast.error(err.response?.data?.message || err.message || "Error generating audio");
@@ -247,7 +284,7 @@ export default function ChapterReaderPage() {
   const hasNext = story && idx < story.chapters.length - 1;
 
   const chapterNav = story && (
-    <div className="flex items-center justify-between mb-4">
+    <div className="flex items-center justify-between mt-4">
       <Button
         variant="outline"
         size="icon"
@@ -257,8 +294,9 @@ export default function ChapterReaderPage() {
       >
         <ChevronLeft className="h-4 w-4" />
       </Button>
-      <span className="text-sm text-muted-foreground">
+      <span className="flex-1 min-w-0 truncate text-center text-sm text-muted-foreground">
         Chapter {idx + 1} of {story.chapters.length}
+        {chapter?.title ? ` · ${chapter.title}` : ""}
       </span>
       {hasNext ? (
         <Button
@@ -293,6 +331,15 @@ export default function ChapterReaderPage() {
           icon: <Edit className="h-4 w-4" />,
           label: "Edit",
           onClick: handleOpenEdit,
+        }
+      : null,
+    !loading && chapter?.urlAudio && chapter.audioAlignment?.length
+      ? {
+          id: "karaoke",
+          icon: <Subtitles className="h-4 w-4" />,
+          label: karaokeOn ? "Reading" : "Karaoke",
+          onClick: () => setKaraokeOn((value) => !value),
+          variant: karaokeOn ? "default" : "outline",
         }
       : null,
     !loading && story && story.chapters.some((ch) => (ch.targetVocabulary?.length ?? 0) > 0)
@@ -331,19 +378,29 @@ export default function ChapterReaderPage() {
   return (
     <div className="">
       <PageHeader
-        title={chapter?.title || "Chapter"}
         actions={<ActionButtonsHeader actions={chapterActions} />}
         footer={
-          chapter?.urlAudio ? (
-            <audio
-              key={chapter.urlAudio}
-              controls
-              className="w-full h-9 pt-1"
-              preload="metadata"
-            >
-              <source src={chapter.urlAudio} type="audio/mpeg" />
-              Your browser does not support the audio element.
-            </audio>
+          chapterNav || chapter?.urlAudio ? (
+            <div className="space-y-3">
+              {chapterNav}
+              {chapter?.urlAudio && (
+                <AudioPlayer
+                  key={chapter.urlAudio}
+                  src={chapter.urlAudio}
+                  audioRef={audioRef}
+                  onPlay={() => setPinnedWordIndex(null)}
+                  onTimeUpdate={(time) => setCurrentTime(time)}
+                  onSeeked={(time) => {
+                    setCurrentTime(time);
+                    if (suppressNextSeekRef.current) {
+                      suppressNextSeekRef.current = false;
+                    } else {
+                      setPinnedWordIndex(null);
+                    }
+                  }}
+                />
+              )}
+            </div>
           ) : undefined
         }
       />
@@ -356,9 +413,6 @@ export default function ChapterReaderPage() {
       >
         {story && chapter && (
           <>
-            {/* Chapter navigation */}
-            {chapterNav}
-
             {/* Live generation preview */}
             {generating && generatingChapter && (
               <Card className="border-primary/40 mb-4">
@@ -380,7 +434,15 @@ export default function ChapterReaderPage() {
             {/* Content */}
             <Card>
               <CardContent className="p-4 sm:p-6 md:p-8">
-                <div className="pb-12">
+                {chapter.urlAudio && karaokeOn && chapter.audioAlignment?.length ? (
+                  <KaraokeView
+                    content={chapter.content}
+                    currentTime={currentTime}
+                    wordTimings={chapter.audioAlignment}
+                    pinnedIndex={pinnedWordIndex}
+                    onWordClick={handleKaraokeWordClick}
+                  />
+                ) : (
                   <div className="select-text">
                     <MarkdownRenderer
                       content={chapter.content}
@@ -388,12 +450,9 @@ export default function ChapterReaderPage() {
                       onWordClick={handleWordClick}
                     />
                   </div>
-                </div>
+                )}
               </CardContent>
             </Card>
-
-            {/* Chapter navigation (bottom) */}
-            {chapterNav}
           </>
         )}
       </PageLoader>
@@ -406,7 +465,6 @@ export default function ChapterReaderPage() {
           wordLookupLoading={wordLookupLoading}
           addingWord={addingWord}
           isMobile={isMobile}
-          sidebarState={sidebarState}
           onSpeak={speakWord}
           onOpenDetail={handleOpenDetail}
           onAddWord={handleAddWord}

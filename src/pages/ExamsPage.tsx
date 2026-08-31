@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { PageHeader } from "@/shared/components/ui/page-header";
+import { Button } from "@/shared/components/ui/button";
 import { ExamsTable } from "@/shared/components/exam/ExamsTable";
 import { ExamPreviewModal } from "@/shared/components/exam/ExamPreviewModal";
 import { AlertDialogNova } from "@/shared/components/ui/alert-dialog-nova";
@@ -7,6 +8,7 @@ import { TablePagination } from "@/shared/components/ui/table-pagination";
 import { useExams } from "@/shared/hooks/useExams";
 import { useExamsUIStore } from "@/lib/store/exams-store";
 import type { IExam } from "@/types/models";
+import { Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function ExamsPage() {
@@ -56,6 +58,12 @@ export default function ExamsPage() {
     <div className="">
       <PageHeader
         title="Exámenes"
+        actions={
+          <Button onClick={() => navigate("/exams/generator")}>
+            <Plus className="h-4 w-4 mr-2" />
+            Generar examen
+          </Button>
+        }
       />
 
       <ExamsTable

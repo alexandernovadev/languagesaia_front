@@ -7,6 +7,7 @@ export interface IChapter {
   urlAudio?: string;
   audioRecordId?: string;
   voice?: string;
+  audioAlignment?: { word: string; start: number; end: number }[];
   targetVocabulary?: string[];
   targetGrammar?: string[];
   createdAt?: Date;

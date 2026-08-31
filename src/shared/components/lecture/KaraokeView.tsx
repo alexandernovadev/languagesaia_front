@@ -36,14 +36,20 @@ interface WordTiming {
   paragraph: number;
 }
 
+interface RawWord {
+  text: string;
+  paragraph: number;
+}
+
 interface KaraokeViewProps {
   content: string;
   currentTime: number;
-  duration: number;
-  onWordClick?: (word: string, start?: number) => void;
+  wordTimings: { word: string; start: number; end: number }[];
+  /** Index into the flattened word list to force-highlight (e.g. right after a click),
+   *  overriding the currentTime-driven lookup until playback resumes. */
+  pinnedIndex?: number | null;
+  onWordClick?: (word: string, start: number, index: number) => void;
 }
-
-const PARAGRAPH_PAUSE_S = 0.35;
 
 const PARAGRAPH_CLASS = "mb-4 sm:mb-6 text-base sm:text-lg leading-relaxed";
 const BLOCKQUOTE_CLASS =
@@ -67,7 +73,7 @@ const STYLE_CLASSES: Record<InlineStyle, string> = {
   link: "text-primary underline",
   paren: "text-blue-600 dark:text-blue-400 font-bold",
 };
-const ACTIVE_CLASS = "bg-primary text-primary-foreground px-0.5 rounded-sm";
+const ACTIVE_CLASS = "text-primary underline decoration-2 underline-offset-4 decoration-primary";
 const HEADING_TAGS: Record<string, ElementType> = {
   h1: "h1",
   h2: "h2",
@@ -227,52 +233,214 @@ function parseContent(content: string): ParsedPara[] {
   return paras;
 }
 
+const normalizeWord = (word: string) => word.toLowerCase().replace(/[^\p{L}\p{N}']/gu, "");
+
+// Guard against pathological input sizes (a manually-pasted huge chapter): full O(n*m)
+// DP alignment stays well under this for any real chapter (hundreds of words).
+const MAX_DP_CELLS = 4_000_000;
+
+/**
+ * Longest Common Subsequence between two normalized-word sequences, computed as a
+ * classic DP table over "match" (equal words) transitions only â€” a mismatch is never
+ * treated as a substitution, it's left unmatched (word.start left to interpolation).
+ * This avoids ever pinning a word to the wrong timestamp just because two unrelated
+ * words happen to sit at the same position after a drift.
+ *
+ * Returns, per content-word index, the matched whisper-word index, or -1.
+ */
+function lcsMatch(contentKeys: string[], whisperKeys: string[]): number[] {
+  const n = contentKeys.length;
+  const m = whisperKeys.length;
+  const matches = new Array<number>(n).fill(-1);
+  if (n === 0 || m === 0) return matches;
+
+  if ((n + 1) * (m + 1) > MAX_DP_CELLS) {
+    return greedyMatch(contentKeys, whisperKeys);
+  }
+
+  const width = m + 1;
+  const dp = new Int16Array((n + 1) * width);
+  for (let i = n - 1; i >= 0; i--) {
+    const rowCur = i * width;
+    const rowNext = (i + 1) * width;
+    for (let j = m - 1; j >= 0; j--) {
+      if (contentKeys[i] && contentKeys[i] === whisperKeys[j]) {
+        dp[rowCur + j] = dp[rowNext + j + 1] + 1;
+      } else {
+        const down = dp[rowNext + j];
+        const right = dp[rowCur + j + 1];
+        dp[rowCur + j] = down >= right ? down : right;
+      }
+    }
+  }
+
+  let i = 0;
+  let j = 0;
+  while (i < n && j < m) {
+    if (contentKeys[i] && contentKeys[i] === whisperKeys[j]) {
+      matches[i] = j;
+      i++;
+      j++;
+    } else if (dp[(i + 1) * width + j] >= dp[i * width + (j + 1)]) {
+      i++;
+    } else {
+      j++;
+    }
+  }
+  return matches;
+}
+
+// Fallback for the (unrealistic) oversized-input case: same idea as the old
+// heuristic, kept only as a safety net so the page never hangs.
+function greedyMatch(contentKeys: string[], whisperKeys: string[]): number[] {
+  const matches = new Array<number>(contentKeys.length).fill(-1);
+  let j = 0;
+  for (let i = 0; i < contentKeys.length && j < whisperKeys.length; i++) {
+    const key = contentKeys[i];
+    if (!key) continue;
+    for (let look = 0; look < 6 && j + look < whisperKeys.length; look++) {
+      if (whisperKeys[j + look] === key) {
+        matches[i] = j + look;
+        j = j + look + 1;
+        break;
+      }
+    }
+  }
+  return matches;
+}
+
+function sumChars(words: RawWord[], from: number, to: number): number {
+  let sum = 0;
+  for (let i = from; i < to; i++) sum += Math.max(1, words[i].text.length);
+  return sum;
+}
+
+// Distributes word slots [from, to) across the time window [start, end), proportionally
+// to each word's character length (a longer word is assumed to take longer to say than
+// a short one) â€” a much closer approximation of natural speech pacing than splitting the
+// window evenly, and it self-corrects at every matched anchor so drift never accumulates.
+function distributeByLength(result: WordTiming[], from: number, to: number, start: number, end: number) {
+  if (to <= from) return;
+  const span = Math.max(0, end - start);
+  const chars: number[] = [];
+  let total = 0;
+  for (let i = from; i < to; i++) {
+    const c = Math.max(1, result[i].text.length);
+    chars.push(c);
+    total += c;
+  }
+  let cursor = start;
+  for (let i = from; i < to; i++) {
+    const dur = total > 0 ? (chars[i - from] / total) * span : span / (to - from);
+    result[i].start = cursor;
+    result[i].end = cursor + dur;
+    cursor += dur;
+  }
+}
+
+/**
+ * Aligns the words the reader sees (`flatWords`, in reading order) against the
+ * word-level timestamps Whisper produced for the generated audio (`wordTimings`).
+ *
+ * Whisper's transcript of the TTS audio rarely matches the source text 1:1 (a clipped
+ * word, a number read as digits, punctuation attached differently, ...), so instead of
+ * assuming a 1:1 index correspondence we:
+ *  1. Find the optimal (order-preserving) set of exact-word anchors via LCS.
+ *  2. Interpolate every word that falls between two anchors proportionally to its
+ *     character length, using the *actual* observed audio duration for that gap.
+ *  3. Extrapolate words before the first anchor / after the last one using the average
+ *     seconds-per-character rate measured from the matched anchors.
+ * Every word ends up with a start/end, so playback highlighting is always continuous.
+ */
+function alignWordTimings(
+  flatWords: RawWord[],
+  wordTimings: { word: string; start: number; end: number }[]
+): WordTiming[] {
+  const n = flatWords.length;
+  const result: WordTiming[] = flatWords.map((w) => ({ text: w.text, paragraph: w.paragraph, start: 0, end: 0 }));
+  if (n === 0 || wordTimings.length === 0) return result;
+
+  const contentKeys = flatWords.map((w) => normalizeWord(w.text));
+  const whisperKeys = wordTimings.map((w) => normalizeWord(w.word));
+  const matches = lcsMatch(contentKeys, whisperKeys);
+
+  const anchors = matches
+    .map((wi, ci) => (wi >= 0 ? { ci, start: wordTimings[wi].start, end: wordTimings[wi].end } : null))
+    .filter((a): a is { ci: number; start: number; end: number } => a !== null);
+
+  if (anchors.length === 0) {
+    // No reliable anchor at all: spread proportionally across the whole audio span.
+    const globalStart = wordTimings[0].start;
+    const globalEnd = wordTimings[wordTimings.length - 1].end;
+    distributeByLength(result, 0, n, globalStart, globalEnd);
+    return result;
+  }
+
+  const totalChars = anchors.reduce((sum, a) => sum + Math.max(1, flatWords[a.ci].text.length), 0);
+  const totalSpan = anchors[anchors.length - 1].end - anchors[0].start;
+  const secPerChar = totalChars > 0 && totalSpan > 0 ? totalSpan / totalChars : 0.06;
+
+  const first = anchors[0];
+  if (first.ci > 0) {
+    const leadChars = sumChars(flatWords, 0, first.ci);
+    const estDuration = Math.min(first.start, leadChars * secPerChar);
+    distributeByLength(result, 0, first.ci, Math.max(0, first.start - estDuration), first.start);
+  }
+  result[first.ci].start = first.start;
+  result[first.ci].end = first.end;
+
+  for (let k = 1; k < anchors.length; k++) {
+    const prev = anchors[k - 1];
+    const cur = anchors[k];
+    result[cur.ci].start = cur.start;
+    result[cur.ci].end = cur.end;
+    if (cur.ci - prev.ci > 1) {
+      distributeByLength(result, prev.ci + 1, cur.ci, prev.end, cur.start);
+    }
+  }
+
+  const last = anchors[anchors.length - 1];
+  if (last.ci < n - 1) {
+    const tailChars = sumChars(flatWords, last.ci + 1, n);
+    distributeByLength(result, last.ci + 1, n, last.end, last.end + tailChars * secPerChar);
+  }
+
+  return result;
+}
+
 export default function KaraokeView({
   content,
   currentTime,
-  duration,
+  wordTimings,
+  pinnedIndex,
   onWordClick,
 }: KaraokeViewProps) {
   const paras = useMemo(() => parseContent(content), [content]);
 
-  const timedWords = useMemo<WordTiming[]>(() => {
-    const hasDuration = !!duration && !isNaN(duration) && duration > 0;
-    const visiblePerPara = paras.map((p) =>
-      p.segments.filter((s) => s.timed).reduce((sum, s) => sum + s.text.length, 0)
-    );
-    const totalVisible = visiblePerPara.reduce((a, b) => a + b, 0);
-    const pauses = Math.max(0, paras.length - 1) * PARAGRAPH_PAUSE_S;
-    const speechTime = hasDuration ? Math.max(0, duration - pauses) : 0;
-
-    const words: WordTiming[] = [];
-    let cursor = 0;
+  const flatWords = useMemo<RawWord[]>(() => {
+    const words: RawWord[] = [];
     paras.forEach((para, pi) => {
-      const paraChars = visiblePerPara[pi];
-      const paraDur = hasDuration && totalVisible > 0 ? (paraChars / totalVisible) * speechTime : 0;
-      const paraStart = cursor;
-      let wCursor = paraStart;
       for (const seg of para.segments) {
         if (!seg.timed) continue;
-        const segWords = seg.text.split(/\s+/).filter(Boolean);
-        for (const w of segWords) {
-          const wDur = hasDuration && paraChars > 0 ? (w.length / paraChars) * paraDur : 0;
-          words.push({ text: w, start: wCursor, end: wCursor + wDur, paragraph: pi });
-          wCursor += wDur;
+        for (const w of seg.text.split(/\s+/).filter(Boolean)) {
+          words.push({ text: w, paragraph: pi });
         }
       }
-      cursor = paraStart + paraDur + PARAGRAPH_PAUSE_S;
     });
     return words;
-  }, [paras, duration]);
+  }, [paras]);
+
+  const timedWords = useMemo<WordTiming[]>(
+    () => alignWordTimings(flatWords, wordTimings),
+    [flatWords, wordTimings]
+  );
 
   const activeIndex = useMemo(() => {
-    let idx = -1;
-    for (let i = 0; i < timedWords.length; i++) {
-      if (timedWords[i].start <= currentTime) idx = i;
-      else break;
+    if (pinnedIndex != null && pinnedIndex >= 0 && pinnedIndex < timedWords.length) {
+      return pinnedIndex;
     }
-    return idx;
-  }, [timedWords, currentTime]);
+    return timedWords.findIndex((word) => word.start <= currentTime && currentTime < word.end);
+  }, [timedWords, currentTime, pinnedIndex]);
 
   const activeParagraph = activeIndex >= 0 ? timedWords[activeIndex].paragraph : -1;
   const paraRefs = useRef<(HTMLElement | null)[]>([]);
@@ -284,7 +452,7 @@ export default function KaraokeView({
   }, [activeParagraph]);
 
   const wordsByPara = useMemo(() => {
-    const grouped: { start: number; end: number; text: string }[][] = paras.map(() => []);
+    const grouped: WordTiming[][] = paras.map(() => []);
     timedWords.forEach((w) => grouped[w.paragraph].push(w));
     return grouped;
   }, [paras, timedWords]);
@@ -301,7 +469,7 @@ export default function KaraokeView({
       const segWords = seg.text.split(/\s+/).filter(Boolean);
       for (const w of segWords) {
         const timing = paraWords[wordIdxInPara];
-        const isActive = timing && flatWordIdx === activeIndex;
+        const isActive = flatWordIdx === activeIndex;
         const flatIdx = flatWordIdx;
         flatWordIdx += 1;
         wordIdxInPara += 1;
@@ -310,11 +478,11 @@ export default function KaraokeView({
             key={`${pi}-${flatIdx}`}
             role="button"
             tabIndex={0}
-            onClick={() => onWordClick?.(w, timing?.start)}
+            onClick={() => onWordClick?.(w, timing.start, flatIdx)}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
-                onWordClick?.(w, timing?.start);
+                onWordClick?.(w, timing.start, flatIdx);
               }
             }}
             className={cn(

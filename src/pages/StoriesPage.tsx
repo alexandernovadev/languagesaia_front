@@ -86,6 +86,12 @@ export default function StoriesPage() {
     <div className="">
       <PageHeader
         title="Stories"
+        actions={
+          <Button onClick={() => navigate("/stories/create")}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create story
+          </Button>
+        }
         filters={
           <div className="flex gap-2">
             <form onSubmit={handleSearch} className="flex gap-2 flex-1">
@@ -114,10 +120,6 @@ export default function StoriesPage() {
                   {activeFiltersCount}
                 </span>
               )}
-            </Button>
-            <Button onClick={() => navigate("/stories/create")}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create story
             </Button>
           </div>
         }

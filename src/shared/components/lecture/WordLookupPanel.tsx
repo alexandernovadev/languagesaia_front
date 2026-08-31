@@ -12,7 +12,6 @@ interface WordLookupPanelProps {
   wordLookupLoading: boolean;
   addingWord: boolean;
   isMobile: boolean;
-  sidebarState: string;
   onSpeak: (word: string, rate: number) => void;
   onOpenDetail: () => void;
   onAddWord: () => void;
@@ -25,7 +24,6 @@ export function WordLookupPanel({
   wordLookupLoading,
   addingWord,
   isMobile,
-  sidebarState,
   onSpeak,
   onOpenDetail,
   onAddWord,
@@ -37,12 +35,8 @@ export function WordLookupPanel({
   return (
     <Card
       className={cn(
-        "fixed z-30 border shadow-lg bg-card/95 backdrop-blur-md supports-[backdrop-filter]:bg-card/90",
-        isMobile
-          ? "inset-x-0 bottom-0 rounded-t-xl border-x-0 border-b-0"
-          : sidebarState === "collapsed"
-          ? "left-[calc(var(--sidebar-width-icon)+theme(spacing.4)+theme(spacing.2))] right-2 bottom-2 rounded-xl"
-          : "left-[calc(var(--sidebar-width)+theme(spacing.2))] right-2 bottom-2 rounded-xl"
+        "sticky bottom-0 z-30 border shadow-lg bg-card/95 backdrop-blur-md supports-[backdrop-filter]:bg-card/90",
+        isMobile ? "-mx-4 rounded-t-xl border-x-0 border-b-0" : "rounded-xl mb-2"
       )}
     >
       <CardContent className="p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">

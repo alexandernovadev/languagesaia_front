@@ -21,7 +21,6 @@ import {
 } from "@/shared/components/ui/sidebar";
 import {
   menuItems,
-  generatorItems,
   gamesItems,
   configSettingsItems,
 } from "../sidebar-menus";
@@ -252,15 +251,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <SidebarGroupContent>
               <SidebarMenu>
                 <MenuItems items={menuItems} />
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-
-          <SidebarGroup>
-            <SidebarGroupLabel>Generadores</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <MenuItems items={generatorItems} />
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>

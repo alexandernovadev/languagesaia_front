@@ -108,7 +108,12 @@ export const storyService = {
 
   async generateChapterAudio(storyId: string, chapterIndex: number, voice = "coral") {
     const res = await api.post(`/api/stories/${storyId}/chapters/${chapterIndex}/generate-audio`, { voice });
-    return res.data.data as { urlAudio: string; recordId: string; voice: string };
+    return res.data.data as {
+      urlAudio: string;
+      recordId: string;
+      voice: string;
+      audioAlignment: { word: string; start: number; end: number }[];
+    };
   },
 
   async generateStoryIdea(seed?: string, genre?: string, languageLevel?: string) {

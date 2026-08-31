@@ -11,9 +11,7 @@ import {
   Sparkles,
   FileCode,
   ClipboardList,
-  FileEdit,
   BookOpenText,
-  BookPlus,
 } from "lucide-react";
 
 export const menuItems = [
@@ -36,19 +34,6 @@ export const menuItems = [
     title: "Mis Expresiones",
     url: "/my-expressions",
     icon: Quote,
-  },
-];
-
-export const generatorItems = [
-  {
-    title: "Generador de Exámenes",
-    url: "/exams/generator",
-    icon: FileEdit,
-  },
-  {
-    title: "Generador de Historias",
-    url: "/stories/create",
-    icon: BookPlus,
   },
 ];
 
