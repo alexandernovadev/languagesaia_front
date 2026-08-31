@@ -50,6 +50,11 @@ class LabsService {
     const response = await api.post("/api/labs/migrations/sinonyms-to-synonyms");
     return response.data;
   }
+
+  async migrateWordUniqueIndex(): Promise<LabsResponse> {
+    const response = await api.post("/api/labs/migrations/word-unique-index");
+    return response.data;
+  }
 }
 
 export const labsService = new LabsService();

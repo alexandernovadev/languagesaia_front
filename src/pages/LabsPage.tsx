@@ -13,6 +13,7 @@ export default function LabsPage() {
   const [isCreatingAdmin, setIsCreatingAdmin] = useState(false);
   const [isSendingBackup, setIsSendingBackup] = useState(false);
   const [isMigratingSynonyms, setIsMigratingSynonyms] = useState(false);
+  const [isMigratingWordIndex, setIsMigratingWordIndex] = useState(false);
 
   const {
     pendingOperation,
@@ -131,6 +132,22 @@ export default function LabsPage() {
     }
   };
 
+  const handleMigrateWordIndex = async () => {
+    setIsMigratingWordIndex(true);
+    try {
+      const response = await labsService.migrateWordUniqueIndex();
+      if (response.success) {
+        toast.success(`Migration complete — ${response.data?.backfilled ?? 0} words backfilled`);
+      } else {
+        toast.error(response.message || "Migration failed");
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Error running migration");
+    } finally {
+      setIsMigratingWordIndex(false);
+    }
+  };
+
   return (
     <div className="">
       <PageHeader title="Labs" />
@@ -200,6 +217,18 @@ export default function LabsPage() {
             </div>
             <Button onClick={handleMigrateSynonyms} disabled={isMigratingSynonyms} variant="secondary" className="w-full sm:w-auto flex-shrink-0" size="sm">
               {isMigratingSynonyms ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Running...</> : <><RefreshCw className="mr-2 h-4 w-4" /> Run Migration</>}
+            </Button>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 border rounded-lg mt-4">
+            <div className="flex-1 min-w-0">
+              <h3 className="font-medium text-base sm:text-lg">Word unique index (word + language)</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1 break-words">
+                Backfillea <code>wordKey</code>, droppea el índice único <code>word_1</code> y crea el índice compuesto <code>wordKey + language</code> (case-insensitive).
+              </p>
+            </div>
+            <Button onClick={handleMigrateWordIndex} disabled={isMigratingWordIndex} variant="secondary" className="w-full sm:w-auto flex-shrink-0" size="sm">
+              {isMigratingWordIndex ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Running...</> : <><RefreshCw className="mr-2 h-4 w-4" /> Run Migration</>}
             </Button>
           </div>
         </CardContent>
