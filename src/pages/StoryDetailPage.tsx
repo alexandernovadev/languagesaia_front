@@ -41,7 +41,7 @@ export default function StoryDetailPage() {
       const data = await storyService.getStoryById(id);
       setStory(data);
     } catch (err: any) {
-      const msg = err.response?.data?.message || err.message || "Error loading story";
+      const msg = err.response?.data?.message || err.message || "Error al cargar la historia";
       setError(msg);
       toast.error(msg);
     } finally {
@@ -75,10 +75,10 @@ export default function StoryDetailPage() {
     setDeleting(true);
     try {
       await storyService.deleteStory(id);
-      toast.success("Story deleted");
+      toast.success("Historia eliminada");
       navigate("/stories");
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Error deleting story");
+      toast.error(err.response?.data?.message || "Error al eliminar la historia");
     } finally {
       setDeleting(false);
       setDeleteOpen(false);
@@ -92,7 +92,7 @@ export default function StoryDetailPage() {
       ? {
           id: "edit",
           icon: <Edit className="h-4 w-4" />,
-          label: "Edit",
+          label: "Editar",
           onClick: () => navigate(`/stories/${id}/edit`),
         }
       : null,
@@ -100,14 +100,14 @@ export default function StoryDetailPage() {
       ? {
           id: "delete",
           icon: <Trash2 className="h-4 w-4" />,
-          label: "Delete",
+          label: "Eliminar",
           onClick: () => setDeleteOpen(true),
         }
       : null,
     {
       id: "back",
       icon: <ArrowLeft className="h-4 w-4" />,
-      label: "Back",
+      label: "Volver",
       onClick: () => navigate("/stories"),
     },
   ];
@@ -118,7 +118,7 @@ export default function StoryDetailPage() {
   return (
     <div className="">
       <PageHeader
-        title={story?.title || "Story"}
+        title={story?.title || "Historia"}
         actions={<ActionButtonsHeader actions={storyActions} />}
       />
 
@@ -162,21 +162,21 @@ export default function StoryDetailPage() {
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold">Chapters ({story.chapters.length})</h2>
+                  <h2 className="text-lg font-semibold">Capítulos ({story.chapters.length})</h2>
                   <Button onClick={() => setContinueOpen(true)} disabled={generating}>
                     {generating ? (
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     ) : (
                       <BookPlus className="h-4 w-4 mr-2" />
                     )}
-                    {generating ? "Generating..." : "Add chapter"}
+                    {generating ? "Generando..." : "Agregar capítulo"}
                   </Button>
                 </div>
 
                 {story.chapters.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <BookOpen className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                    <p>No chapters yet. Generate the first one!</p>
+                    <p>Todavía no hay capítulos. ¡Generá el primero!</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -201,10 +201,10 @@ export default function StoryDetailPage() {
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <div className="flex items-center gap-2 text-primary">
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="text-sm font-semibold">Generating chapter...</span>
+                      <span className="text-sm font-semibold">Generando capítulo...</span>
                     </div>
                     <Button variant="outline" size="sm" onClick={cancelGenerate}>
-                      Cancel
+                      Cancelar
                     </Button>
                   </div>
                   <p className="text-sm text-muted-foreground line-clamp-4">{generatingChapter}</p>
@@ -230,9 +230,9 @@ export default function StoryDetailPage() {
       <AlertDialogNova
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
-        title="Delete story"
-        description="This will permanently delete the story and all its chapters. This action cannot be undone."
-        confirmText="Delete"
+        title="Eliminar historia"
+        description="Esto eliminará permanentemente la historia y todos sus capítulos. Esta acción no se puede deshacer."
+        confirmText="Eliminar"
         confirmVariant="destructive"
         onConfirm={handleDelete}
         loading={deleting}
@@ -256,8 +256,8 @@ function ChapterItem({ chapter, index, storyId, onClick }: { chapter: IChapter; 
       <div className="flex-1 min-w-0">
         <p className="font-medium truncate">{chapter.title}</p>
         <p className="text-xs text-muted-foreground">
-          {chapter.content.split(/\s+/).length} words
-          {chapter.urlAudio && " • Has audio"}
+          {chapter.content.split(/\s+/).length} palabras
+          {chapter.urlAudio && " • Con audio"}
         </p>
       </div>
       <ArrowLeft className="h-4 w-4 text-muted-foreground rotate-180 shrink-0" />

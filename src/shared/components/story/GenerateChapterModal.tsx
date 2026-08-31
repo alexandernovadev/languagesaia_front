@@ -55,15 +55,15 @@ export function GenerateChapterModal({
     <ModalNova
       open={open}
       onOpenChange={onOpenChange}
-      title="Generate new chapter"
+      title="Generar nuevo capítulo"
       footer={
         <div className="flex gap-2 justify-end">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            Cancelar
           </Button>
           <Button onClick={handleGenerate} disabled={generating}>
             {generating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <BookPlus className="h-4 w-4 mr-2" />}
-            Generate
+            Generar
           </Button>
         </div>
       }
@@ -76,20 +76,20 @@ export function GenerateChapterModal({
           </div>
           <div className="min-w-0">
             <p className="text-sm font-medium truncate">
-              Chapter {chapterNumber} of "{story.title}"
+              Capítulo {chapterNumber} de "{story.title}"
             </p>
             <p className="text-xs text-muted-foreground">
               {story.chapters.length > 0
-                ? `${story.chapters.length} chapter${story.chapters.length === 1 ? "" : "s"} written so far`
-                : "This will be the first chapter"}
+                ? `${story.chapters.length} capítulo${story.chapters.length === 1 ? "" : "s"} escrito${story.chapters.length === 1 ? "" : "s"} hasta ahora`
+                : "Este será el primer capítulo"}
             </p>
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label>Instructions (optional)</Label>
+          <Label>Instrucciones (opcional)</Label>
           <Input
-            placeholder="e.g. Set in Paris, introduce a new character..."
+            placeholder="ej. Ambientado en París, introducir un nuevo personaje..."
             value={instructions}
             onChange={(e) => setInstructions(e.target.value)}
           />
@@ -120,8 +120,8 @@ export function GenerateChapterModal({
           <span className="flex items-start gap-2">
             <FlagTriangleRight className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
             <span>
-              <span className="block text-sm font-medium leading-tight">This is the final chapter</span>
-              <span className="block text-xs text-muted-foreground">Bring the story to a satisfying conclusion instead of leaving it open.</span>
+              <span className="block text-sm font-medium leading-tight">Este es el último capítulo</span>
+              <span className="block text-xs text-muted-foreground">Llevá la historia a una conclusión satisfactoria en vez de dejarla abierta.</span>
             </span>
           </span>
         </label>

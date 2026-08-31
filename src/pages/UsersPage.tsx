@@ -125,7 +125,7 @@ export default function UsersPage() {
         totalPages={totalPages}
         total={total}
         itemsCount={users.length}
-        itemLabel="users"
+        itemLabel="usuarios"
         onPageChange={goToPage}
       />
 

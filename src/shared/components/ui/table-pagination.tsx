@@ -51,7 +51,7 @@ export function TablePagination({
   totalPages,
   total,
   itemsCount,
-  itemLabel = "items",
+  itemLabel = "elementos",
   pageSize = 10,
   onPageChange,
 }: TablePaginationProps) {
@@ -93,7 +93,7 @@ export function TablePagination({
       {/* Desktop */}
       <div className="hidden lg:flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          Showing {from} to {to} of {total} {itemLabel}
+          Mostrando {from} a {to} de {total} {itemLabel}
         </p>
 
         <Pagination>

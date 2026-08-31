@@ -213,7 +213,7 @@ export default function ExpressionsPage() {
         totalPages={totalPages}
         total={total}
         itemsCount={expressions.length}
-        itemLabel="expressions"
+        itemLabel="expresiones"
         onPageChange={goToPage}
       />
 

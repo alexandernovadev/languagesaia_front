@@ -65,7 +65,7 @@ export default function AudioPlayer({
         size="icon"
         className="h-8 w-8 shrink-0 rounded-full shadow-[0_0_12px_2px_rgba(34,197,94,0.3)] hover:shadow-[0_0_16px_3px_rgba(34,197,94,0.4)]"
         onClick={togglePlay}
-        title={isPlaying ? "Pause" : "Play"}
+        title={isPlaying ? "Pausar" : "Reproducir"}
       >
         {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 ml-0.5" />}
       </Button>

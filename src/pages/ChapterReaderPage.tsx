@@ -96,7 +96,7 @@ export default function ChapterReaderPage() {
       // Update progress
       await storyService.updateProgress(id, idx);
     } catch (err: any) {
-      const msg = err.response?.data?.message || err.message || "Error loading story";
+      const msg = err.response?.data?.message || err.message || "Error al cargar la historia";
       setError(msg);
       toast.error(msg);
     } finally {
@@ -138,7 +138,7 @@ export default function ChapterReaderPage() {
       if (err.response?.status === 404 || err.status === 404) {
         setWordLookup({ exists: false });
       } else {
-        toast.error(err.response?.data?.message || err.message || "Error looking up word");
+        toast.error(err.response?.data?.message || err.message || "Error al buscar la palabra");
       }
     } finally {
       setWordLookupLoading(false);
@@ -179,9 +179,9 @@ export default function ChapterReaderPage() {
       setWordLookup({ exists: true, word: wordData });
       setDetailModalWordId(wordData._id);
       setDetailModalOpen(true);
-      toast.success("Word added to dictionary");
+      toast.success("Palabra agregada al diccionario");
     } catch (err: any) {
-      toast.error(err.response?.data?.message || err.message || "Error adding word");
+      toast.error(err.response?.data?.message || err.message || "Error al agregar la palabra");
     } finally {
       setAddingWord(false);
     }
@@ -207,9 +207,9 @@ export default function ChapterReaderPage() {
         ),
       } : current);
       setPinnedWordIndex(null);
-      toast.success("Audio generated successfully");
+      toast.success("Audio generado correctamente");
     } catch (err: any) {
-      toast.error(err.response?.data?.message || err.message || "Error generating audio");
+      toast.error(err.response?.data?.message || err.message || "Error al generar el audio");
     } finally {
       setAudioGenerating(false);
     }
@@ -223,7 +223,7 @@ export default function ChapterReaderPage() {
       setVocabReport(report);
       setVocabReportOpen(true);
     } catch (err: any) {
-      toast.error(err.response?.data?.message || err.message || "Error loading vocab report");
+      toast.error(err.response?.data?.message || err.message || "Error al cargar el reporte de vocabulario");
     } finally {
       setVocabReportLoading(false);
     }
@@ -271,10 +271,10 @@ export default function ChapterReaderPage() {
           i === idx ? { ...ch, title: editTitle, content: editContent } : ch
         ),
       });
-      toast.success("Chapter updated");
+      toast.success("Capítulo actualizado");
       setEditOpen(false);
     } catch (err: any) {
-      toast.error(err.response?.data?.message || err.message || "Error updating chapter");
+      toast.error(err.response?.data?.message || err.message || "Error al actualizar el capítulo");
     } finally {
       setSavingEdit(false);
     }
@@ -290,12 +290,12 @@ export default function ChapterReaderPage() {
         size="icon"
         disabled={!hasPrev}
         onClick={() => navigate(`/stories/${id}/chapter/${idx - 1}`)}
-        title="Previous chapter"
+        title="Capítulo anterior"
       >
         <ChevronLeft className="h-4 w-4" />
       </Button>
       <span className="flex-1 min-w-0 truncate text-center text-sm text-muted-foreground">
-        Chapter {idx + 1} of {story.chapters.length}
+        Capítulo {idx + 1} de {story.chapters.length}
         {chapter?.title ? ` · ${chapter.title}` : ""}
       </span>
       {hasNext ? (
@@ -303,7 +303,7 @@ export default function ChapterReaderPage() {
           variant="outline"
           size="icon"
           onClick={() => navigate(`/stories/${id}/chapter/${idx + 1}`)}
-          title="Next chapter"
+          title="Siguiente capítulo"
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
@@ -312,7 +312,7 @@ export default function ChapterReaderPage() {
           size="icon"
           onClick={() => setNextGenOpen(true)}
           disabled={generating}
-          title={generating ? "Generating..." : "Generate next chapter"}
+          title={generating ? "Generando..." : "Generar siguiente capítulo"}
         >
           {generating ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -329,7 +329,7 @@ export default function ChapterReaderPage() {
       ? {
           id: "edit",
           icon: <Edit className="h-4 w-4" />,
-          label: "Edit",
+          label: "Editar",
           onClick: handleOpenEdit,
         }
       : null,
@@ -337,7 +337,7 @@ export default function ChapterReaderPage() {
       ? {
           id: "karaoke",
           icon: <Subtitles className="h-4 w-4" />,
-          label: karaokeOn ? "Reading" : "Karaoke",
+          label: karaokeOn ? "Lectura" : "Karaoke",
           onClick: () => setKaraokeOn((value) => !value),
           variant: karaokeOn ? "default" : "outline",
         }
@@ -346,7 +346,7 @@ export default function ChapterReaderPage() {
       ? {
           id: "vocab-report",
           icon: <ListTodo className="h-4 w-4" />,
-          label: "Vocab report",
+          label: "Reporte de vocabulario",
           onClick: handleLoadVocabReport,
           disabled: vocabReportLoading,
         }
@@ -359,7 +359,7 @@ export default function ChapterReaderPage() {
           ) : (
             <Volume2 className="h-4 w-4" />
           ),
-          label: chapter.urlAudio ? "Regenerate audio" : "Generate audio",
+          label: chapter.urlAudio ? "Regenerar audio" : "Generar audio",
           onClick: handleGenerateAudio,
           disabled: audioGenerating,
         }
@@ -367,7 +367,7 @@ export default function ChapterReaderPage() {
     {
       id: "back",
       icon: <ArrowLeft className="h-4 w-4" />,
-      label: "Back to story",
+      label: "Volver a la historia",
       onClick: () => navigate(`/stories/${id}`),
     },
   ];
@@ -420,10 +420,10 @@ export default function ChapterReaderPage() {
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <div className="flex items-center gap-2 text-primary">
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="text-sm font-semibold">Generating next chapter...</span>
+                      <span className="text-sm font-semibold">Generando siguiente capítulo...</span>
                     </div>
                     <Button variant="outline" size="sm" onClick={cancelGenerate}>
-                      Cancel
+                      Cancelar
                     </Button>
                   </div>
                   <p className="text-sm text-muted-foreground line-clamp-4">{generatingChapter}</p>
@@ -483,25 +483,25 @@ export default function ChapterReaderPage() {
       <ModalNova
         open={vocabReportOpen}
         onOpenChange={setVocabReportOpen}
-        title="Vocabulary Report"
+        title="Reporte de vocabulario"
         size="md"
         height="h-auto"
         footer={
-          <Button onClick={() => setVocabReportOpen(false)}>Close</Button>
+          <Button onClick={() => setVocabReportOpen(false)}>Cerrar</Button>
         }
       >
         <div className="px-6">
           {vocabReport.length === 0 ? (
-            <p className="text-muted-foreground text-center py-4">No target words found in the story yet.</p>
+            <p className="text-muted-foreground text-center py-4">Todavía no se encontraron palabras objetivo en la historia.</p>
           ) : (
             <div className="space-y-2 max-h-[60vh] overflow-y-auto">
               {vocabReport.map((item) => (
                 <div key={item.word} className="flex items-center justify-between p-2 rounded border">
                   <span className="font-medium">{item.word}</span>
                   <div className="flex items-center gap-3">
-                    <Badge variant="secondary">{item.count} {item.count === 1 ? "time" : "times"}</Badge>
+                    <Badge variant="secondary">{item.count} {item.count === 1 ? "vez" : "veces"}</Badge>
                     <span className="text-xs text-muted-foreground">
-                      Ch. {item.chapters.map((c) => c + 1).join(", ")}
+                      Cap. {item.chapters.map((c) => c + 1).join(", ")}
                     </span>
                   </div>
                 </div>
@@ -526,28 +526,28 @@ export default function ChapterReaderPage() {
       <ModalNova
         open={editOpen}
         onOpenChange={setEditOpen}
-        title="Edit chapter"
+        title="Editar capítulo"
         size="lg"
         height="h-auto"
         footer={
           <>
             <Button variant="outline" onClick={() => setEditOpen(false)} disabled={savingEdit}>
-              Cancel
+              Cancelar
             </Button>
             <Button onClick={handleSaveEdit} disabled={savingEdit}>
               {savingEdit ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
-              Save
+              Guardar
             </Button>
           </>
         }
       >
         <div className="px-6 space-y-4">
           <div>
-            <Label>Title</Label>
+            <Label>Título</Label>
             <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} maxLength={200} />
           </div>
           <div>
-            <Label>Content</Label>
+            <Label>Contenido</Label>
             <Textarea
               value={editContent}
               onChange={(e) => setEditContent(e.target.value)}

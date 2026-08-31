@@ -264,7 +264,7 @@ export default function WordsPage() {
         totalPages={totalPages}
         total={total}
         itemsCount={words.length}
-        itemLabel="words"
+        itemLabel="palabras"
         onPageChange={goToPage}
       />
 

@@ -45,7 +45,7 @@ export default function StoryEditorPage() {
       setLevel(story.languageLevel);
       setImg(story.img || "");
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Error loading story");
+      toast.error(err.response?.data?.message || "Error al cargar la historia");
       navigate("/stories");
     } finally {
       setLoading(false);
@@ -59,9 +59,9 @@ export default function StoryEditorPage() {
       const idea = await storyService.generateStoryIdea(seed, genre, level);
       setTitle(idea.title);
       setDescription(idea.description);
-      toast.success(seed ? "Title & description expanded" : "Story idea generated");
+      toast.success(seed ? "Título y descripción expandidos" : "Idea de historia generada");
     } catch (err: any) {
-      toast.error(err.response?.data?.message || err.message || "Error generating idea");
+      toast.error(err.response?.data?.message || err.message || "Error al generar la idea");
     } finally {
       setFilling(false);
     }
@@ -69,11 +69,11 @@ export default function StoryEditorPage() {
 
   const handleSave = async () => {
     if (!title.trim()) {
-      toast.error("Title is required");
+      toast.error("El título es obligatorio");
       return;
     }
     if (!description.trim()) {
-      toast.error("Description is required");
+      toast.error("La descripción es obligatoria");
       return;
     }
 
@@ -89,15 +89,15 @@ export default function StoryEditorPage() {
 
       if (isEdit && id) {
         await storyService.updateStory(id, data);
-        toast.success("Story updated");
+        toast.success("Historia actualizada");
         navigate(`/stories/${id}`);
       } else {
         const story = await storyService.createStory(data);
-        toast.success("Story created");
+        toast.success("Historia creada");
         navigate(`/stories/${story._id}`);
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Error saving story");
+      toast.error(err.response?.data?.message || "Error al guardar la historia");
     } finally {
       setSaving(false);
     }
@@ -106,12 +106,12 @@ export default function StoryEditorPage() {
   return (
     <div className="">
       <PageHeader
-        title={isEdit ? "Edit story" : "Create story"}
+        title={isEdit ? "Editar historia" : "Crear historia"}
         actions={
           <>
             <Button variant="outline" onClick={() => navigate(isEdit ? `/stories/${id}` : "/stories")} size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
+              Volver
             </Button>
           </>
         }
@@ -127,7 +127,7 @@ export default function StoryEditorPage() {
             {/* Title */}
             <div>
               <div className="flex items-center justify-between mb-1">
-                <Label>Title</Label>
+                <Label>Título</Label>
                 <Button type="button" variant="outline" size="sm" onClick={handleAIFill} disabled={filling}>
                   {filling ? (
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -135,14 +135,14 @@ export default function StoryEditorPage() {
                     <Sparkles className="h-4 w-4 mr-2" />
                   )}
                   {filling
-                    ? "Generating..."
+                    ? "Generando..."
                     : title.trim() || description.trim()
-                    ? "AI to fill"
-                    : "AI: random idea"}
+                    ? "Completar con IA"
+                    : "IA: idea al azar"}
                 </Button>
               </div>
               <Input
-                placeholder="Enter story title"
+                placeholder="Ingresá el título de la historia"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 maxLength={200}
@@ -151,10 +151,10 @@ export default function StoryEditorPage() {
 
             {/* Description */}
             <div>
-              <Label>Description</Label>
+              <Label>Descripción</Label>
               <textarea
                 className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                placeholder="Brief description of the story"
+                placeholder="Breve descripción de la historia"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 maxLength={2000}
@@ -164,7 +164,7 @@ export default function StoryEditorPage() {
             {/* Genre and Level */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <Label>Genre</Label>
+                <Label>Género</Label>
                 <Select value={genre} onValueChange={(v) => setGenre(v as StoryGenre)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -175,7 +175,7 @@ export default function StoryEditorPage() {
                 </Select>
               </div>
               <div>
-                <Label>Level</Label>
+                <Label>Nivel</Label>
                 <Select value={level} onValueChange={(v) => setLevel(v as CertificationLevel)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -190,7 +190,7 @@ export default function StoryEditorPage() {
             {/* Cover image — only once the story exists (edit mode) */}
             {isEdit && id && (
               <ImageUploaderCard
-                title="Cover Image"
+                title="Imagen de portada"
                 description="Genera una portada con IA basada en el título y la descripción, o pega una URL."
                 imageUrl={img}
                 onImageChange={setImg}
@@ -203,11 +203,11 @@ export default function StoryEditorPage() {
             {/* Save button */}
             <div className="flex justify-end gap-2 pt-4">
               <Button variant="outline" onClick={() => navigate(isEdit ? `/stories/${id}` : "/stories")}>
-                Cancel
+                Cancelar
               </Button>
               <Button onClick={handleSave} disabled={saving}>
                 {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
-                {isEdit ? "Update" : "Create"}
+                {isEdit ? "Actualizar" : "Crear"}
               </Button>
             </div>
           </CardContent>

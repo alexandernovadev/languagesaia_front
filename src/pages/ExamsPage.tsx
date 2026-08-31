@@ -80,7 +80,7 @@ export default function ExamsPage() {
         totalPages={totalPages}
         total={total}
         itemsCount={exams.length}
-        itemLabel="exams"
+        itemLabel="exámenes"
         onPageChange={goToPage}
       />
 

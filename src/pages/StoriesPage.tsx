@@ -6,6 +6,7 @@ import { Input } from "@/shared/components/ui/input";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { PageLoader } from "@/shared/components/ui/page-loader";
+import { TablePagination } from "@/shared/components/ui/table-pagination";
 import { storyService } from "@/services/storyService";
 import { IStory } from "@/types/models/Story";
 import { CertificationLevel } from "@/types/business";
@@ -53,7 +54,7 @@ export default function StoriesPage() {
       setTotalPages(res.pages || 1);
       setTotal(res.total || 0);
     } catch (err: any) {
-      const msg = err.response?.data?.message || err.message || "Error loading stories";
+      const msg = err.response?.data?.message || err.message || "Error al cargar las historias";
       setError(msg);
       toast.error(msg);
     } finally {
@@ -85,11 +86,11 @@ export default function StoriesPage() {
   return (
     <div className="">
       <PageHeader
-        title="Stories"
+        title="Historias"
         actions={
           <Button onClick={() => navigate("/stories/create")}>
             <Plus className="h-4 w-4 mr-2" />
-            Create story
+            Crear historia
           </Button>
         }
         filters={
@@ -98,18 +99,18 @@ export default function StoriesPage() {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search stories..."
+                  placeholder="Buscar historias..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="pl-10"
                 />
               </div>
               {activeFiltersCount > 0 && (
-                <Button type="button" variant="ghost" onClick={handleClearFilters} size="icon" title="Clear filters">
+                <Button type="button" variant="ghost" onClick={handleClearFilters} size="icon" title="Limpiar filtros">
                   <X className="h-4 w-4" />
                 </Button>
               )}
-              <Button type="submit" variant="secondary" size="icon" title="Search">
+              <Button type="submit" variant="secondary" size="icon" title="Buscar">
                 <Search className="h-4 w-4" />
               </Button>
             </form>
@@ -129,21 +130,21 @@ export default function StoriesPage() {
       <ModalNova
         open={filterOpen}
         onOpenChange={setFilterOpen}
-        title="Filters"
+        title="Filtros"
         footer={
           <div className="flex gap-2 justify-end">
-            <Button variant="outline" onClick={() => setFilterOpen(false)}>Cancel</Button>
-            <Button onClick={() => { setPage(1); loadStories(); setFilterOpen(false); }}>Apply</Button>
+            <Button variant="outline" onClick={() => setFilterOpen(false)}>Cancelar</Button>
+            <Button onClick={() => { setPage(1); loadStories(); setFilterOpen(false); }}>Aplicar</Button>
           </div>
         }
       >
         <div className="space-y-4">
           <div>
-            <Label>Genre</Label>
+            <Label>Género</Label>
             <Select value={selectedGenre} onValueChange={setSelectedGenre}>
-              <SelectTrigger><SelectValue placeholder="All genres" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder="Todos los géneros" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All genres</SelectItem>
+                <SelectItem value="">Todos los géneros</SelectItem>
                 {storyGenres.map((g) => (
                   <SelectItem key={g.value} value={g.value}>{g.label}</SelectItem>
                 ))}
@@ -151,7 +152,7 @@ export default function StoriesPage() {
             </Select>
           </div>
           <div>
-            <Label>Level</Label>
+            <Label>Nivel</Label>
             <div className="flex flex-wrap gap-2 mt-2">
               {LEVELS.map((level) => (
                 <Badge
@@ -177,11 +178,11 @@ export default function StoriesPage() {
         {stories.length === 0 && !loading ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <BookOpenText className="h-16 w-16 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No stories yet</h3>
-            <p className="text-muted-foreground mb-4">Create your first story to get started</p>
+            <h3 className="text-lg font-semibold mb-2">Todavía no hay historias</h3>
+            <p className="text-muted-foreground mb-4">Creá tu primera historia para empezar</p>
             <Button onClick={() => navigate("/stories/create")}>
               <Plus className="h-4 w-4 mr-2" />
-              Create story
+              Crear historia
             </Button>
           </div>
         ) : (
@@ -192,22 +193,19 @@ export default function StoriesPage() {
               ))}
             </div>
 
-            {totalPages > 1 && (
-              <div className="flex justify-center gap-2 mt-6">
-                <Button variant="outline" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-                  Previous
-                </Button>
-                <span className="flex items-center px-3">
-                  Page {page} of {totalPages}
-                </span>
-                <Button variant="outline" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>
-                  Next
-                </Button>
-              </div>
-            )}
           </>
         )}
       </PageLoader>
+
+      <TablePagination
+        currentPage={page}
+        totalPages={totalPages}
+        total={total}
+        itemsCount={stories.length}
+        itemLabel="historias"
+        pageSize={12}
+        onPageChange={setPage}
+      />
     </div>
   );
 }
@@ -239,7 +237,7 @@ function StoryCard({ story, onClick }: { story: IStory; onClick: () => void }) {
             <Badge variant={getDifficultyVariant(story.languageLevel)}>{story.languageLevel}</Badge>
             <Badge variant="secondary">{story.genre}</Badge>
             <Badge variant="outline" className="ml-auto">
-              {story.chapters.length} {story.chapters.length === 1 ? "chapter" : "chapters"}
+              {story.chapters.length} {story.chapters.length === 1 ? "capítulo" : "capítulos"}
             </Badge>
           </div>
         </div>

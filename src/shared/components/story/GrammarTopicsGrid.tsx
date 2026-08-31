@@ -27,9 +27,9 @@ export function GrammarTopicsGrid({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <Label>Target grammar</Label>
+        <Label>Gramática objetivo</Label>
         <span className="text-xs text-muted-foreground">
-          {selected.length}/{maxSelections} selected
+          {selected.length}/{maxSelections} seleccionados
         </span>
       </div>
       <div className="max-h-[280px] overflow-y-auto rounded-md border p-3 space-y-3">
