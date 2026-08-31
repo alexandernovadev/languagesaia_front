@@ -106,20 +106,20 @@ export default function SystemInfoPage() {
                   Frontend
                 </h2>
                 <div className="space-y-4">
+                  <InfoBlock
+                    label="URL"
+                    value={<span className="font-mono text-xs break-all">{import.meta.env.VITE_BACK_URL || "No configurado"}</span>}
+                  />
+                  <InfoBlock
+                    label="Ambiente"
+                    value={<Badge variant={import.meta.env.DEV ? "secondary" : "default"}>{import.meta.env.DEV ? "Development" : "Production"}</Badge>}
+                  />
                   <InfoBlock label="Versión" value={<span className="font-mono text-sm">{packageJson.version}</span>} />
                   <InfoBlock
                     label="Último deploy"
                     value={(packageJson as { buildDate?: string }).buildDate
                       ? formatDateTimeSpanish((packageJson as { buildDate?: string }).buildDate!)
                       : "N/A (modo desarrollo)"}
-                  />
-                  <InfoBlock
-                    label="Ambiente"
-                    value={<Badge variant={import.meta.env.DEV ? "secondary" : "default"}>{import.meta.env.DEV ? "Development" : "Production"}</Badge>}
-                  />
-                  <InfoBlock
-                    label="URL Back"
-                    value={<span className="font-mono text-xs break-all">{import.meta.env.VITE_BACK_URL || "No configurado"}</span>}
                   />
                 </div>
               </CardContent>

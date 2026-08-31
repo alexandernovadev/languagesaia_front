@@ -11,7 +11,7 @@ import {
 } from "@/shared/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
 import { Badge } from "@/shared/components/ui/badge";
-import { Loader2, Sparkles, MessageSquare, BookOpen, Save, GraduationCap } from "lucide-react";
+import { Loader2, MessageSquare, BookOpen, Save, GraduationCap } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/shared/components/ui/page-header";
 import { PageLoader } from "@/shared/components/ui/page-loader";
@@ -50,16 +50,6 @@ const FEATURE_CONFIG: Record<
     operations: [
       { operation: "generate", label: "Generar Expresión", description: "Generación completa de expresión" },
       { operation: "chat", label: "Chat", description: "Conversación sobre la expresión" },
-      { operation: "image", label: "Imagen", description: "Generar imagen" },
-    ],
-  },
-  lecture: {
-    label: "Lecturas",
-    icon: <Sparkles className="h-5 w-5" />,
-    color: "text-emerald-600",
-    operations: [
-      { operation: "text", label: "Texto", description: "Generar texto de lectura" },
-      { operation: "topic", label: "Tema", description: "Generar tema de lectura" },
       { operation: "image", label: "Imagen", description: "Generar imagen" },
     ],
   },
@@ -158,7 +148,7 @@ export default function AIConfigPage() {
       <PageLoader loading={loading}>
 
       <Tabs value={activeFeature} onValueChange={(v) => setActiveFeature(v as AIFeature)}>
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 mb-6 bg-transparent">
+        <TabsList className="grid w-full grid-cols-3 mb-6 bg-transparent">
           {Object.entries(FEATURE_CONFIG).map(([key, config]) => (
             <TabsTrigger
               key={key}

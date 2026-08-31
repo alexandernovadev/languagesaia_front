@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { axiosClient as api } from "@/services/api/HttpClient";
 
-export type ImportType = "words" | "expressions" | "lectures" | "exams";
+export type ImportType = "words" | "expressions" | "exams";
 export type DuplicateStrategy = "skip" | "overwrite" | "merge" | "error";
 
 export interface ValidationResult {
@@ -46,7 +46,6 @@ export function useImport(type: ImportType) {
     const endpoints = {
       words: "/api/words/import-file",
       expressions: "/api/expressions/import-file",
-      lectures: "/api/lectures/import-file",
       exams: "/api/exams/import-file",
     };
     return endpoints[type];
@@ -86,7 +85,7 @@ export function useImport(type: ImportType) {
       if (response.data.success) {
         const data = response.data.data;
         setValidationResult({
-          total: data.totalWords || data.totalExpressions || data.totalLectures || data.totalExams || 0,
+          total: data.totalWords || data.totalExpressions || data.totalExams || 0,
           valid: data.valid || 0,
           invalid: data.invalid || 0,
           validationResults: data.validationResults || [],

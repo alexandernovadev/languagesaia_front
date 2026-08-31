@@ -1,6 +1,5 @@
 import {
   Settings,
-  BookOpen,
   RotateCcw,
   Users,
   BookMarked,
@@ -18,11 +17,6 @@ import {
 } from "lucide-react";
 
 export const menuItems = [
-  {
-    title: "Lecturas",
-    url: "/lectures",
-    icon: BookOpen,
-  },
   {
     title: "Historias",
     url: "/stories",

@@ -2,7 +2,7 @@
  * Upload Response Types
  */
 
-export type EntityType = "word" | "lecture" | "expression" | "story";
+export type EntityType = "word" | "expression" | "story";
 
 export interface UploadImageResponse {
   _id?: string;

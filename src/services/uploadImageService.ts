@@ -3,7 +3,7 @@ import type { EntityType, UploadImageResponse } from "@/types/api";
 
 /**
  * Upload Image Service
- * Handles image uploads for words, lectures, and expressions
+ * Handles image uploads for words, expressions, and stories
  */
 class UploadImageService extends HttpClient {
   constructor() {
@@ -38,13 +38,6 @@ class UploadImageService extends HttpClient {
   }
 
   /**
-   * Upload image for a lecture
-   */
-  async uploadLectureImage(imageFile: File, lectureId: string): Promise<any> {
-    return this.uploadImage(imageFile, "lecture", lectureId);
-  }
-
-  /**
    * Upload image for an expression
    */
   async uploadExpressionImage(
@@ -69,9 +62,6 @@ export const uploadImage = (
 
 export const uploadWordImage = (imageFile: File, wordId: string) =>
   uploadImageServiceInstance.uploadWordImage(imageFile, wordId);
-
-export const uploadLectureImage = (imageFile: File, lectureId: string) =>
-  uploadImageServiceInstance.uploadLectureImage(imageFile, lectureId);
 
 export const uploadExpressionImage = (imageFile: File, expressionId: string) =>
   uploadImageServiceInstance.uploadExpressionImage(imageFile, expressionId);

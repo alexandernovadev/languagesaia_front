@@ -2,7 +2,7 @@
  * AI Config Response Types
  */
 
-export type AIFeature = "word" | "expression" | "lecture" | "exam";
+export type AIFeature = "word" | "expression" | "exam";
 
 export type AIOperation =
   | "generate"
