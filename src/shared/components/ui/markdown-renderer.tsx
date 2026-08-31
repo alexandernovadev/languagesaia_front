@@ -125,12 +125,15 @@ interface MarkdownRendererProps {
   className?: string;
   onWordClick?: (word: string) => void;
   clickableWords?: string[];
+  /** Words to highlight in a distinct color wherever they appear (e.g. a chapter's target vocabulary). */
+  highlightWords?: string[];
 }
 
 function processChildrenWithWordClick(
   children: React.ReactNode,
-  onWordClick: (word: string) => void,
-  clickableWordsSet?: Set<string>
+  onWordClick: ((word: string) => void) | undefined,
+  clickableWordsSet: Set<string> | undefined,
+  highlightWordsSet: Set<string> | undefined
 ): React.ReactNode {
   return React.Children.map(children, (child, idx) => {
     if (typeof child === "string") {
@@ -139,19 +142,30 @@ function processChildrenWithWordClick(
         <React.Fragment key={idx}>
           {parts.map((part, i) => {
             const word = cleanWord(part);
+            const isWord = word.length >= 1 && isWordLike(word);
             const isClickable =
-              word.length >= 1 &&
-              isWordLike(word) &&
+              isWord &&
+              !!onWordClick &&
               (!clickableWordsSet || clickableWordsSet.has(word.toLowerCase()));
-            if (isClickable) {
+            const isHighlighted = isWord && !!highlightWordsSet?.has(word.toLowerCase());
+
+            if (isClickable || isHighlighted) {
               return (
                 <span
                   key={i}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onWordClick(word);
-                  }}
-                  className="cursor-pointer hover:bg-primary/10 rounded px-0.5 transition-colors inline"
+                  onClick={
+                    isClickable
+                      ? (e) => {
+                          e.stopPropagation();
+                          onWordClick!(word);
+                        }
+                      : undefined
+                  }
+                  className={cn(
+                    "rounded px-0.5 transition-colors inline",
+                    isClickable && "cursor-pointer hover:bg-primary/10",
+                    isHighlighted && "font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10"
+                  )}
                 >
                   {part}
                 </span>
@@ -167,7 +181,8 @@ function processChildrenWithWordClick(
         children: processChildrenWithWordClick(
           (child as React.ReactElement<any>).props.children,
           onWordClick,
-          clickableWordsSet
+          clickableWordsSet,
+          highlightWordsSet
         ),
       });
     }
@@ -181,6 +196,7 @@ export function MarkdownRenderer({
   className,
   onWordClick,
   clickableWords,
+  highlightWords,
 }: MarkdownRendererProps) {
   const isReading = variant === "reading";
   const isChat = variant === "chat";
@@ -195,9 +211,13 @@ export function MarkdownRenderer({
     ? new Set(clickableWords.map((w) => w.toLowerCase()))
     : undefined;
 
+  const highlightWordsSet = highlightWords?.length
+    ? new Set(highlightWords.map((w) => w.toLowerCase()))
+    : undefined;
+
   const wrapIfClickable = (children: React.ReactNode) =>
-    onWordClick
-      ? processChildrenWithWordClick(children, onWordClick, clickableWordsSet)
+    onWordClick || highlightWordsSet
+      ? processChildrenWithWordClick(children, onWordClick, clickableWordsSet, highlightWordsSet)
       : children;
 
   // Chat variant components (compact, primary colors)
@@ -288,7 +308,10 @@ export function MarkdownRenderer({
     ol: ({ children }: any) => <ol className="list-decimal list-outside mb-4 sm:mb-6 ml-4 sm:ml-6 space-y-2 text-base sm:text-lg">{children}</ol>,
     li: ({ children }: any) => <li className="pl-2 text-base sm:text-lg leading-relaxed">{wrapIfClickable(children)}</li>,
     strong: ({ children }: any) => <strong className="font-bold text-purple-600 dark:text-purple-400">{children}</strong>,
-    em: ({ children }: any) => <em className="italic">{children}</em>,
+    em: ({ children }: any) => <em className="italic text-amber-600 dark:text-amber-400">{children}</em>,
+    u: ({ children }: any) => <u className="underline decoration-2 decoration-cyan-500 dark:decoration-cyan-400 underline-offset-2">{children}</u>,
+    mark: ({ children }: any) => <mark className="bg-yellow-200 dark:bg-yellow-500/30 text-foreground rounded px-1">{children}</mark>,
+    del: ({ children }: any) => <del className="line-through text-rose-600 dark:text-rose-400">{children}</del>,
     code: ({ children, className: codeClassName }: any) => {
       const isInline = !codeClassName;
       return isInline ? (

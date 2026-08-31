@@ -40,9 +40,19 @@ class LabsService {
     return response.data;
   }
 
+  async deleteAllStories(): Promise<LabsResponse> {
+    const response = await api.delete("/api/labs/data/stories/delete-all");
+    return response.data;
+  }
+
   // Migrations
   async migrateSinonymsToSynonyms(): Promise<LabsResponse> {
     const response = await api.post("/api/labs/migrations/sinonyms-to-synonyms");
+    return response.data;
+  }
+
+  async migrateLecturesToStories(): Promise<LabsResponse> {
+    const response = await api.post("/api/labs/migrations/lectures-to-stories");
     return response.data;
   }
 }

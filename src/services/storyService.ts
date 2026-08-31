@@ -68,6 +68,11 @@ export const storyService = {
     return response;
   },
 
+  async generateChapterTitle(storyId: string, content: string) {
+    const res = await api.post(`/api/stories/${storyId}/chapters/title`, { content });
+    return res.data.data as { title: string };
+  },
+
   async saveChapter(
     storyId: string,
     chapterData: { title: string; content: string; targetVocabulary?: string[]; targetGrammar?: string[] }

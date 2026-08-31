@@ -59,8 +59,16 @@ export function useChapterGenerator(storyId: string | undefined): UseChapterGene
           setGeneratingChapter(acc);
         }
 
+        let title = `Chapter ${chapterNumber}`;
+        try {
+          const titleResult = await storyService.generateChapterTitle(storyId, acc);
+          if (titleResult?.title) title = titleResult.title;
+        } catch {
+          // Keep the "Chapter N" fallback if title generation fails
+        }
+
         const saved = await storyService.saveChapter(storyId, {
-          title: `Chapter ${chapterNumber}`,
+          title,
           content: acc,
           targetVocabulary,
           targetGrammar,
