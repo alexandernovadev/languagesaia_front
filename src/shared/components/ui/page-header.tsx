@@ -3,6 +3,7 @@ import { SidebarTrigger } from "./sidebar";
 
 interface PageHeaderProps {
   title?: ReactNode;
+  description?: ReactNode;
   actions?: ReactNode;
   filters?: ReactNode;
   footer?: ReactNode;
@@ -10,6 +11,7 @@ interface PageHeaderProps {
 
 export function PageHeader({
   title,
+  description,
   actions,
   filters,
   footer,
@@ -24,6 +26,7 @@ export function PageHeader({
         </div>
         <div className="flex-1 min-w-0">
           {title && <h1 className="text-lg sm:text-xl md:text-3xl font-bold">{title}</h1>}
+          {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
         </div>
         {actions && <div className="flex gap-2 shrink-0">{actions}</div>}
       </div>
