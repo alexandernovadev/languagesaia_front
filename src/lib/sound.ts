@@ -1,5 +1,5 @@
 /**
- * Sound engine — every LanguagesAI sound is synthesized with the Web Audio API.
+ * Sound engine — every Glota sound is synthesized with the Web Audio API.
  * No audio files: tiny, instant, and tuned to the design system.
  *
  * - Off by default (browsers block audio until the user interacts anyway).

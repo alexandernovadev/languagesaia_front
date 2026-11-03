@@ -1,5 +1,5 @@
 /**
- * Catalog — living showcase of the LanguagesAI design system.
+ * Catalog — living showcase of the Glota design system.
  * Every component, every state and every effect, working together.
  * Route: /catalogo (until we have a router, App renders it directly).
  */
@@ -16,6 +16,7 @@ import {
   FlashCard,
   HEROES,
   LevelBadge,
+  Logo,
   Modal,
   PageTransition,
   ProgressBar,
@@ -35,6 +36,7 @@ import {
   type Mood,
 } from "../../components";
 import { fx } from "../../lib/fx";
+import { logout } from "../../lib/session";
 import { sound } from "../../lib/sound";
 import styles from "./Catalog.module.css";
 
@@ -138,15 +140,19 @@ export function Catalog() {
   return (
     <main className={styles.page}>
       <div className={styles.top}>
+        <Logo variant="symbol" size={36} animated />
         <XPCounter value={xp} />
         <StreakCounter days={streak} />
         <SoundToggle />
+        <Button tone="neutral" size="sm" onClick={logout}>
+          Salir
+        </Button>
       </div>
 
       <header className={styles.hero}>
         <span className={styles.eyebrow}>Sistema de diseño · componentes</span>
         <h1>
-          Todo LanguagesAI, <span>vivo</span>
+          Todo Glota, <span>vivo</span>
         </h1>
         <p>
           Cada componente con sus estados, sonidos y efectos. Activa el sonido arriba a la derecha: cada toque, acierto y robot

@@ -1,5 +1,5 @@
 /**
- * Button — the chunky 3D pastel button of LanguagesAI.
+ * Button — the chunky 3D pastel button of Glota.
  *
  * Built on the native `<button>` (styled in native.css), so keyboard, focus and
  * forms work for free. On top of that it adds life:

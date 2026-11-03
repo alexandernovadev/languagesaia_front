@@ -1,4 +1,4 @@
-// LanguagesAI design system — every component in one import.
+// Glota design system — every component in one import.
 export { AIThinking } from "./AIThinking/AIThinking";
 export { AnswerOption, type AnswerState } from "./AnswerOption/AnswerOption";
 export { Button } from "./Button/Button";
@@ -8,7 +8,9 @@ export { FeedbackBanner } from "./FeedbackBanner/FeedbackBanner";
 export { Field } from "./Field/Field";
 export { FlashCard } from "./FlashCard/FlashCard";
 export { LevelBadge } from "./LevelBadge/LevelBadge";
+export { GlotaSymbol, Logo } from "./Logo/Logo";
 export { Modal } from "./Modal/Modal";
+export { PasswordInput } from "./PasswordInput/PasswordInput";
 export { PageTransition } from "./PageTransition/PageTransition";
 export { ProgressBar } from "./ProgressBar/ProgressBar";
 export { HEROES, Robot, RobotStage, useRobotMood, type Hero, type Mood } from "./Robot/Robot";

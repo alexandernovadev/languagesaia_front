@@ -1,5 +1,5 @@
 /**
- * Robot — the five superhero robots of LanguagesAI (squad v5).
+ * Robot — the five superhero robots of Glota (squad v5).
  *
  * Hand-built SVG with a full skeleton (shoulder → elbow → hand, hip → knee → foot),
  * many detail layers and 7 moods animated with the 12 principles of animation:

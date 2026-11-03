@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glota · Logo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600..800&family=Lexend:wght@400..600&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: dark;
+  --bg-0: #202024; --bg-1: #29292e; --bg-2: #333338; --bg-3: #3e3e44; --line: #4a4a51;
+  --text-1: #f7f7f9; --text-2: #d4d4da; --text-3: #b0b0b9; --ink: #1a1a1e; --visor: #121215;
+  --lilac: #cbbdf9; --lilac-deep: #8e7cc2; --lilac-soft: rgb(203 189 249 / .14);
+  --sky: #9bd2fa; --sky-deep: #4e94c3;
+  --mint: #91debc; --mint-deep: #3ca17b;
+  --butter: #ecdc92; --butter-deep: #af9b3e;
+  --peach: #f9bb92; --peach-deep: #bf7946;
+  --rose: #f6b2b9; --rose-deep: #bd6f79;
+  --font-display: "Baloo 2", ui-rounded, system-ui, sans-serif;
+  --font-body: "Lexend", system-ui, sans-serif;
+  --spring: cubic-bezier(.34, 1.56, .64, 1);
+}
+html, body { background: var(--bg-0); color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; color: var(--text-1); font-family: var(--font-body); line-height: 1.55; -webkit-font-smoothing: antialiased; }
+main { max-width: 1080px; margin: 0 auto; padding: 48px 16px 80px; display: flex; flex-direction: column; gap: 48px; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 800; margin: 0; line-height: 1.1; }
+p { margin: 0; color: var(--text-2); max-width: 62ch; }
+.eyebrow { font-size: .75rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); }
+.note { font-size: .875rem; color: var(--text-3); }
+
+/* ── Wordmark ── */
+.wm { display: inline-flex; align-items: baseline; font-family: var(--font-display); font-weight: 800; letter-spacing: -.025em; line-height: 1; color: var(--text-1); }
+.wm .o { display: inline-block; width: .68em; height: .68em; margin: 0 -.07em 0 -.06em; translate: 0 .11em; }
+.wm .o svg { width: 100%; height: 100%; overflow: visible; }
+.wm.multi .l1 { color: var(--sky); } .wm.multi .l2 { color: var(--mint); } .wm.multi .l3 { color: var(--lilac); } .wm.multi .l4 { color: var(--peach); } .wm.multi .l5 { color: var(--butter); }
+.wm .acc { color: var(--lilac); }
+
+/* ── Hero ── */
+.hero { display: grid; place-items: center; gap: 18px; text-align: center; padding: 48px 16px; background: radial-gradient(70% 90% at 50% 100%, var(--lilac-soft), transparent 70%), var(--bg-1); border: 2px solid var(--line); border-radius: 30px; }
+.hero .wm { font-size: clamp(4rem, 16vw, 8.5rem); }
+.hero p { text-align: center; }
+.tag { font-family: var(--font-display); font-weight: 700; font-size: 1.35rem; color: var(--text-2); }
+
+/* ── Options ── */
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.opt { background: var(--bg-1); border: 2px solid var(--line); border-radius: 30px; padding: 24px; display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.opt header { display: flex; align-items: baseline; gap: 10px; }
+.opt header b { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 10px; background: var(--lilac); color: var(--ink); font-family: var(--font-display); font-size: 1.1rem; box-shadow: 0 2px 0 var(--lilac-deep); }
+.opt h2 { font-size: 1.5rem; }
+.show { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+.show .wm { font-size: 4rem; }
+
+/* App icon tile with 3D edge */
+.tile { width: var(--s, 112px); height: var(--s, 112px); border-radius: 26%; display: grid; place-items: center; background: var(--tile-bg, var(--bg-2)); box-shadow: 0 calc(var(--s, 112px) * .04) 0 var(--tile-edge, var(--bg-3)), inset 0 2px 0 rgb(255 255 255 / .08); flex: none; transition: scale .3s var(--spring); }
+.tile:hover { scale: 1.06; rotate: -3deg; }
+.tile { position: relative; }
+.tile svg { position: absolute; inset: 10%; width: 80%; height: 80%; overflow: visible; }
+
+/* Usage previews */
+.uses { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: stretch; }
+.home { display: grid; grid-template-columns: repeat(3, 52px); gap: 10px 12px; padding: 14px; border-radius: 20px; background: linear-gradient(160deg, #3a3550, #2a3442); }
+.home .app { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: .62rem; color: #fff; }
+.home .ph { width: 52px; aspect-ratio: 1; border-radius: 26%; background: rgb(255 255 255 / .14); }
+.mini { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.bar { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--bg-0); border: 2px solid var(--line); border-radius: 18px; }
+.bar .wm { font-size: 1.6rem; }
+.bar .sym { width: 30px; height: 30px; flex: none; }
+.bar .sym svg { width: 100%; height: 100%; overflow: visible; }
+.pill { margin-left: auto; font-family: var(--font-display); font-weight: 800; font-size: .85rem; padding: 4px 10px; border-radius: 999px; background: rgb(145 222 188 / .14); color: var(--mint); white-space: nowrap; }
+.tab { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--bg-2); border-radius: 12px 12px 0 0; width: max-content; max-width: 100%; font-size: .8rem; color: var(--text-2); }
+.tab .fav { width: 16px; height: 16px; flex: none; }
+.tab .fav svg { width: 100%; height: 100%; }
+.verdict { display: grid; gap: 4px; font-size: .9rem; }
+.verdict span::before { margin-right: 6px; }
+.verdict .pro { color: var(--text-2); } .verdict .pro::before { content: "＋"; color: var(--mint); font-weight: 700; }
+.verdict .con { color: var(--text-3); } .verdict .con::before { content: "－"; color: var(--rose); font-weight: 700; }
+
+/* Blink for the faces */
+.blink { transform-box: fill-box; transform-origin: center; animation: blink 4s infinite; }
+@keyframes blink { 0%, 92%, 100% { scale: 1 1; } 95% { scale: 1 .1; } }
+.bob { animation: bob 2.6s ease-in-out infinite; }
+@keyframes bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -3px; } }
+
+.taglines { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.taglines div { background: var(--bg-1); border: 2px solid var(--line); border-radius: 22px; padding: 18px; display: grid; gap: 6px; }
+.taglines b { font-family: var(--font-display); font-size: 1.25rem; line-height: 1.2; }
+.taglines small { color: var(--text-3); }
+
+@media (max-width: 820px) { .grid, .taglines { grid-template-columns: 1fr; } }
+@media (max-width: 460px) { .uses { grid-template-columns: 1fr; } .show .wm { font-size: 3.2rem; } }
+@media (prefers-reduced-motion: reduce) { .blink, .bob { animation: none; } .tile { transition: none; } }
+</style>
+</head>
+<body>
+
+<!-- ═════════ SYMBOLS (defined once, reused with <use>) ═════════ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- speech bubble with tail, 120×120 -->
+    <path id="bubble" d="M48 22h24a30 30 0 0 1 30 30v4a30 30 0 0 1-30 30H58c-6 6-14 11-26 13 4-4 6-9 6-14A30 30 0 0 1 18 56v-4a30 30 0 0 1 30-30Z"/>
+
+    <!-- A · bubble with a face -->
+    <symbol id="sym-a" viewBox="0 0 120 120">
+      <use href="#bubble" fill="var(--lilac-deep)" transform="translate(0 5)"/>
+      <use href="#bubble" fill="var(--lilac)"/>
+      <path d="M30 38a24 24 0 0 1 18-12" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="5" stroke-linecap="round"/>
+      <g class="blink"><ellipse cx="47" cy="52" rx="6.5" ry="8.5" fill="var(--ink)"/><ellipse cx="73" cy="52" rx="6.5" ry="8.5" fill="var(--ink)"/></g>
+      <circle cx="49.5" cy="48.5" r="2.4" fill="#fff"/><circle cx="75.5" cy="48.5" r="2.4" fill="#fff"/>
+      <ellipse cx="36" cy="64" rx="5.5" ry="3.2" fill="var(--rose)" opacity=".75"/><ellipse cx="84" cy="64" rx="5.5" ry="3.2" fill="var(--rose)" opacity=".75"/>
+      <path d="M52 65q8 7 16 0" fill="none" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/>
+    </symbol>
+
+    <!-- B · bubble with a g -->
+    <symbol id="sym-b" viewBox="0 0 120 120">
+      <use href="#bubble" fill="var(--lilac-deep)" transform="translate(0 5)"/>
+      <use href="#bubble" fill="var(--lilac)"/>
+      <path d="M30 38a24 24 0 0 1 18-12" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="5" stroke-linecap="round"/>
+      <text x="60" y="70" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="62" fill="var(--ink)">g</text>
+    </symbol>
+
+    <!-- C · robot bubble (visor + antenna) -->
+    <symbol id="sym-c" viewBox="0 0 120 120">
+      <line x1="60" y1="22" x2="60" y2="9" stroke="var(--lilac-deep)" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="60" cy="8" r="6.5" fill="var(--butter)"/><circle cx="58" cy="6" r="2" fill="#fff" opacity=".8"/>
+      <use href="#bubble" fill="var(--lilac-deep)" transform="translate(0 5)"/>
+      <use href="#bubble" fill="var(--lilac)"/>
+      <path d="M30 38a24 24 0 0 1 18-12" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="5" stroke-linecap="round"/>
+      <rect x="29" y="37" width="62" height="32" rx="16" fill="var(--visor)"/>
+      <rect x="33" y="40" width="22" height="4" rx="2" fill="#fff" opacity=".12"/>
+      <g class="blink"><rect x="40" y="46" width="13" height="14" rx="6.5" fill="var(--sky)"/><rect x="67" y="46" width="13" height="14" rx="6.5" fill="var(--sky)"/></g>
+      <circle cx="49" cy="49.5" r="2.2" fill="#fff"/><circle cx="76" cy="49.5" r="2.2" fill="#fff"/>
+      <circle cx="22" cy="54" r="5" fill="var(--lilac-deep)"/><circle cx="98" cy="54" r="5" fill="var(--lilac-deep)"/>
+    </symbol>
+
+    <!-- D · two bubbles talking (two languages) -->
+    <symbol id="sym-d" viewBox="0 0 120 120">
+      <g transform="translate(-4 0) scale(.7)">
+        <use href="#bubble" fill="var(--sky-deep)" transform="translate(0 5)"/>
+        <use href="#bubble" fill="var(--sky)"/>
+        <text x="60" y="68" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="800" font-size="40" fill="var(--ink)">Aa</text>
+      </g>
+      <g transform="translate(122 32) scale(-.7 .7)">
+        <use href="#bubble" fill="var(--peach-deep)" transform="translate(0 5)"/>
+        <use href="#bubble" fill="var(--peach)"/>
+      </g>
+      <g class="blink"><ellipse cx="73" cy="68" rx="4.2" ry="5.6" fill="var(--ink)"/><ellipse cx="89" cy="68" rx="4.2" ry="5.6" fill="var(--ink)"/></g>
+      <path d="M76 77q5 4.5 10 0" fill="none" stroke="var(--ink)" stroke-width="3.4" stroke-linecap="round"/>
+    </symbol>
+  </defs>
+</svg>
+
+<main>
+  <span class="eyebrow">Marca · nombre nuevo</span>
+
+  <section class="hero" id="hero">
+    <span class="wm"><span>gl</span><span class="o bob"><svg><use href="#sym-a"/></svg></span><span>ta</span></span>
+    <div class="tag">Aprende idiomas con tu escuadrón</div>
+    <p>De <i>glōtta</i>, "lengua" en griego — la misma raíz de <i>políglota</i>. Cuatro caminos para el logo: todos con la letra Baloo 2 y la paleta pastel.</p>
+  </section>
+
+  <section class="grid">
+    <!-- A -->
+    <article class="opt" id="opt-a">
+      <header><b>A</b><h2>Burbuja con cara</h2></header>
+      <div class="show">
+        <div class="tile" style="--s:112px"><svg><use href="#sym-a"/></svg></div>
+        <span class="wm"><span>gl</span><span class="o"><svg><use href="#sym-a"/></svg></span><span>ta</span></span>
+      </div>
+      <div class="uses">
+        <div class="home"><div class="app"><div class="ph"></div>Fotos</div><div class="app"><div class="tile" style="--s:52px"><svg><use href="#sym-a"/></svg></div>Glota</div><div class="app"><div class="ph"></div>Mapas</div></div>
+        <div class="mini">
+          <div class="bar"><span class="sym"><svg><use href="#sym-a"/></svg></span><span class="wm">glota</span><span class="pill">⭐ 120</span></div>
+          <div class="tab"><span class="fav"><svg viewBox="0 0 120 120"><use href="#sym-a"/></svg></span>Glota · Palabras</div>
+        </div>
+      </div>
+      <div class="verdict"><span class="pro">La "o" es una burbuja que habla y sonríe: idioma + personaje en un solo signo.</span><span class="pro">Se lee perfecto hasta en 16 px.</span><span class="con">Se parece a otros iconos de chat si se ve sin el nombre.</span></div>
+    </article>
+
+    <!-- B -->
+    <article class="opt" id="opt-b">
+      <header><b>B</b><h2>Burbuja con g</h2></header>
+      <div class="show">
+        <div class="tile" style="--s:112px"><svg><use href="#sym-b"/></svg></div>
+        <span class="wm"><span>glota</span><span class="acc">.</span></span>
+      </div>
+      <div class="uses">
+        <div class="home"><div class="app"><div class="ph"></div>Fotos</div><div class="app"><div class="tile" style="--s:52px"><svg><use href="#sym-b"/></svg></div>Glota</div><div class="app"><div class="ph"></div>Mapas</div></div>
+        <div class="mini">
+          <div class="bar"><span class="sym"><svg><use href="#sym-b"/></svg></span><span class="wm">glota</span><span class="pill">⭐ 120</span></div>
+          <div class="tab"><span class="fav"><svg viewBox="0 0 120 120"><use href="#sym-b"/></svg></span>Glota · Palabras</div>
+        </div>
+      </div>
+      <div class="verdict"><span class="pro">La más sobria: funciona en cualquier contexto, también serio.</span><span class="pro">La inicial hace el icono fácil de recordar.</span><span class="con">Menos personalidad; no habla del escuadrón.</span></div>
+    </article>
+
+    <!-- C -->
+    <article class="opt" id="opt-c">
+      <header><b>C</b><h2>Burbuja robot</h2></header>
+      <div class="show">
+        <div class="tile" style="--s:112px"><svg><use href="#sym-c"/></svg></div>
+        <span class="wm"><span>gl</span><span class="o"><svg><use href="#sym-c"/></svg></span><span>ta</span></span>
+      </div>
+      <div class="uses">
+        <div class="home"><div class="app"><div class="ph"></div>Fotos</div><div class="app"><div class="tile" style="--s:52px"><svg><use href="#sym-c"/></svg></div>Glota</div><div class="app"><div class="ph"></div>Mapas</div></div>
+        <div class="mini">
+          <div class="bar"><span class="sym"><svg><use href="#sym-c"/></svg></span><span class="wm">glota</span><span class="pill">⭐ 120</span></div>
+          <div class="tab"><span class="fav"><svg viewBox="0 0 120 120"><use href="#sym-c"/></svg></span>Glota · Palabras</div>
+        </div>
+      </div>
+      <div class="verdict"><span class="pro">Une los dos mundos: burbuja de idioma + cabeza de robot con visor y antena.</span><span class="pro">Es "el sexto héroe": la mascota de la marca.</span><span class="con">Más detalle: la antena se pierde en tamaños muy pequeños.</span></div>
+    </article>
+
+    <!-- D -->
+    <article class="opt" id="opt-d">
+      <header><b>D</b><h2>Conversación pastel</h2></header>
+      <div class="show">
+        <div class="tile" style="--s:112px"><svg><use href="#sym-d"/></svg></div>
+        <span class="wm multi"><span class="l1">g</span><span class="l2">l</span><span class="l3">o</span><span class="l4">t</span><span class="l5">a</span></span>
+      </div>
+      <div class="uses">
+        <div class="home"><div class="app"><div class="ph"></div>Fotos</div><div class="app"><div class="tile" style="--s:52px"><svg><use href="#sym-d"/></svg></div>Glota</div><div class="app"><div class="ph"></div>Mapas</div></div>
+        <div class="mini">
+          <div class="bar"><span class="sym"><svg><use href="#sym-d"/></svg></span><span class="wm multi"><span class="l1">g</span><span class="l2">l</span><span class="l3">o</span><span class="l4">t</span><span class="l5">a</span></span><span class="pill">⭐ 120</span></div>
+          <div class="tab"><span class="fav"><svg viewBox="0 0 120 120"><use href="#sym-d"/></svg></span>Glota · Palabras</div>
+        </div>
+      </div>
+      <div class="verdict"><span class="pro">Dos burbujas = dos idiomas hablando; el nombre usa toda la paleta.</span><span class="pro">La más alegre y colorida.</span><span class="con">Muchos colores a la vez: compite con los colores de los módulos.</span></div>
+    </article>
+  </section>
+
+  <section style="display:grid;gap:16px">
+    <span class="eyebrow">Frase de marca · opciones</span>
+    <div class="taglines">
+      <div><b>Aprende idiomas con tu escuadrón</b><small>Presenta a los robots desde el primer segundo.</small></div>
+      <div><b>Habla. Juega. Recuerda.</b><small>Corta, con ritmo; resume los módulos.</small></div>
+      <div><b>Tu lengua, tu ritmo</b><small>Juega con el significado de "glota".</small></div>
+    </div>
+  </section>
+</main>
+</body>
+</html>

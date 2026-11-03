@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════════
-   LanguagesAI · MOVIMIENTO compartido
+   Glota · MOVIMIENTO compartido
    Keyframes globales (prefijo lai-) que usan todos los componentes.
    Usan las propiedades individuales scale/translate/rotate para no
    pelear con el `transform` del :active de los botones.

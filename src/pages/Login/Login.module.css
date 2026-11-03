@@ -1,0 +1,190 @@
+.page {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(360px, 0.85fr);
+}
+
+/* ── Stage: the squad on a soft spotlight ── */
+.stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-8);
+  padding: var(--sp-10) var(--sp-10) 0;
+  overflow: hidden;
+  background:
+    radial-gradient(60% 45% at 50% 100%, var(--lilac-soft), transparent 70%),
+    radial-gradient(40% 30% at 15% 20%, var(--sky-soft), transparent 70%),
+    radial-gradient(35% 30% at 85% 30%, var(--peach-soft), transparent 70%),
+    var(--bg-1);
+  border-right: var(--border) solid var(--line);
+}
+/* subtle dotted floor grid */
+.stage::before {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 32%;
+  background-image: radial-gradient(var(--line) 1.2px, transparent 1.4px);
+  background-size: 22px 22px;
+  mask-image: linear-gradient(to top, #000 10%, transparent);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.brand {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  margin-block: auto; /* centered in the space above the squad */
+  animation: lai-reveal var(--t-slow) var(--ease-out) both;
+}
+.tagline {
+  font-family: var(--font-display);
+  font-weight: var(--fw-display);
+  font-size: var(--fs-h3);
+  color: var(--text-2);
+}
+
+.modules {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin: var(--sp-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.modules li {
+  animation: lai-reveal var(--t-slow) var(--ease-out) both;
+  animation-delay: calc(var(--i) * 70ms + 300ms);
+}
+
+.squad {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.05fr 1fr 1.1fr 1.25fr 0.8fr;
+  align-items: end;
+  gap: 0;
+  padding-top: 90px;
+  max-width: 760px;
+  width: 100%;
+  margin: 0 auto;
+}
+.member {
+  position: relative;
+  display: grid;
+  place-items: end center;
+  /* they jump in one by one */
+  animation: enter 700ms var(--spring) both;
+  animation-delay: calc(var(--i) * 90ms + 150ms);
+}
+.member :global(.robot) {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+/* the tall ones stand a bit behind */
+.member[data-hero="bruno"] { margin-inline: -6%; }
+.member[data-hero="menti"] { margin-bottom: 4%; }
+@keyframes enter {
+  from { opacity: 0; translate: 0 60px; scale: 0.9; }
+  to { opacity: 1; translate: 0 0; scale: 1; }
+}
+.shadow {
+  position: absolute;
+  bottom: 2%;
+  left: 50%;
+  width: 56%;
+  height: 12px;
+  translate: -50% 0;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 0.35);
+  filter: blur(3px);
+}
+.bubble {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  translate: -50% 0;
+  z-index: 2;
+  white-space: nowrap;
+}
+
+/* ── Panel with the form ── */
+.panel {
+  display: grid;
+  place-items: center;
+  padding: var(--sp-10) var(--sp-6);
+}
+.card {
+  width: min(400px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  animation: lai-reveal var(--t-slow) var(--ease-out) 120ms both;
+}
+.mobileLogo {
+  display: none;
+}
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  margin-bottom: var(--sp-2);
+}
+.head h1 {
+  font-size: var(--fs-h1);
+  line-height: 1.05;
+}
+.head p {
+  color: var(--text-2);
+}
+.foot {
+  font-size: var(--fs-small);
+  color: var(--text-3);
+  text-align: center;
+  line-height: 1.6;
+}
+.heroes {
+  color: var(--text-2);
+}
+
+/* ── Tablet & phone: squad becomes a compact header ── */
+@media (max-width: 900px) {
+  .page {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+  .stage {
+    padding: var(--sp-5) var(--gutter) 0;
+    border-right: 0;
+    border-bottom: var(--border) solid var(--line);
+    gap: var(--sp-3);
+  }
+  .brand {
+    display: none;
+  }
+  .squad {
+    max-width: 440px;
+    padding-top: 64px;
+  }
+  .bubble :global(*) {
+    font-size: 1rem;
+  }
+  .mobileLogo {
+    display: flex;
+    justify-content: center;
+    margin-bottom: var(--sp-1);
+  }
+  .head {
+    text-align: center;
+  }
+  .head h1 {
+    font-size: var(--fs-h2);
+  }
+  .panel {
+    place-items: start center;
+    padding: var(--sp-6) var(--gutter) var(--sp-10);
+  }
+}
