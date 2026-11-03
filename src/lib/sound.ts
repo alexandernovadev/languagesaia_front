@@ -2,7 +2,8 @@
  * Sound engine — every Glota sound is synthesized with the Web Audio API.
  * No audio files: tiny, instant, and tuned to the design system.
  *
- * - Off by default (browsers block audio until the user interacts anyway).
+ * - On by default. Browsers only allow audio after the first tap, so the
+ *   AudioContext is created lazily on the first sound (always inside a gesture).
  * - The on/off choice and the volume persist in localStorage.
  * - `voice` is a pitch multiplier, so each robot hero "speaks" with its own voice
  *   (Bruno 0.62 deep → Menti 1.6 squeaky).
@@ -19,11 +20,11 @@ export type UiSound = "tap" | "correct" | "wrong" | "combo" | "flip" | "levelup"
 export type MoodSound = "wave" | "happy" | "party" | "think" | "sad" | "sleep";
 export type SoundName = UiSound | MoodSound;
 
-const STORAGE_KEY = "lai.sound";
+const STORAGE_KEY = "glota.sound";
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
-let enabled = read("enabled", false);
+let enabled = read("enabled", true);
 let volume = read("volume", 0.5);
 const listeners = new Set<() => void>();
 

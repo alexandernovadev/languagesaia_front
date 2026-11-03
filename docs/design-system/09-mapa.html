@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mapa de Glota</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600..800&family=Lexend:wght@400..600&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: dark;
+  --bg-0: #202024; --bg-1: #29292e; --bg-2: #333338; --bg-3: #3e3e44; --line: #4a4a51;
+  --text-1: #f7f7f9; --text-2: #d4d4da; --text-3: #b0b0b9; --ink: #1a1a1e;
+  --lilac: #cbbdf9; --lilac-deep: #8e7cc2; --lilac-soft: rgb(203 189 249 / .14);
+  --sky: #9bd2fa; --sky-deep: #4e94c3; --sky-soft: rgb(155 210 250 / .14);
+  --mint: #91debc; --mint-deep: #3ca17b; --mint-soft: rgb(145 222 188 / .14);
+  --butter: #ecdc92; --butter-deep: #af9b3e; --butter-soft: rgb(236 220 146 / .14);
+  --peach: #f9bb92; --peach-deep: #bf7946; --peach-soft: rgb(249 187 146 / .14);
+  --rose: #f6b2b9; --rose-deep: #bd6f79; --rose-soft: rgb(246 178 185 / .14);
+  --font-display: "Baloo 2", ui-rounded, system-ui, sans-serif;
+  --font-body: "Lexend", system-ui, sans-serif;
+}
+html, body { background: var(--bg-0); color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; color: var(--text-1); font-family: var(--font-body); line-height: 1.55; -webkit-font-smoothing: antialiased; }
+main { max-width: 1080px; margin: 0 auto; padding: 40px 16px 80px; display: flex; flex-direction: column; gap: 48px; }
+h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 800; margin: 0; line-height: 1.15; }
+h1 { font-size: clamp(2.2rem, 6vw, 3rem); }
+h1 span { color: var(--lilac); }
+h2 { font-size: 1.75rem; }
+p { margin: 0; color: var(--text-2); max-width: 64ch; }
+ul { margin: 0; padding: 0; list-style: none; }
+.eyebrow { font-size: .75rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); }
+section { display: flex; flex-direction: column; gap: 18px; }
+.note { font-size: .875rem; color: var(--text-3); }
+.c-sky { --c: var(--sky); --cd: var(--sky-deep); --cs: var(--sky-soft); }
+.c-lilac { --c: var(--lilac); --cd: var(--lilac-deep); --cs: var(--lilac-soft); }
+.c-mint { --c: var(--mint); --cd: var(--mint-deep); --cs: var(--mint-soft); }
+.c-butter { --c: var(--butter); --cd: var(--butter-deep); --cs: var(--butter-soft); }
+.c-peach { --c: var(--peach); --cd: var(--peach-deep); --cs: var(--peach-soft); }
+.c-rose { --c: var(--rose); --cd: var(--rose-deep); --cs: var(--rose-soft); }
+.c-grey { --c: var(--text-2); --cd: var(--bg-3); --cs: rgb(255 255 255 / .06); }
+
+/* ── Navigation mock ── */
+.navs { display: grid; grid-template-columns: 300px 1fr; gap: 20px; align-items: start; }
+.phone { background: var(--bg-0); border: 2px solid var(--line); border-radius: 36px; padding: 14px; display: flex; flex-direction: column; gap: 10px; height: 560px; }
+.ph-top { display: flex; align-items: center; gap: 8px; font-family: var(--font-display); font-weight: 800; font-size: 1.2rem; }
+.ph-top .pill { margin-left: auto; font-size: .75rem; padding: 3px 9px; border-radius: 999px; background: var(--mint-soft); color: var(--mint); }
+.ph-top .pill.f { margin-left: 0; background: var(--butter-soft); color: var(--butter); }
+.ph-body { flex: 1; display: flex; flex-direction: column; gap: 8px; overflow: hidden; }
+.ph-card { border-radius: 18px; padding: 10px 12px; background: radial-gradient(120% 100% at 0 100%, var(--cs), transparent 70%), var(--bg-1); border: 2px solid var(--line); font-size: .8rem; color: var(--text-2); }
+.ph-card b { display: block; font-family: var(--font-display); font-size: 1rem; color: var(--c); }
+.ph-cta { border-radius: 18px; padding: 12px; background: var(--mint); color: var(--ink); font-family: var(--font-display); font-weight: 800; text-align: center; box-shadow: 0 3px 0 var(--mint-deep); }
+.tabbar { display: grid; grid-template-columns: repeat(5, 1fr); align-items: end; background: var(--bg-1); border: 2px solid var(--line); border-radius: 22px; padding: 8px 4px 6px; }
+.tab { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: .62rem; color: var(--text-3); }
+.tab i { font-style: normal; font-size: 1.15rem; }
+.tab.on { color: var(--c); font-weight: 600; }
+.tab.big i { display: grid; place-items: center; width: 50px; height: 50px; margin-top: -26px; border-radius: 50%; background: var(--mint); box-shadow: 0 3px 0 var(--mint-deep); font-size: 1.4rem; }
+.tab.big { color: var(--mint); font-weight: 600; }
+.desk { background: var(--bg-0); border: 2px solid var(--line); border-radius: 24px; display: grid; grid-template-columns: 190px 1fr; overflow: hidden; min-height: 360px; }
+.side { background: var(--bg-1); border-right: 2px solid var(--line); padding: 16px 10px; display: flex; flex-direction: column; gap: 4px; }
+.side .logo { font-family: var(--font-display); font-weight: 800; font-size: 1.5rem; padding: 0 8px 10px; }
+.side a { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 14px; font-size: .85rem; color: var(--text-2); text-decoration: none; border: 2px solid transparent; }
+.side a.on { color: var(--c); background: var(--cs); border-color: var(--c); }
+.side a i { font-style: normal; }
+.side .sep { height: 2px; background: var(--line); margin: 8px 6px; border-radius: 2px; }
+.desk-main { padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+.desk-main .row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.decide { background: var(--bg-1); border: 2px solid var(--lilac-deep); border-radius: 22px; padding: 16px 18px; display: grid; gap: 6px; }
+.decide b { font-family: var(--font-display); font-size: 1.1rem; color: var(--lilac); }
+
+/* ── Modules ── */
+.mods { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.mod { background: radial-gradient(110% 70% at 0 0, var(--cs), transparent 65%), var(--bg-1); border: 2px solid var(--line); border-top: 4px solid var(--c); border-radius: 28px; padding: 20px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.mod header { display: flex; align-items: center; gap: 12px; }
+.mod header .ic { width: 46px; height: 46px; border-radius: 16px; display: grid; place-items: center; font-size: 1.4rem; background: var(--c); box-shadow: 0 3px 0 var(--cd); flex: none; }
+.mod header h3 { font-size: 1.4rem; color: var(--c); }
+.mod header small { display: block; color: var(--text-3); font-size: .8rem; }
+.screens { display: grid; gap: 8px; }
+.scr { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; background: var(--bg-0); border: 2px solid var(--line); border-radius: 16px; padding: 10px 12px; }
+.scr .n { width: 24px; height: 24px; border-radius: 8px; display: grid; place-items: center; font-family: var(--font-display); font-weight: 800; font-size: .8rem; color: var(--ink); background: var(--c); }
+.scr b { font-family: var(--font-display); font-size: 1rem; }
+.scr span { display: block; font-size: .8rem; color: var(--text-3); }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { font-size: .72rem; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: var(--cs); color: var(--c); }
+.tag.ai::before { content: "✦ "; }
+.mod.wide { grid-column: 1 / -1; }
+
+/* ── Flow ── */
+.flow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.flow .step { padding: 8px 14px; border-radius: 999px; background: var(--cs); color: var(--c); font-weight: 600; font-size: .85rem; border: 2px solid transparent; }
+.flow .arrow { color: var(--text-3); }
+
+/* ── Roadmap ── */
+.road { display: grid; gap: 10px; }
+.phase { display: grid; grid-template-columns: 56px 1fr auto; gap: 14px; align-items: center; background: var(--bg-1); border: 2px solid var(--line); border-radius: 20px; padding: 12px 16px; }
+.phase .num { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; font-family: var(--font-display); font-weight: 800; font-size: 1.3rem; color: var(--ink); background: var(--c); box-shadow: 0 3px 0 var(--cd); }
+.phase b { font-family: var(--font-display); font-size: 1.1rem; }
+.phase span { display: block; font-size: .85rem; color: var(--text-3); }
+.phase em { font-style: normal; font-size: .75rem; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--cs); color: var(--c); white-space: nowrap; }
+
+.gaps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.gap { background: var(--bg-1); border: 2px dashed var(--line); border-radius: 20px; padding: 14px 16px; display: grid; gap: 4px; }
+.gap b { font-family: var(--font-display); font-size: 1.05rem; color: var(--butter); }
+.gap span { font-size: .85rem; color: var(--text-2); }
+
+@media (max-width: 860px) {
+  .navs, .mods, .gaps { grid-template-columns: 1fr; }
+  .phone { max-width: 320px; }
+  .desk { grid-template-columns: 1fr; } .side { display: none; }
+  .phase { grid-template-columns: 48px 1fr; } .phase em { grid-column: 2; justify-self: start; }
+}
+</style>
+</head>
+<body>
+<main>
+  <header style="display:grid;gap:12px">
+    <span class="eyebrow">Arquitectura · qué pantallas tiene Glota</span>
+    <h1>El <span>mapa</span> de Glota</h1>
+    <p>Todo lo que ya hace el back, ordenado en pantallas. Cada módulo es de un héroe, comparte la misma forma (lista → detalle → crear con IA) y desemboca en <b style="color:var(--mint)">Repasar</b>, el corazón diario.</p>
+  </header>
+
+  <!-- NAVIGATION -->
+  <section>
+    <span class="eyebrow">1 · Cómo se navega</span>
+    <div class="navs">
+      <div class="phone">
+        <div class="ph-top">gl🤖ta <span class="pill">⭐ 120</span><span class="pill f">🔥 6</span></div>
+        <div class="ph-body">
+          <div class="ph-cta">🧠 Repasar 24 tarjetas</div>
+          <div class="ph-card c-sky"><b>📘 Palabras</b>248 · 12 nuevas esta semana</div>
+          <div class="ph-card c-lilac"><b>💬 Expresiones</b>61 · 3 por aprender</div>
+          <div class="ph-card c-peach"><b>📖 Historias</b>"El faro" · cap. 3 de 5</div>
+          <div class="ph-card c-butter"><b>🎯 Exámenes</b>Último: 8/10 · Present perfect</div>
+        </div>
+        <div class="tabbar">
+          <div class="tab on c-lilac"><i>🏠</i>Inicio</div>
+          <div class="tab"><i>📘</i>Palabras</div>
+          <div class="tab big"><i>🧠</i>Repasar</div>
+          <div class="tab"><i>📖</i>Historias</div>
+          <div class="tab"><i>🎯</i>Exámenes</div>
+        </div>
+      </div>
+      <div style="display:grid;gap:16px">
+        <div class="desk">
+          <nav class="side">
+            <div class="logo">gl🤖ta</div>
+            <a class="on c-lilac"><i>🏠</i>Inicio</a>
+            <a class="c-mint"><i>🧠</i>Repasar</a>
+            <div class="sep"></div>
+            <a><i>📘</i>Palabras</a>
+            <a><i>💬</i>Expresiones</a>
+            <a><i>📖</i>Historias</a>
+            <a><i>🎯</i>Exámenes</a>
+            <div class="sep"></div>
+            <a><i>👤</i>Perfil</a>
+          </nav>
+          <div class="desk-main">
+            <h4>¡Hola, Alex! 👋</h4>
+            <div class="ph-cta">🧠 Repasar 24 tarjetas</div>
+            <div class="row">
+              <div class="ph-card c-sky"><b>Palabras</b>248</div>
+              <div class="ph-card c-lilac"><b>Expresiones</b>61</div>
+              <div class="ph-card c-peach"><b>Historias</b>4</div>
+            </div>
+          </div>
+        </div>
+        <div class="decide">
+          <b>Propuesta</b>
+          <p><b style="font-size:1rem;color:var(--text-1)">Móvil:</b> barra de 5 con <b style="font-size:1rem;color:var(--mint)">Repasar en el centro</b> (botón grande de Menti). Expresiones vive junto a Palabras (es el mismo tipo de contenido) con un selector arriba: <i>Palabras · Expresiones</i>.</p>
+          <p><b style="font-size:1rem;color:var(--text-1)">Ordenador:</b> barra lateral con los 6 módulos + Perfil. Perfil y Ajustes en móvil: tocando tu avatar arriba.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODULES -->
+  <section>
+    <span class="eyebrow">2 · Pantallas por módulo (todo esto ya existe en el back)</span>
+    <div class="mods">
+      <article class="mod c-sky">
+        <header><div class="ic">📘</div><div><h3>Palabras</h3><small>Lumi · el erudito</small></div></header>
+        <div class="screens">
+          <div class="scr"><span class="n">1</span><div><b>Lista</b><span>Buscar, filtrar por tipo (sustantivo, verbo, phrasal verb…) y dificultad (fácil · medio · difícil).</span></div></div>
+          <div class="scr"><span class="n">2</span><div><b>Añadir palabra</b><span>Escribes "serendipity" y la IA crea definición, IPA, ejemplos y traducción. Lumi "piensa" mientras.</span></div></div>
+          <div class="scr"><span class="n">3</span><div><b>Detalle</b><span>Definición, IPA, ejemplos, sinónimos, tipos, ejemplos mezclando idiomas, imagen, cuántas veces la viste y tu dificultad.</span></div></div>
+          <div class="scr"><span class="n">4</span><div><b>Chat con Lumi</b><span>Pregúntale lo que quieras sobre la palabra; responde en streaming.</span></div></div>
+        </div>
+        <div class="tags"><span class="tag ai">generar</span><span class="tag ai">ejemplos</span><span class="tag ai">sinónimos</span><span class="tag ai">tipos</span><span class="tag ai">code-switching</span><span class="tag ai">imagen</span><span class="tag ai">chat</span><span class="tag">dificultad</span></div>
+      </article>
+
+      <article class="mod c-lilac">
+        <header><div class="ic">💬</div><div><h3>Expresiones</h3><small>Nubo · la analista</small></div></header>
+        <div class="screens">
+          <div class="scr"><span class="n">1</span><div><b>Lista por tipo</b><span>Modismos, frases, colocaciones, jerga, formal, informal.</span></div></div>
+          <div class="scr"><span class="n">2</span><div><b>Añadir expresión</b><span>La IA genera definición, contexto de uso, ejemplos y traducción.</span></div></div>
+          <div class="scr"><span class="n">3</span><div><b>Detalle</b><span>Contexto ("cuándo se dice"), ejemplos, imagen y dificultad.</span></div></div>
+          <div class="scr"><span class="n">4</span><div><b>Chat con Nubo</b><span>Igual que Palabras, en streaming.</span></div></div>
+        </div>
+        <div class="tags"><span class="tag ai">generar</span><span class="tag ai">imagen</span><span class="tag ai">chat</span><span class="tag">6 tipos</span><span class="tag">dificultad</span></div>
+      </article>
+
+      <article class="mod c-mint">
+        <header><div class="ic">🧠</div><div><h3>Repasar · Anki</h3><small>Menti · el ninja de la memoria</small></div></header>
+        <div class="screens">
+          <div class="scr"><span class="n">1</span><div><b>Elegir sesión</b><span>Al azar o repaso, cuántas tarjetas, qué dificultades (por defecto: difícil + medio).</span></div></div>
+          <div class="scr"><span class="n">2</span><div><b>Sesión de tarjetas</b><span>Giras la tarjeta y respondes <i>Otra vez · Difícil · Fácil</i>: guarda tu dificultad y suma una vista.</span></div></div>
+          <div class="scr"><span class="n">3</span><div><b>Final de sesión</b><span>Resumen, confeti, Menti vuela. El momento más feliz del día.</span></div></div>
+        </div>
+        <div class="tags"><span class="tag">tarjetas de palabras</span><span class="tag">dificultad</span><span class="tag">vistas</span></div>
+      </article>
+
+      <article class="mod c-butter">
+        <header><div class="ic">🎯</div><div><h3>Exámenes</h3><small>Bruno · el entrenador</small></div></header>
+        <div class="screens">
+          <div class="scr"><span class="n">1</span><div><b>Lista de exámenes</b><span>Tus exámenes y tus intentos anteriores con su nota.</span></div></div>
+          <div class="scr"><span class="n">2</span><div><b>Crear examen</b><span>Eliges tema, gramática y dificultad; la IA lo genera y lo valida.</span></div></div>
+          <div class="scr"><span class="n">3</span><div><b>Hacer el examen</b><span>Una pregunta por pantalla: opción única, varias, o escribir la respuesta.</span></div></div>
+          <div class="scr"><span class="n">4</span><div><b>Resultado + corrección</b><span>La IA corrige (también puntos parciales) y explica. Chat con Bruno en cada pregunta.</span></div></div>
+        </div>
+        <div class="tags"><span class="tag ai">generar</span><span class="tag ai">validar</span><span class="tag ai">corregir</span><span class="tag ai">chat por pregunta</span><span class="tag">intentos</span></div>
+      </article>
+
+      <article class="mod c-peach wide">
+        <header><div class="ic">📖</div><div><h3>Historias</h3><small>Tula · la exploradora — el módulo más rico</small></div></header>
+        <div class="mods" style="gap:8px">
+          <div class="screens">
+            <div class="scr"><span class="n">1</span><div><b>Biblioteca</b><span>Tus historias con portada, género, nivel MCER y tu progreso.</span></div></div>
+            <div class="scr"><span class="n">2</span><div><b>Crear historia</b><span>La IA propone una idea (género, nivel, vocabulario y gramática objetivo) → portada generada.</span></div></div>
+            <div class="scr"><span class="n">3</span><div><b>Escribir capítulos</b><span>Cada capítulo se genera en streaming con su título; se puede editar o borrar.</span></div></div>
+          </div>
+          <div class="screens">
+            <div class="scr"><span class="n">4</span><div><b>Lector</b><span>Texto grande, audio del capítulo con voz, y guarda por dónde vas.</span></div></div>
+            <div class="scr"><span class="n">5</span><div><b>Seleccionar texto</b><span>Seleccionas una palabra o frase → traducción + "¿es palabra o expresión?" → la guardas en un toque.</span></div></div>
+            <div class="scr"><span class="n">6</span><div><b>Informe de vocabulario</b><span>Qué palabras objetivo aparecen y cuáles ya conoces.</span></div></div>
+          </div>
+        </div>
+        <div class="tags"><span class="tag ai">idea</span><span class="tag ai">capítulos en streaming</span><span class="tag ai">títulos</span><span class="tag ai">portada</span><span class="tag ai">audio</span><span class="tag ai">traducir selección</span><span class="tag">progreso</span><span class="tag">informe</span></div>
+      </article>
+
+      <article class="mod c-grey wide">
+        <header><div class="ic" style="background:var(--bg-3)">👤</div><div><h3>Perfil, Ajustes y Admin</h3><small>Tu cuenta</small></div></header>
+        <div class="mods" style="gap:8px">
+          <div class="screens">
+            <div class="scr"><span class="n">1</span><div><b>Perfil</b><span>Nombre, foto, <b>idioma que aprendes</b> (inglés, portugués, italiano, francés) y <b>idioma de las explicaciones</b>.</span></div></div>
+            <div class="scr"><span class="n">2</span><div><b>Ajustes</b><span>Sonidos, vibración, cerrar sesión.</span></div></div>
+          </div>
+          <div class="screens">
+            <div class="scr"><span class="n">3</span><div><b>Admin <span style="display:inline;color:var(--rose)">(solo admin)</span></b><span>Usuarios (crear, editar, borrar), importar/exportar JSON de cada módulo, copia de seguridad por correo, borrar datos.</span></div></div>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- FLOW -->
+  <section>
+    <span class="eyebrow">3 · El ciclo que une todo</span>
+    <div class="flow">
+      <span class="step c-peach">📖 Lees una historia</span><span class="arrow">→</span>
+      <span class="step c-sky">📘 Guardas palabras y expresiones</span><span class="arrow">→</span>
+      <span class="step c-mint">🧠 Las repasas cada día</span><span class="arrow">→</span>
+      <span class="step c-butter">🎯 Te examinas</span><span class="arrow">→</span>
+      <span class="step c-lilac">⭐ Subes de nivel</span>
+    </div>
+    <p class="note">Por eso Repasar va en el centro de la barra: es lo que trae de vuelta a la persona cada día.</p>
+  </section>
+
+  <!-- ROADMAP -->
+  <section>
+    <span class="eyebrow">4 · Orden para construirlo (sin enredarnos)</span>
+    <div class="road">
+      <div class="phase c-lilac"><span class="num">1</span><div><b>Estructura</b><span>Router, barra inferior / lateral, Inicio, Perfil con idiomas, componentes que faltan (iconos, lista, pestañas, vacío/error).</span></div><em>la base</em></div>
+      <div class="phase c-sky"><span class="num">2</span><div><b>Palabras</b><span>Lista, añadir con IA, detalle, chat. Define el patrón que copian los demás.</span></div><em>el patrón</em></div>
+      <div class="phase c-mint"><span class="num">3</span><div><b>Repasar</b><span>Sesión de tarjetas con las palabras. Ya tenemos la FlashCard.</span></div><em>el hábito</em></div>
+      <div class="phase c-lilac"><span class="num">4</span><div><b>Expresiones</b><span>Mismo patrón que Palabras: sale rápido.</span></div><em>rápido</em></div>
+      <div class="phase c-peach"><span class="num">5</span><div><b>Historias</b><span>Biblioteca, creación, lector con audio y selección de texto.</span></div><em>el más grande</em></div>
+      <div class="phase c-butter"><span class="num">6</span><div><b>Exámenes</b><span>Crear, hacer, corregir, chat por pregunta.</span></div><em>reto</em></div>
+      <div class="phase c-grey"><span class="num">7</span><div><b>Admin</b><span>Usuarios, importar/exportar, copias de seguridad.</span></div><em>al final</em></div>
+    </div>
+  </section>
+
+  <!-- GAPS -->
+  <section>
+    <span class="eyebrow">5 · Lo que el back todavía NO tiene</span>
+    <div class="gaps">
+      <div class="gap"><b>⭐ XP, 🔥 racha y meta diaria</b><span>La UI ya los tiene, pero el back no los guarda. Hay que decidir: guardarlos en el back (recomendado) o calcularlos en el móvil.</span></div>
+      <div class="gap"><b>🔊 Pronunciar palabras</b><span>Solo las historias tienen audio, y la voz depende de OpenAI (sin créditos). Habrá que elegir otro proveedor de voz.</span></div>
+      <div class="gap"><b>📝 Registro</b><span>No hay alta pública: las cuentas las crea el admin. ¿Lo dejamos así o abrimos registro?</span></div>
+    </div>
+  </section>
+</main>
+</body>
+</html>

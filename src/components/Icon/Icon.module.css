@@ -1,0 +1,42 @@
+.icon {
+  display: inline-block;
+  flex: none;
+  vertical-align: middle;
+  overflow: visible;
+}
+.body {
+  fill: currentColor;
+  fill-opacity: 0.14;
+  stroke: none;
+  transition: fill var(--t-fast) ease, fill-opacity var(--t-fast) ease;
+}
+.lines {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke var(--t-fast) ease;
+}
+
+/* Active: gummy filled icon in the pastel, ink outline, springs in */
+.active .body {
+  fill: var(--c, var(--brand));
+  fill-opacity: 1;
+}
+.active .lines {
+  stroke: var(--ink);
+}
+.active {
+  animation: pick var(--t-slow) var(--spring);
+}
+@keyframes pick {
+  0% { scale: 0.8; rotate: -8deg; }
+  60% { scale: 1.12; rotate: 4deg; }
+  100% { scale: 1; rotate: 0deg; }
+}
+
+/* Speech dots in "expressions" are round blobs, not lines */
+.dot {
+  stroke-width: 3;
+}

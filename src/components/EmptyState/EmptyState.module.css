@@ -1,0 +1,31 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-8) var(--sp-5);
+  text-align: center;
+  background:
+    radial-gradient(60% 60% at 50% 30%, var(--c-soft), transparent 70%),
+    var(--bg-1);
+  border: var(--border) dashed var(--line);
+  border-radius: var(--r-lg);
+  animation: lai-reveal var(--t-slow) var(--ease-out) both;
+}
+.root[data-kind="error"] {
+  border-color: var(--danger-deep);
+  border-style: solid;
+}
+.hero {
+  width: min(180px, 50vw);
+}
+.title {
+  font-size: var(--fs-h3);
+}
+.text {
+  max-width: 40ch;
+  color: var(--text-2);
+}
+.action {
+  margin-top: var(--sp-2);
+}

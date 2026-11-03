@@ -19,10 +19,8 @@
   background: color-mix(in srgb, var(--bg-0) 92%, transparent);
   backdrop-filter: blur(8px);
 }
-.top > label {
-  min-height: 0;
+.top > button:last-child {
   margin-left: auto;
-  gap: var(--sp-3);
 }
 
 .hero {

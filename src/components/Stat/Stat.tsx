@@ -17,6 +17,7 @@ import { useEffect, useRef } from "react";
 import { fx } from "../../lib/fx";
 import { sound } from "../../lib/sound";
 import { useReplay } from "../../lib/useReplay";
+import { Icon } from "../Icon/Icon";
 import { cx, tint } from "../types";
 import styles from "./Stat.module.css";
 
@@ -38,7 +39,7 @@ export function XPCounter({ value, floatFrom, className }: { value: number; floa
   });
   return (
     <span ref={ref} className={cx(styles.pill, className)} style={tint("mint")} aria-label={`${value} XP`}>
-      <span className={styles.icon} aria-hidden="true">⭐</span>
+      <span className={styles.icon}><Icon name="star" size={20} active /></span>
       {value} XP
     </span>
   );
@@ -52,7 +53,7 @@ export function StreakCounter({ days, className }: { days: number; className?: s
   });
   return (
     <span ref={ref} className={cx(styles.pill, className)} style={tint("butter")} aria-label={`Racha de ${days} días`}>
-      <span className={styles.icon} aria-hidden="true">🔥</span>
+      <span className={styles.icon}><Icon name="flame" size={20} active /></span>
       {days}
     </span>
   );

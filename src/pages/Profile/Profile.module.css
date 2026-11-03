@@ -1,0 +1,61 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  max-width: 640px;
+  margin: 0 auto;
+}
+.who {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--sp-5);
+}
+.who h1 {
+  font-size: var(--fs-h2);
+}
+.handle {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  color: var(--text-3);
+}
+.admin {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-heavy);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: var(--r-full);
+  color: var(--rose);
+  background: var(--rose-soft);
+}
+.title {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--fs-h3);
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-4);
+}
+.link {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: var(--h-md);
+  color: var(--text-2);
+  text-decoration: none;
+}
+.link > :last-child {
+  margin-left: auto;
+}
+.link:hover {
+  color: var(--text-1);
+}
+@media (max-width: 520px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

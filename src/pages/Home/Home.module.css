@@ -1,0 +1,162 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+}
+.hello {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+.eyebrow {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-heavy);
+  letter-spacing: var(--ls-caption);
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.hello h1 {
+  font-size: clamp(var(--fs-h2), 5vw, var(--fs-h1));
+}
+
+/* ── Daily review card ── */
+.review {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(120px, 0.45fr) 1fr;
+  align-items: end;
+  gap: var(--sp-4);
+  padding: var(--sp-6) var(--sp-6) 0;
+  overflow: hidden;
+  background:
+    radial-gradient(90% 120% at 0% 100%, var(--c-soft), transparent 65%),
+    radial-gradient(60% 80% at 100% 0%, var(--c-soft), transparent 70%),
+    var(--bg-1);
+  border: var(--border) solid color-mix(in srgb, var(--c-deep) 70%, var(--line));
+  border-radius: var(--r-lg);
+  box-shadow: 0 var(--depth) 0 var(--c-deep);
+  animation: lai-reveal var(--t-slow) var(--ease-out) both;
+}
+.reviewHero {
+  width: 100%;
+  max-width: 220px;
+  justify-self: center;
+}
+.reviewBody {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  padding-bottom: var(--sp-6);
+}
+.reviewBody h2 {
+  font-size: var(--fs-h2);
+  color: var(--c);
+}
+.reviewBody p {
+  max-width: 44ch;
+  color: var(--text-2);
+}
+
+/* ── Hero module cards ── */
+.modules {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-4);
+}
+.card {
+  /* undo native button pill */
+  display: grid;
+  grid-template-columns: 96px 1fr auto;
+  align-items: center;
+  justify-content: stretch;
+  gap: var(--sp-3);
+  min-height: 0;
+  padding: var(--sp-3) var(--sp-4) 0 var(--sp-3);
+  font: inherit;
+  letter-spacing: normal;
+  line-height: inherit;
+  text-align: left;
+  color: var(--text-1);
+  background:
+    radial-gradient(90% 100% at 0% 100%, var(--c-soft), transparent 70%),
+    var(--bg-1);
+  border: var(--border) solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: 0 var(--depth) 0 var(--bg-3);
+  overflow: hidden;
+  filter: none;
+  animation: lai-reveal var(--t-slow) var(--ease-out) both;
+  animation-delay: calc(var(--i) * 70ms + 120ms);
+  transition:
+    transform var(--t-base) var(--spring),
+    border-color var(--t-fast) ease,
+    box-shadow var(--t-instant) ease;
+}
+@media (hover: hover) {
+  .card:hover {
+    border-color: var(--c);
+    box-shadow: 0 var(--depth) 0 var(--c-deep);
+    translate: 0 -2px;
+  }
+  .card:hover .cardGo {
+    translate: 4px 0;
+    color: var(--c);
+  }
+}
+.card:active {
+  transform: translateY(var(--depth)) scale(0.98);
+}
+.cardHero {
+  align-self: end;
+  width: 96px;
+}
+.cardText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  min-width: 0;
+  padding-bottom: var(--sp-3);
+}
+.cardTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-family: var(--font-display);
+  font-weight: var(--fw-display);
+  font-size: 1.3rem;
+  color: var(--c);
+}
+.cardPitch {
+  font-size: var(--fs-small);
+  color: var(--text-2);
+}
+.cardGo {
+  color: var(--text-3);
+  padding-bottom: var(--sp-3);
+  transition: translate var(--t-base) var(--spring), color var(--t-fast) ease;
+}
+
+@media (max-width: 720px) {
+  .review {
+    grid-template-columns: 1fr;
+    padding: var(--sp-5) var(--sp-5) 0;
+  }
+  .reviewHero {
+    order: 2;
+    max-width: 170px;
+  }
+  .reviewBody {
+    padding-bottom: 0;
+  }
+  /* Menti sits below on phones: the bubble would point at nothing */
+  .reviewBody > :first-child {
+    display: none;
+  }
+  .reviewBody :global(button) {
+    width: 100%;
+  }
+  .modules {
+    grid-template-columns: 1fr;
+  }
+}

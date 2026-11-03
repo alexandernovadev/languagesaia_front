@@ -15,7 +15,12 @@
   border-radius: var(--r-full);
 }
 .icon {
-  font-size: 1.1em;
+  display: inline-grid;
+  place-items: center;
+}
+/* the icon inside the pill: pastel body, ink lines */
+.icon svg {
+  animation: none;
 }
 .pill[data-anim="bump"] {
   animation: lai-bump var(--t-party) var(--spring);

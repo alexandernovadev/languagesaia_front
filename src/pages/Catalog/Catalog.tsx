@@ -143,7 +143,6 @@ export function Catalog() {
         <Logo variant="symbol" size={36} animated />
         <XPCounter value={xp} />
         <StreakCounter days={streak} />
-        <SoundToggle />
         <Button tone="neutral" size="sm" onClick={logout}>
           Salir
         </Button>
@@ -155,8 +154,7 @@ export function Catalog() {
           Todo Glota, <span>vivo</span>
         </h1>
         <p>
-          Cada componente con sus estados, sonidos y efectos. Activa el sonido arriba a la derecha: cada toque, acierto y robot
-          tiene su voz.
+          Cada componente con sus estados, sonidos y efectos. Cada toque, acierto y robot tiene su voz.
         </p>
       </header>
 

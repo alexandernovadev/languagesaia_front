@@ -1,12 +1,15 @@
 // Glota design system — every component in one import.
 export { AIThinking } from "./AIThinking/AIThinking";
+export { Avatar } from "./Avatar/Avatar";
 export { AnswerOption, type AnswerState } from "./AnswerOption/AnswerOption";
 export { Button } from "./Button/Button";
 export { Card } from "./Card/Card";
 export { Chip } from "./Chip/Chip";
+export { EmptyState } from "./EmptyState/EmptyState";
 export { FeedbackBanner } from "./FeedbackBanner/FeedbackBanner";
 export { Field } from "./Field/Field";
 export { FlashCard } from "./FlashCard/FlashCard";
+export { Icon, ICON_NAMES, type IconName } from "./Icon/Icon";
 export { LevelBadge } from "./LevelBadge/LevelBadge";
 export { GlotaSymbol, Logo } from "./Logo/Logo";
 export { Modal } from "./Modal/Modal";
@@ -14,6 +17,7 @@ export { PasswordInput } from "./PasswordInput/PasswordInput";
 export { PageTransition } from "./PageTransition/PageTransition";
 export { ProgressBar } from "./ProgressBar/ProgressBar";
 export { HEROES, Robot, RobotStage, useRobotMood, type Hero, type Mood } from "./Robot/Robot";
+export { Segmented, type SegmentedOption } from "./Segmented/Segmented";
 export { Sheet } from "./Sheet/Sheet";
 export { SoundToggle } from "./SoundToggle/SoundToggle";
 export { SpeechBubble } from "./SpeechBubble/SpeechBubble";
