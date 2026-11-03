@@ -10,6 +10,7 @@ import { Profile } from "./pages/Profile/Profile";
 import { Soon } from "./pages/Soon/Soon";
 import { WordDetail } from "./features/words/WordDetail";
 import { WordsList } from "./features/words/WordsList";
+import { Review } from "./features/review/Review";
 
 const router = createBrowserRouter([
   {
@@ -19,7 +20,7 @@ const router = createBrowserRouter([
       { path: MODULES.words.path, element: <WordsList /> },
       { path: `${MODULES.words.path}/:id`, element: <WordDetail /> },
       { path: MODULES.expressions.path, element: <Soon module={MODULES.expressions} /> },
-      { path: MODULES.review.path, element: <Soon module={MODULES.review} /> },
+      { path: MODULES.review.path, element: <Review /> },
       { path: MODULES.stories.path, element: <Soon module={MODULES.stories} /> },
       { path: MODULES.exams.path, element: <Soon module={MODULES.exams} /> },
       { path: MODULES.profile.path, element: <Profile /> },

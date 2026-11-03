@@ -95,6 +95,9 @@ export const wordsApi = {
       body: { word: w.word, language: w.language, oldExamples: what === "code-switching" ? w.codeSwitching : w.examples },
     }),
   image: (id: string, w: Word) => api<Word>(`/api/words/${id}/generate-image`, { method: "POST", body: { word: w.word, imgOld: w.img } }),
+  /** Cards for a review session. `review` = hardest and least seen first; `random` = shuffled. */
+  ankiCards: ({ mode = "review", limit = 20, difficulty = ["hard", "medium"], language, type }: { mode?: "random" | "review"; limit?: number; difficulty?: Difficulty[]; language?: string; type?: string }) =>
+    api<Word[]>(`/api/words/anki-cards?${qs({ mode, limit, difficulty: difficulty.join(","), language, type })}`),
   chat: (id: string) => api<ChatMessage[]>(`/api/words/${id}/chat`),
   clearChat: (id: string) => api(`/api/words/${id}/chat`, { method: "DELETE" }),
 };

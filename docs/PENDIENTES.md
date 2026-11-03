@@ -10,8 +10,8 @@ Detalles conocidos que no bloquean, para retomar más adelante.
 
 ## IA de texto (Fireworks)
 
-- `qwen3p8-2p4t-a95b` **no es serverless**: sin un despliegue dedicado las peticiones se quedan colgadas. Se usa `qwen3p8-max`.
-- Qwen 3.8 en Fireworks es **inestable** (a ratos no responde). Hay respaldo automático a `deepseek-v4p1-flash` (20 s de espera, 5 min de pausa). Vigilar en el log las líneas `[AI] … using fallback`.
+- Principal **`deepseek-v4p1-flash`**, respaldo **`kimi-k3`** (Qwen 3.8 era lento / se colgaba). Detalle completo, tiempos y qué modelos sirven: `languagesaia_back/docs/MODELOS-IA.md`.
+- Vigilar en el log del back las líneas `[AI] … using fallback`.
 
 ## Back: lo que la app ya muestra pero el back no guarda
 

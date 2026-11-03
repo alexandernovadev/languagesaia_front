@@ -23,6 +23,7 @@ export { Segmented, type SegmentedOption } from "./Segmented/Segmented";
 export { Skeleton } from "./Skeleton/Skeleton";
 export { Sheet } from "./Sheet/Sheet";
 export { SoundToggle } from "./SoundToggle/SoundToggle";
+export { SpeakButtons } from "./SpeakButtons/SpeakButtons";
 export { SpeechBubble } from "./SpeechBubble/SpeechBubble";
 export { ComboBadge, StreakCounter, XPCounter } from "./Stat/Stat";
 export { StreamingText, useFakeStream } from "./StreamingText/StreamingText";
