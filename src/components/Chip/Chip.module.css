@@ -1,0 +1,64 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 var(--sp-3);
+  font-family: var(--font-body);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0;
+  line-height: 1;
+  color: var(--c);
+  background: var(--c-soft);
+  border: var(--border) solid transparent;
+  border-radius: var(--r-full);
+  box-shadow: none;
+  filter: none;
+  white-space: nowrap;
+}
+
+/* Selectable chips are real toggle buttons */
+button.root {
+  cursor: pointer;
+  color: var(--text-2);
+  background: var(--bg-2);
+  border-color: var(--line);
+  transition:
+    color var(--t-fast) ease,
+    background-color var(--t-fast) ease,
+    border-color var(--t-fast) ease,
+    transform var(--t-base) var(--spring);
+}
+@media (hover: hover) {
+  button.root:hover {
+    border-color: var(--line-hover);
+    color: var(--text-1);
+  }
+}
+button.root:active {
+  transform: scale(var(--press-scale));
+  box-shadow: none;
+}
+button.root[aria-pressed="true"] {
+  color: var(--c);
+  background: var(--c-soft);
+  border-color: var(--c);
+  animation: lai-bump var(--t-slow) var(--spring);
+}
+
+.check {
+  display: inline-block;
+  width: 0;
+  overflow: hidden;
+  font-weight: var(--fw-heavy);
+  transition: width var(--t-base) var(--spring);
+}
+button.root[aria-pressed="true"] .check {
+  width: 0.9em;
+}
+
+.count {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.75;
+}

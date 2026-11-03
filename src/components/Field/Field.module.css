@@ -1,0 +1,24 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+.label {
+  font-size: var(--fs-small);
+  font-weight: var(--fw-semibold);
+  color: var(--text-2);
+}
+.hint {
+  font-size: var(--fs-small);
+  color: var(--text-3);
+}
+.error {
+  font-size: var(--fs-small);
+  font-weight: var(--fw-medium);
+  color: var(--danger);
+  animation: lai-reveal var(--t-base) var(--ease-out);
+}
+.root[data-invalid] :is(input, textarea, select) {
+  animation: lai-shake 420ms var(--ease-in-out);
+}

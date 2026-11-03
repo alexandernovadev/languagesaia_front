@@ -1,0 +1,84 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  width: 100%;
+}
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--sp-3);
+  font-size: var(--fs-small);
+  color: var(--text-3);
+}
+.value {
+  font-family: var(--font-display);
+  font-weight: var(--fw-display);
+  font-variant-numeric: tabular-nums;
+  color: var(--c);
+}
+
+.track {
+  position: relative;
+  height: var(--h, 16px);
+  background: var(--bg-2);
+  border-radius: var(--r-full);
+  box-shadow: inset 0 var(--depth) 0 rgb(0 0 0 / 0.18);
+  overflow: hidden;
+}
+.root[data-size="sm"] .track { --h: 10px; }
+.root[data-size="lg"] .track { --h: 22px; }
+
+/* Fill: gummy pastel with highlight on top and shade below; grows with a spring */
+.fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--p);
+  min-width: var(--h, 16px);
+  border-radius: var(--r-full);
+  background: var(--c);
+  box-shadow:
+    inset 0 -4px 0 rgb(0 0 0 / 0.14),
+    inset 0 3px 0 rgb(255 255 255 / 0.28);
+  transition: width var(--t-slow) var(--spring);
+}
+.root[data-empty] .fill {
+  opacity: 0;
+}
+
+/* A little glossy pill riding on the fill, like a reflection */
+.fill::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 8px;
+  right: 8px;
+  height: 3px;
+  border-radius: var(--r-full);
+  background: rgb(255 255 255 / 0.35);
+}
+
+/* Each step forward: a light flash travels the bar */
+.fill[data-anim="step"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.5), transparent);
+  background-size: 50% 100%;
+  background-repeat: no-repeat;
+  animation: sweep 700ms var(--ease-out) forwards;
+}
+@keyframes sweep {
+  from { background-position: -60% 0; }
+  to { background-position: 160% 0; }
+}
+
+/* Complete: the whole bar pops and glows once */
+.root[data-complete] .track {
+  --c: var(--success);
+  animation:
+    lai-pop var(--t-party) var(--spring),
+    lai-glow 900ms ease-out;
+}

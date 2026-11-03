@@ -1,0 +1,61 @@
+/* The base look (3D edge, squish on press, tones, sizes, loading) comes from
+   native.css. This module only adds the extra life. */
+
+.root {
+  overflow: hidden; /* clips the shine; the 3D edge is a box-shadow so it stays visible */
+  isolation: isolate;
+}
+
+/* Shine: a soft diagonal light that sweeps across pastel buttons on hover */
+.root[data-tone]:not([data-variant])::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(105deg, transparent 35%, rgb(255 255 255 / 0.38) 50%, transparent 65%);
+  translate: -120% 0;
+  pointer-events: none;
+}
+@media (hover: hover) {
+  .root[data-tone]:not([data-variant]):hover:not(:disabled)::before {
+    translate: 120% 0;
+    transition: translate 650ms var(--ease-out);
+  }
+}
+
+/* Lip highlight: a thin light line on top makes the pastel look "gummy" */
+.root[data-tone]:not([data-variant]) {
+  background-image: linear-gradient(to bottom, rgb(255 255 255 / 0.22), rgb(255 255 255 / 0) 2px);
+}
+
+.icon {
+  display: inline-grid;
+  place-items: center;
+  font-size: 1.15em;
+  line-height: 1;
+  transition: rotate var(--t-base) var(--spring), scale var(--t-base) var(--spring);
+}
+@media (hover: hover) {
+  .root:hover:not(:disabled) .icon {
+    scale: 1.15;
+    rotate: -8deg;
+  }
+}
+
+/* Feedback animations (replayed with useReplay) */
+.root[data-anim="pop"] {
+  animation: lai-pop var(--t-party) var(--spring);
+}
+.root[data-anim="shake"] {
+  animation: lai-shake 420ms var(--ease-in-out);
+}
+
+/* Attention: the main CTA breathes and sends a soft ring, like it's waiting for you */
+.root[data-attention]:not(:disabled, [aria-busy="true"]) {
+  animation:
+    lai-breathe 2.4s var(--ease-in-out) infinite,
+    lai-glow 2.4s ease-out infinite;
+}
+.root[data-attention]:active {
+  animation: none;
+}

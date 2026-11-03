@@ -10,6 +10,7 @@
 
 @import "./tokens.css";
 @import "./native.css" layer(native);
+@import "./motion.css";
 
 @layer reset {
   /* ── Reset mínimo ─────────────────────────────────────────────── */

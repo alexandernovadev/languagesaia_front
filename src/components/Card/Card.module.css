@@ -1,0 +1,71 @@
+.root {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  min-width: 0;
+  padding: var(--sp-5);
+  color: var(--text-1);
+  text-align: left;
+  background: var(--bg-1);
+  border: var(--border) solid var(--line);
+  border-radius: var(--r-lg);
+}
+
+/* Tinted: a whisper of the module color from the bottom-left corner */
+.root[data-tinted] {
+  background:
+    radial-gradient(120% 90% at 0% 100%, var(--c-soft), transparent 60%),
+    var(--bg-1);
+  border-color: color-mix(in srgb, var(--c-deep) 60%, var(--line));
+}
+
+/* Interactive: it's a 3D tile you can press */
+.root[data-interactive] {
+  /* undo the native button look: a card is not a pill */
+  min-height: 0;
+  align-items: stretch;
+  justify-content: flex-start;
+  font: inherit;
+  letter-spacing: normal;
+  line-height: inherit;
+  user-select: auto;
+  filter: none;
+  cursor: pointer;
+  box-shadow: 0 var(--depth) 0 var(--bg-3);
+  transition:
+    transform var(--t-base) var(--spring),
+    box-shadow var(--t-instant) ease,
+    border-color var(--t-fast) ease;
+}
+.root[data-interactive][data-tinted] {
+  box-shadow: 0 var(--depth) 0 var(--c-deep);
+}
+@media (hover: hover) {
+  .root[data-interactive]:hover {
+    border-color: var(--c);
+    translate: 0 -2px;
+  }
+}
+.root[data-interactive]:active {
+  transform: translateY(var(--depth)) scale(0.98);
+  box-shadow: 0 0 0 var(--bg-3);
+  transition-duration: var(--t-instant);
+}
+.root[data-interactive]:focus-visible {
+  outline: var(--border) solid var(--c);
+  outline-offset: 3px;
+}
+
+/* Selected (e.g. chosen plan, chosen module) */
+.root[aria-pressed="true"],
+.root[aria-current="true"] {
+  border-color: var(--c);
+  box-shadow: 0 var(--depth) 0 var(--c-deep);
+  background:
+    linear-gradient(180deg, var(--c-soft), transparent 70%),
+    var(--bg-1);
+}
+
+.root[data-padding="sm"] { padding: var(--sp-3) var(--sp-4); gap: var(--sp-2); border-radius: var(--r-md); }
+.root[data-padding="lg"] { padding: var(--sp-8); gap: var(--sp-5); }

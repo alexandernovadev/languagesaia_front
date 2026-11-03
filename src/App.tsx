@@ -1,3 +1,11 @@
+import { Toaster } from "./components";
+import { Catalog } from "./pages/Catalog/Catalog";
+
 export default function App() {
-  return <h1>HOLA MUNDO</h1>;
+  return (
+    <>
+      <Catalog />
+      <Toaster />
+    </>
+  );
 }

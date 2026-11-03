@@ -1,0 +1,50 @@
+/* XP, streak and combo pills */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 var(--sp-4);
+  font-family: var(--font-display);
+  font-weight: var(--fw-heavy);
+  font-size: 1.1rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--c);
+  background: var(--c-soft);
+  border-radius: var(--r-full);
+}
+.icon {
+  font-size: 1.1em;
+}
+.pill[data-anim="bump"] {
+  animation: lai-bump var(--t-party) var(--spring);
+}
+/* Streak up: bump + two rings of light */
+.pill[data-anim="glow"] {
+  animation:
+    lai-bump var(--t-party) var(--spring),
+    lai-glow 1.2s ease-out 2;
+}
+.pill[data-anim="glow"] .icon {
+  animation: flame 600ms var(--spring) 2;
+}
+@keyframes flame {
+  0%, 100% { scale: 1; rotate: 0deg; }
+  30% { scale: 1.35; rotate: -10deg; }
+  60% { scale: 0.95; rotate: 8deg; }
+}
+
+/* Combo: big butter text that only exists from 3 in a row */
+.combo {
+  display: inline-block;
+  min-height: 1.6em;
+  font-family: var(--font-display);
+  font-weight: var(--fw-heavy);
+  font-size: 1.15rem;
+  color: var(--butter);
+  text-shadow: 0 2px 0 var(--butter-deep);
+}
+.combo[data-anim="bump"] {
+  animation: lai-bump var(--t-party) var(--spring);
+}

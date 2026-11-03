@@ -1,0 +1,35 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  font-family: var(--font-display);
+  font-weight: var(--fw-heavy);
+  font-size: 0.95rem;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  background: var(--c);
+  border-radius: var(--r-sm);
+  box-shadow: 0 var(--depth) 0 var(--c-deep);
+  background-image: linear-gradient(to bottom, rgb(255 255 255 / 0.25), rgb(255 255 255 / 0) 2px);
+}
+.root[data-size="sm"] {
+  height: 22px;
+  padding: 0 7px;
+  font-size: 0.8rem;
+  border-radius: 8px;
+}
+.root[data-size="lg"] {
+  height: 40px;
+  padding: 0 14px;
+  font-size: 1.3rem;
+  border-radius: var(--r-sm);
+}
+.name {
+  font-family: var(--font-body);
+  font-weight: var(--fw-semibold);
+  font-size: 0.8em;
+  opacity: 0.8;
+}

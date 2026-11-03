@@ -90,19 +90,19 @@
   --btn-border: transparent;
   border: 0;
 }
-:where(button, input:is([type="button"], [type="submit"])):hover {
+:where(button:hover, input:is([type="button"], [type="submit"]):hover) {
   filter: brightness(1.06);
 }
-:where(button[data-variant="ghost"]):hover {
+:where(button[data-variant="ghost"]:hover) {
   --btn-bg: var(--c-soft);
   filter: none;
 }
-:where(button, input:is([type="button"], [type="submit"])):active:not(:disabled, [aria-busy="true"]) {
+:where(button:active:not(:disabled, [aria-busy="true"]), input:is([type="button"], [type="submit"]):active:not(:disabled, [aria-busy="true"])) {
   transform: translateY(var(--depth)) scale(var(--press-scale));
   box-shadow: 0 0 0 var(--btn-edge);
   transition-duration: var(--t-instant);
 }
-:where(button, input:is([type="button"], [type="submit"])):disabled {
+:where(button:disabled, input:is([type="button"], [type="submit"]):disabled) {
   --btn-bg: var(--bg-2);
   --btn-fg: var(--text-3);
   --btn-edge: var(--bg-3);
@@ -174,29 +174,29 @@
     box-shadow var(--t-base) var(--ease-out),
     background-color var(--t-fast) ease;
 }
-:where(input, textarea, select):hover:not(:disabled, :focus) {
+:where(input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="button"], [type="submit"]):hover:not(:disabled, :focus), textarea:hover:not(:disabled, :focus), select:hover:not(:disabled, :focus)) {
   --field-border: var(--line-hover);
 }
-:where(input, textarea, select):focus,
-:where(input, textarea, select):focus-visible {
+:where(input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="button"], [type="submit"]):focus, textarea:focus, select:focus),
+:where(input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="button"], [type="submit"]):focus-visible, textarea:focus-visible, select:focus-visible) {
   --field-border: var(--c);
   --field-ring: var(--c-soft);
-  background: var(--bg-1);
+  background-color: var(--bg-1); /* solo el color: no borra la lupa ni la flecha */
   outline: none;
 }
-:where(input, textarea, select):is(:user-invalid, [aria-invalid="true"]) {
+:where(input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="button"], [type="submit"]):is(:user-invalid, [aria-invalid="true"]), textarea:is(:user-invalid, [aria-invalid="true"]), select:is(:user-invalid, [aria-invalid="true"])) {
   --field-border: var(--danger-deep);
   --c: var(--danger);
   --c-soft: var(--danger-soft);
 }
-:where(input, textarea, select):is(:user-invalid, [aria-invalid="true"]):focus {
+:where(input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="button"], [type="submit"]):is(:user-invalid, [aria-invalid="true"]):focus, textarea:is(:user-invalid, [aria-invalid="true"]):focus, select:is(:user-invalid, [aria-invalid="true"]):focus) {
   --field-border: var(--danger);
 }
-:where(input, textarea, select):disabled {
+:where(input:disabled, textarea:disabled, select:disabled) {
   opacity: 0.5;
   cursor: not-allowed;
 }
-:where(input, textarea):read-only:not(:disabled, [type="checkbox"], [type="radio"], [type="range"], [type="file"]) {
+:where(input:read-only:not(:disabled, [type="checkbox"], [type="radio"], [type="range"], [type="file"]), textarea:read-only:not(:disabled, [type="checkbox"], [type="radio"], [type="range"], [type="file"])) {
   border-style: dashed;
   color: var(--text-2);
 }
@@ -324,7 +324,7 @@
     mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") center / contain no-repeat;
     transition: rotate var(--t-base) var(--spring);
   }
-  :where(select):open::picker-icon {
+  :where(select:open)::picker-icon {
     rotate: 180deg;
   }
   :where(select)::picker(select) {
@@ -348,13 +348,13 @@
       overlay var(--t-base) allow-discrete,
       display var(--t-base) allow-discrete;
   }
-  :where(select):open::picker(select) {
+  :where(select:open)::picker(select) {
     opacity: 1;
     translate: 0 0;
     scale: 1;
   }
   @starting-style {
-    :where(select):open::picker(select) {
+    :where(select:open)::picker(select) {
       opacity: 0;
       translate: 0 -6px;
       scale: 0.97;
@@ -371,11 +371,11 @@
     cursor: pointer;
     transition: background-color var(--t-fast) ease, color var(--t-fast) ease;
   }
-  :where(select) :where(option):is(:hover, :focus-visible) {
+  :where(select) :where(option:is(:hover, :focus-visible)) {
     background: var(--bg-2);
     outline: none;
   }
-  :where(select) :where(option):checked {
+  :where(select) :where(option:checked) {
     background: var(--c-soft);
     color: var(--c);
     font-weight: var(--fw-semibold);
@@ -423,34 +423,34 @@
 :where(input[type="checkbox"]:not([role="switch"])) {
   border-radius: 9px;
 }
-:where(input:is([type="checkbox"], [type="radio"])):hover:not(:disabled) {
+:where(input:is([type="checkbox"], [type="radio"]):hover:not(:disabled)) {
   border-color: var(--line-hover);
 }
-:where(input:is([type="checkbox"], [type="radio"])):active:not(:disabled) {
+:where(input:is([type="checkbox"], [type="radio"]):active:not(:disabled)) {
   transform: translateY(var(--depth)) scale(0.9);
   box-shadow: 0 0 0 var(--bg-3);
   transition-duration: var(--t-instant);
 }
-:where(input:is([type="checkbox"], [type="radio"])):focus-visible {
+:where(input:is([type="checkbox"], [type="radio"]):focus-visible) {
   outline: var(--border) solid var(--c);
   outline-offset: 3px;
 }
-:where(input:is([type="checkbox"], [type="radio"])):disabled {
+:where(input:is([type="checkbox"], [type="radio"]):disabled) {
   opacity: 0.45;
   cursor: not-allowed;
 }
 
 /* ✓ marcado: rellena con el tono y la palomita hace "pop" */
-:where(input[type="checkbox"]:not([role="switch"])):is(:checked, :indeterminate) {
+:where(input[type="checkbox"]:not([role="switch"]):is(:checked, :indeterminate)) {
   background-color: var(--c);
   border-color: var(--c);
   box-shadow: 0 var(--depth) 0 var(--c-deep);
   animation: n-pop var(--t-slow) var(--spring);
 }
-:where(input[type="checkbox"]:not([role="switch"])):checked {
+:where(input[type="checkbox"]:not([role="switch"]):checked) {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231A1A1E' stroke-width='3.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");
 }
-:where(input[type="checkbox"]:not([role="switch"])):indeterminate {
+:where(input[type="checkbox"]:not([role="switch"]):indeterminate) {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231A1A1E' stroke-width='3.6' stroke-linecap='round'%3E%3Cpath d='M6 12h12'/%3E%3C/svg%3E");
 }
 
@@ -461,47 +461,60 @@
     inset 0 0 0 13px var(--bg-2),
     0 var(--depth) 0 var(--bg-3);
 }
-:where(input[type="radio"]):checked {
+:where(input[type="radio"]:checked) {
   background-color: var(--c);
   border-color: var(--c);
   box-shadow:
     inset 0 0 0 5px var(--bg-2),
     0 var(--depth) 0 var(--c-deep);
 }
-:where(input[type="radio"]):active:not(:disabled) {
+:where(input[type="radio"]:active:not(:disabled)) {
   box-shadow: inset 0 0 0 7px var(--bg-2), 0 0 0 var(--bg-3);
 }
 
-/* ⏻ INTERRUPTOR · <input type="checkbox" role="switch"> */
+/* ⏻ INTERRUPTOR · <input type="checkbox" role="switch">
+   La bolita es un degradado (funciona en todos los navegadores, sin ::before):
+   capa 1 = bolita blanca, capa 2 = su sombra 3D 2px más abajo.
+   Se desliza con un resorte corto y al pulsar se estira hacia donde va. */
 :where(input[type="checkbox"][role="switch"]) {
-  --thumb: 22px;
+  --knob: 22px;
+  --knob-w: var(--knob);
   --pad: 3px;
+  --knob-x: var(--pad);
   width: 54px;
   height: 32px;
   border-radius: var(--r-full);
   background-color: var(--bg-3);
-  /* el "pulgar" es un degradado: así se mueve con background-position en cualquier navegador */
   background-image:
-    radial-gradient(circle at center, var(--text-1) 0 calc(var(--thumb) / 2 - 0.5px), transparent calc(var(--thumb) / 2));
-  background-size: calc(var(--thumb) + 2px) calc(var(--thumb) + 2px);
-  background-position: var(--pad) center;
+    radial-gradient(closest-side, var(--text-1) calc(100% - 1.5px), transparent 100%),
+    radial-gradient(closest-side, rgb(0 0 0 / 0.28) calc(100% - 1.5px), transparent 100%);
+  background-repeat: no-repeat;
+  background-size: var(--knob-w) var(--knob), var(--knob-w) var(--knob);
+  background-position:
+    var(--knob-x) 50%,
+    var(--knob-x) calc(50% + 2px);
   transition:
-    background-position var(--t-base) var(--spring),
-    background-color var(--t-fast) ease,
-    border-color var(--t-fast) ease,
+    background-position 320ms cubic-bezier(0.3, 1.3, 0.5, 1),
+    background-size 180ms var(--ease-out),
+    background-color var(--t-base) ease,
+    border-color var(--t-base) ease,
     box-shadow var(--t-base) var(--spring),
     transform var(--t-base) var(--spring);
 }
-:where(input[type="checkbox"][role="switch"]):checked {
+:where(input[type="checkbox"][role="switch"]:checked) {
+  --knob-x: calc(100% - var(--pad));
   background-color: var(--c);
   border-color: var(--c);
-  background-position: calc(100% - var(--pad)) center;
   box-shadow: 0 var(--depth) 0 var(--c-deep);
-  background-image:
-    radial-gradient(circle at center, var(--bg-0) 0 calc(var(--thumb) / 2 - 0.5px), transparent calc(var(--thumb) / 2));
 }
-:where(input[type="checkbox"][role="switch"]):active:not(:disabled) {
-  transform: translateY(var(--depth)) scale(0.96);
+/* al pulsar: la bolita se estira (como la de iOS) y el interruptor se hunde */
+:where(input[type="checkbox"][role="switch"]:active:not(:disabled)) {
+  --knob-w: 29px;
+  transform: translateY(var(--depth)) scale(0.97);
+  box-shadow: 0 0 0 var(--c-deep);
+}
+:where(input[type="checkbox"][role="switch"]:hover:not(:disabled, :checked)) {
+  background-color: color-mix(in oklab, var(--bg-3), var(--text-1) 8%);
 }
 
 /* Etiqueta que envuelve un check/radio/switch → fila táctil de 48 px */
@@ -576,12 +589,12 @@
   box-shadow: 0 var(--depth) 0 var(--c-deep);
   transition: transform var(--t-base) var(--spring);
 }
-:where(input[type="range"]):hover::-webkit-slider-thumb { transform: scale(1.08); }
-:where(input[type="range"]):active::-webkit-slider-thumb { transform: scale(1.2); }
-:where(input[type="range"]):active::-moz-range-thumb { transform: scale(1.2); }
-:where(input[type="range"]):focus-visible { outline: none; }
-:where(input[type="range"]):focus-visible::-webkit-slider-thumb { box-shadow: 0 var(--depth) 0 var(--c-deep), 0 0 0 6px var(--c-soft); }
-:where(input[type="range"]):disabled { opacity: 0.45; cursor: not-allowed; }
+:where(input[type="range"]:hover)::-webkit-slider-thumb { transform: scale(1.08); }
+:where(input[type="range"]:active)::-webkit-slider-thumb { transform: scale(1.2); }
+:where(input[type="range"]:active)::-moz-range-thumb { transform: scale(1.2); }
+:where(input[type="range"]:focus-visible) { outline: none; }
+:where(input[type="range"]:focus-visible)::-webkit-slider-thumb { box-shadow: 0 var(--depth) 0 var(--c-deep), 0 0 0 6px var(--c-soft); }
+:where(input[type="range"]:disabled) { opacity: 0.45; cursor: not-allowed; }
 
 /* ══ 6. ARCHIVO · zona punteada con botón 3D dentro ════════════════ */
 :where(input[type="file"]) {
@@ -595,7 +608,7 @@
   cursor: pointer;
   transition: border-color var(--t-fast) ease, background-color var(--t-fast) ease;
 }
-:where(input[type="file"]):hover {
+:where(input[type="file"]:hover) {
   border-color: var(--c);
   background: var(--c-soft);
 }
@@ -627,7 +640,7 @@
   flex-direction: column;
   gap: var(--sp-2);
 }
-:where(label):has(+ :is(input, textarea, select)) {
+:where(label:has(+ :is(input, textarea, select))) {
   margin-bottom: var(--sp-2);
 }
 
@@ -639,7 +652,7 @@
   border-radius: var(--r-lg);
   background: var(--bg-1);
 }
-:where(fieldset):disabled {
+:where(fieldset:disabled) {
   opacity: 0.6;
 }
 :where(legend) {
@@ -725,9 +738,9 @@
 :where(meter)::-webkit-meter-optimum-value { background: var(--success); }
 :where(meter)::-webkit-meter-suboptimum-value { background: var(--warning); }
 :where(meter)::-webkit-meter-even-less-good-value { background: var(--danger); }
-:where(meter):-moz-meter-optimum::-moz-meter-bar { background: var(--success); border-radius: var(--r-full); }
-:where(meter):-moz-meter-sub-optimum::-moz-meter-bar { background: var(--warning); border-radius: var(--r-full); }
-:where(meter):-moz-meter-sub-sub-optimum::-moz-meter-bar { background: var(--danger); border-radius: var(--r-full); }
+:where(meter:-moz-meter-optimum)::-moz-meter-bar { background: var(--success); border-radius: var(--r-full); }
+:where(meter:-moz-meter-sub-optimum)::-moz-meter-bar { background: var(--warning); border-radius: var(--r-full); }
+:where(meter:-moz-meter-sub-sub-optimum)::-moz-meter-bar { background: var(--danger); border-radius: var(--r-full); }
 
 /* ══ 9. DETAILS / SUMMARY · acordeón que se abre animado ═══════════ */
 :where(details) {
@@ -774,17 +787,17 @@
 :where(details[open]) > :where(summary)::after {
   rotate: 180deg;
 }
-:where(summary):hover {
+:where(summary:hover) {
   background: rgb(255 255 255 / 0.03);
 }
-:where(summary):focus-visible {
+:where(summary:focus-visible) {
   outline-offset: -2px;
 }
 :where(details) > :where(:not(summary)) {
   padding-inline: var(--sp-5);
   color: var(--text-2);
 }
-:where(details) > :where(:not(summary)):last-child {
+:where(details) > :where(:not(summary):last-child) {
   padding-bottom: var(--sp-5);
 }
 /* Al abrir: el contenido baja un poco y aparece. Sin animar la altura
@@ -962,12 +975,12 @@
         overlay var(--t-slow) allow-discrete,
         display var(--t-slow) allow-discrete;
     }
-    :where(select):open::picker(select) {
+    :where(select:open)::picker(select) {
       translate: 0 0;
       box-shadow: 0 0 0 100vmax rgb(20 20 24 / 0.66);
     }
     @starting-style {
-      :where(select):open::picker(select) {
+      :where(select:open)::picker(select) {
         translate: 0 100%;
         box-shadow: 0 0 0 100vmax rgb(20 20 24 / 0);
       }

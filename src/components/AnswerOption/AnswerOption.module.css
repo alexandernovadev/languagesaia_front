@@ -1,0 +1,101 @@
+.root {
+  /* reset the native button pill look: an option is a wide row */
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--sp-3);
+  width: 100%;
+  min-height: var(--h-lg);
+  padding: var(--sp-3) var(--sp-4);
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0;
+  line-height: var(--lh-body);
+  text-align: left;
+  color: var(--text-1);
+  background: var(--bg-2);
+  border: var(--border) solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow: 0 var(--depth) 0 var(--bg-3);
+  filter: none;
+  transition:
+    transform var(--t-base) var(--spring),
+    background-color var(--t-fast) ease,
+    border-color var(--t-fast) ease,
+    color var(--t-fast) ease,
+    box-shadow var(--t-instant) ease;
+}
+@media (hover: hover) {
+  .root:hover:not(:disabled) {
+    border-color: var(--line-hover);
+    background: color-mix(in oklab, var(--bg-2), var(--text-1) 4%);
+  }
+}
+.root:active:not(:disabled) {
+  transform: translateY(var(--depth)) scale(0.98);
+  box-shadow: 0 0 0 var(--bg-3);
+}
+
+/* Keyboard hint: 1, 2, 3… */
+.key {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  font-family: var(--font-display);
+  font-weight: var(--fw-heavy);
+  font-size: 0.85rem;
+  color: var(--text-3);
+  border: var(--border) solid var(--line);
+  border-radius: 9px;
+  transition: all var(--t-fast) ease;
+}
+
+.root[data-state="selected"] {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+  box-shadow: 0 var(--depth) 0 var(--brand-deep);
+}
+.root[data-state="selected"] .key {
+  color: var(--ink);
+  background: var(--brand);
+  border-color: var(--brand);
+}
+
+.root[data-state="right"] {
+  color: var(--success);
+  background: var(--success-soft);
+  border-color: var(--success-deep);
+  box-shadow: 0 var(--depth) 0 var(--success-deep);
+  animation: lai-pop var(--t-party) var(--spring);
+}
+.root[data-state="right"] .key {
+  color: var(--ink);
+  background: var(--success);
+  border-color: var(--success);
+}
+
+.root[data-state="wrong"] {
+  color: var(--danger);
+  background: var(--danger-soft);
+  border-color: var(--danger-deep);
+  box-shadow: 0 var(--depth) 0 var(--danger-deep);
+  animation: lai-shake 420ms var(--ease-in-out);
+}
+.root[data-state="wrong"] .key {
+  color: var(--ink);
+  background: var(--danger);
+  border-color: var(--danger);
+}
+
+/* Locked after answering: keep full color (native :disabled would grey it out) */
+.root:disabled {
+  cursor: default;
+  opacity: 1;
+}
+/* …but the other options step back */
+.root[data-state="dim"] {
+  opacity: 0.45;
+}
