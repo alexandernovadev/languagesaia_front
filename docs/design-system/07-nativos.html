@@ -1,0 +1,1581 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Componentes nativos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500..800&family=Lexend:wght@400..700&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+@layer reset, base, native;
+/* ════════════════════════════════════════════════════════════════
+   LanguagesAI · TOKENS — archivo padre del sistema de diseño
+   Cambia un valor aquí y cambia en toda la app.
+   Estudio completo: docs/ESTUDIO-SISTEMA-DE-DISENO.md
+   ════════════════════════════════════════════════════════════════ */
+
+:root {
+  color-scheme: dark;
+
+  /* ── 1. Superficies · grafito (nunca negro puro) ─────────────── */
+  --bg-0: #202024; /* fondo de la app */
+  --bg-1: #29292e; /* tarjetas */
+  --bg-2: #333338; /* elevado: inputs, chips, hover */
+  --bg-3: #3e3e44; /* borde 3D de botones neutros, pressed */
+  --line: #4a4a51; /* bordes, divisores */
+
+  /* ── 2. Texto ────────────────────────────────────────────────── */
+  --text-1: #f7f7f9; /* principal */
+  --text-2: #d4d4da; /* secundario, cuerpo largo */
+  --text-3: #b0b0b9; /* suave (cumple AA sobre bg-0/bg-1) */
+  --ink: #1a1a1e;    /* texto SOBRE un pastel */
+
+  /* ── 3. Pasteles · armonizados en OKLCH ──────────────────────────
+     Misma luminosidad (L≈0.84) y croma (C≈0.085); solo cambia el tono.
+     base · deep (borde 3D, L−0.20) · soft (superficie tintada 14%) */
+  --lilac: #cbbdf9;  --lilac-deep: #8e7cc2;  --lilac-soft: rgb(203 189 249 / 0.14);
+  --sky: #9bd2fa;    --sky-deep: #4e94c3;    --sky-soft: rgb(155 210 250 / 0.14);
+  --mint: #91debc;   --mint-deep: #3ca17b;   --mint-soft: rgb(145 222 188 / 0.14);
+  --butter: #ecdc92; --butter-deep: #af9b3e; --butter-soft: rgb(236 220 146 / 0.14);
+  --peach: #f9bb92;  --peach-deep: #bf7946;  --peach-soft: rgb(249 187 146 / 0.14);
+  --rose: #f6b2b9;   --rose-deep: #bd6f79;   --rose-soft: rgb(246 178 185 / 0.14);
+
+  /* ── 4. Roles semánticos (usa ESTOS en componentes) ──────────── */
+  --brand: var(--lilac);    --brand-deep: var(--lilac-deep);    --brand-soft: var(--lilac-soft);
+  --success: var(--mint);   --success-deep: var(--mint-deep);   --success-soft: var(--mint-soft);   /* SOLO acierto */
+  --danger: var(--rose);    --danger-deep: var(--rose-deep);    --danger-soft: var(--rose-soft);    /* SOLO error */
+  --warning: var(--butter); --warning-deep: var(--butter-deep); --warning-soft: var(--butter-soft);
+  --info: var(--sky);       --info-deep: var(--sky-deep);       --info-soft: var(--sky-soft);
+  --ai: var(--peach);       --ai-deep: var(--peach-deep);       --ai-soft: var(--peach-soft);
+
+  /* Módulos (cada uno con su héroe) */
+  --mod-words: var(--sky);         /* Lumi  · Palabras */
+  --mod-expressions: var(--lilac); /* Nubo  · Expresiones */
+  --mod-stories: var(--peach);     /* Tula  · Historias */
+  --mod-exams: var(--butter);      /* Bruno · Exámenes */
+  --mod-anki: var(--mint);         /* Menti · Anki */
+
+  /* Niveles MCER */
+  --cefr-a1: var(--mint);
+  --cefr-a2: var(--sky);
+  --cefr-b1: var(--lilac);
+  --cefr-b2: var(--butter);
+  --cefr-c1: var(--peach);
+  --cefr-c2: var(--rose);
+
+  /* ── 5. Tipografía · opción B "Gordita" ──────────────────────── */
+  --font-display: "Baloo 2 Variable", "Baloo 2", ui-rounded, system-ui, sans-serif;
+  --font-body: "Lexend Variable", "Lexend", system-ui, sans-serif;
+  --font-ipa: "Noto Sans", "Lexend Variable", system-ui, sans-serif; /* símbolos fonéticos */
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Escala 1.25 · base 16 */
+  --fs-display: 3rem;     /* 48 · títulos héroe */
+  --fs-h1: 2.25rem;       /* 36 · palabra grande */
+  --fs-h2: 1.75rem;       /* 28 · títulos de pantalla */
+  --fs-h3: 1.375rem;      /* 22 · tarjetas, preguntas */
+  --fs-read: 1.1875rem;   /* 19 · lector de historias */
+  --fs-body: 1rem;        /* 16 */
+  --fs-small: 0.875rem;   /* 14 */
+  --fs-caption: 0.75rem;  /* 12 · etiquetas */
+
+  --lh-tight: 1.05;  /* display */
+  --lh-heading: 1.2;
+  --lh-body: 1.55;
+  --lh-read: 1.75;   /* lector */
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+  --fw-display: 700; /* Baloo 2 en títulos y botones */
+  --fw-heavy: 800;
+
+  --ls-caption: 0.12em; /* mayúsculas pequeñas */
+  --measure-read: 62ch;
+  --measure-body: 65ch;
+
+  /* ── 6. Formas · "Burbuja" + relieve "Sutil" ─────────────────── */
+  --r-sm: 14px;
+  --r-md: 22px;
+  --r-lg: 30px;
+  --r-full: 999px;
+
+  --border: 2px;  /* en todo */
+  --depth: 2px;   /* borde inferior 3D (box-shadow 0 var(--depth) 0 <deep>) — sin sombras difusas */
+
+  /* Espaciado · rejilla de 4 px */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+
+  /* Áreas táctiles (mínimo 48 en móvil) */
+  --h-sm: 40px;
+  --h-md: 48px;
+  --h-lg: 56px;
+
+  /* Layout */
+  --page-max: 720px;
+  --gutter: var(--sp-4);
+
+  /* ── 7. Movimiento · "Juguetona" ─────────────────────────────── */
+  --t-instant: 80ms;  /* pulsar */
+  --t-fast: 150ms;    /* hover, color */
+  --t-base: 250ms;    /* casi todo */
+  --t-slow: 400ms;    /* pantallas, girar tarjeta */
+  --t-party: 700ms;   /* celebraciones */
+
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);  /* SOLO lo que se toca y celebraciones */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);   /* navegación, texto */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-sheet: cubic-bezier(0.32, 0.72, 0, 1);  /* hojas inferiores: arranca rápido, frena suave */
+
+  --press-scale: 0.95;
+  --pop-scale: 1.08;
+  --shake: 7px;
+
+  /* ── 8. Capas (z-index) ──────────────────────────────────────── */
+  --z-base: 0;
+  --z-sticky: 10;
+  --z-overlay: 100;
+  --z-modal: 200;
+  --z-toast: 300;
+  --z-fx: 400; /* confeti, +XP */
+}
+
+/* Accesibilidad: sin movimiento → duraciones casi cero, sin rebote */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --t-instant: 1ms;
+    --t-fast: 1ms;
+    --t-base: 1ms;
+    --t-slow: 1ms;
+    --t-party: 1ms;
+    --spring: linear;
+    --press-scale: 1;
+    --pop-scale: 1;
+    --shake: 0px;
+  }
+}
+
+@layer native {
+/* ════════════════════════════════════════════════════════════════
+   LanguagesAI · ELEMENTOS NATIVOS con nuestro estilo
+   Todo va dentro de :where() → especificidad 0. Cualquier clase de
+   un CSS Module lo pisa sin pelear.
+
+   Color por atributo:  data-tone="brand|success|danger|warning|info|ai"
+                         (se hereda: ponlo en un <fieldset> y lo toman sus hijos)
+   Tamaño de botón:     data-size="sm|lg"   ·  data-block (ancho completo)
+   Variante de botón:   data-variant="soft|ghost"  ·  data-icon (cuadrado)
+   Interruptor:         <input type="checkbox" role="switch">
+   Cargando:            <button aria-busy="true">
+   Range con relleno:   style="--val: 40%"
+   Hoja inferior:       <dialog data-sheet>  (los <select> ya son hoja en tablet/móvil)
+
+   Descartados a propósito (no encajan o el navegador no deja estilarlos):
+   iframe, video, audio (haremos reproductor propio para TTS),
+   input image/reset/color/hidden/month/week.
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── Tono por defecto (se hereda) ─────────────────────────────── */
+:root {
+  --c: var(--brand);
+  --c-deep: var(--brand-deep);
+  --c-soft: var(--brand-soft);
+  --line-hover: color-mix(in oklab, var(--line), var(--text-1) 14%);
+  accent-color: var(--brand);
+}
+:where([data-tone="brand"])   { --c: var(--brand);   --c-deep: var(--brand-deep);   --c-soft: var(--brand-soft); }
+:where([data-tone="success"]) { --c: var(--success); --c-deep: var(--success-deep); --c-soft: var(--success-soft); }
+:where([data-tone="danger"])  { --c: var(--danger);  --c-deep: var(--danger-deep);  --c-soft: var(--danger-soft); }
+:where([data-tone="warning"]) { --c: var(--warning); --c-deep: var(--warning-deep); --c-soft: var(--warning-soft); }
+:where([data-tone="info"])    { --c: var(--info);    --c-deep: var(--info-deep);    --c-soft: var(--info-soft); }
+:where([data-tone="ai"])      { --c: var(--ai);      --c-deep: var(--ai-deep);      --c-soft: var(--ai-soft); }
+
+/* ══ 1. BOTÓN ═════════════════════════════════════════════════════
+   Neutro por defecto · submit o data-tone = pastel con borde 3D    */
+:where(button, input:is([type="button"], [type="submit"])) {
+  --btn-bg: var(--bg-2);
+  --btn-fg: var(--text-1);
+  --btn-edge: var(--bg-3);
+  --btn-border: var(--line);
+  --btn-h: var(--h-md);
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  min-height: var(--btn-h);
+  padding: 0 22px;
+  font-family: var(--font-display);
+  font-weight: var(--fw-display);
+  font-size: 1.05rem;
+  line-height: normal;
+  letter-spacing: 0.02em;
+  color: var(--btn-fg);
+  background: var(--btn-bg);
+  border: var(--border) solid var(--btn-border);
+  border-radius: var(--r-md);
+  box-shadow: 0 var(--depth) 0 var(--btn-edge);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  transition:
+    transform var(--t-base) var(--spring),
+    box-shadow var(--t-instant) ease,
+    background-color var(--t-fast) ease,
+    color var(--t-fast) ease,
+    filter var(--t-fast) ease;
+}
+:where(button[type="submit"], input[type="submit"], button[data-tone]) {
+  --btn-bg: var(--c);
+  --btn-fg: var(--ink);
+  --btn-edge: var(--c-deep);
+  --btn-border: transparent;
+  border: 0; /* igual que el diseño aprobado: el pastel no lleva borde */
+}
+:where(button[data-variant="soft"]) {
+  --btn-bg: var(--c-soft);
+  --btn-fg: var(--c);
+  --btn-edge: transparent;
+  --btn-border: transparent;
+  border: 0;
+}
+:where(button[data-variant="ghost"]) {
+  --btn-bg: transparent;
+  --btn-fg: var(--c);
+  --btn-edge: transparent;
+  --btn-border: transparent;
+  border: 0;
+}
+:where(button, input:is([type="button"], [type="submit"])):hover {
+  filter: brightness(1.06);
+}
+:where(button[data-variant="ghost"]):hover {
+  --btn-bg: var(--c-soft);
+  filter: none;
+}
+:where(button, input:is([type="button"], [type="submit"])):active:not(:disabled, [aria-busy="true"]) {
+  transform: translateY(var(--depth)) scale(var(--press-scale));
+  box-shadow: 0 0 0 var(--btn-edge);
+  transition-duration: var(--t-instant);
+}
+:where(button, input:is([type="button"], [type="submit"])):disabled {
+  --btn-bg: var(--bg-2);
+  --btn-fg: var(--text-3);
+  --btn-edge: var(--bg-3);
+  --btn-border: var(--line);
+  cursor: not-allowed;
+  filter: none;
+  opacity: 0.6;
+}
+:where(button[data-size="sm"]) { --btn-h: var(--h-sm); padding: 0 var(--sp-4); font-size: 0.95rem; border-radius: var(--r-sm); }
+:where(button[data-size="lg"]) { --btn-h: var(--h-lg); padding: 0 var(--sp-6); font-size: 1.2rem; }
+:where(button[data-block]) { display: flex; width: 100%; }
+:where(button[data-icon]) { width: var(--btn-h); padding: 0; border-radius: var(--r-full); font-size: 1.25rem; }
+
+/* Cargando: el texto se esconde y gira un anillo del color del texto */
+:where(button[aria-busy="true"]) {
+  color: transparent;
+  cursor: progress;
+}
+:where(button[aria-busy="true"])::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 1.25em;
+  height: 1.25em;
+  border-radius: 50%;
+  border: 3px solid var(--btn-fg);
+  border-right-color: transparent;
+  animation: n-spin 0.7s linear infinite;
+}
+
+/* ══ 2. LABEL (base; las variantes con :has() van después y la pisan) */
+:where(label) {
+  display: inline-block;
+  font-size: var(--fs-small);
+  font-weight: var(--fw-semibold);
+  color: var(--text-2);
+}
+
+/* ══ 2b. CAMPOS DE TEXTO · input, textarea, select ══════════════════ */
+:where(
+  input:is(:not([type]), [type="text"], [type="password"], [type="email"], [type="number"],
+    [type="tel"], [type="url"], [type="search"], [type="date"], [type="time"], [type="datetime-local"]),
+  textarea,
+  select
+) {
+  --field-border: var(--line);
+  --field-ring: transparent;
+
+  width: 100%;
+  min-height: var(--h-md);
+  padding: 0 var(--sp-4);
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-regular);
+  color: var(--text-1);
+  background: var(--bg-2);
+  border: var(--border) solid var(--field-border);
+  border-radius: var(--r-md);
+  /* "hundido": lo contrario del botón 3D */
+  box-shadow:
+    inset 0 var(--depth) 0 rgb(0 0 0 / 0.18),
+    0 0 0 4px var(--field-ring);
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  transition:
+    border-color var(--t-fast) ease,
+    box-shadow var(--t-base) var(--ease-out),
+    background-color var(--t-fast) ease;
+}
+:where(input, textarea, select):hover:not(:disabled, :focus) {
+  --field-border: var(--line-hover);
+}
+:where(input, textarea, select):focus,
+:where(input, textarea, select):focus-visible {
+  --field-border: var(--c);
+  --field-ring: var(--c-soft);
+  background: var(--bg-1);
+  outline: none;
+}
+:where(input, textarea, select):is(:user-invalid, [aria-invalid="true"]) {
+  --field-border: var(--danger-deep);
+  --c: var(--danger);
+  --c-soft: var(--danger-soft);
+}
+:where(input, textarea, select):is(:user-invalid, [aria-invalid="true"]):focus {
+  --field-border: var(--danger);
+}
+:where(input, textarea, select):disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+:where(input, textarea):read-only:not(:disabled, [type="checkbox"], [type="radio"], [type="range"], [type="file"]) {
+  border-style: dashed;
+  color: var(--text-2);
+}
+:where(input, textarea)::placeholder {
+  color: var(--text-3);
+  opacity: 1;
+}
+
+/* Textarea: crece con el contenido (field-sizing) */
+:where(textarea) {
+  padding: var(--sp-3) var(--sp-4);
+  line-height: var(--lh-body);
+  min-height: calc(3lh + var(--sp-6));
+  max-height: calc(12lh + var(--sp-6));
+  field-sizing: content;
+  resize: vertical;
+}
+
+/* Número: sin las flechitas del sistema, cifras alineadas */
+:where(input[type="number"]) {
+  font-variant-numeric: tabular-nums;
+  -moz-appearance: textfield;
+}
+:where(input[type="number"])::-webkit-inner-spin-button,
+:where(input[type="number"])::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Búsqueda: lupa a la izquierda, píldora, X propia */
+:where(input[type="search"]) {
+  padding-left: calc(var(--sp-4) + 26px);
+  border-radius: var(--r-full);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23B0B0B9' stroke-width='2.6' stroke-linecap='round'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5'/%3E%3Cpath d='M15.5 15.5 20 20'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: var(--sp-4) 50%;
+  background-size: 18px;
+}
+:where(input[type="search"])::-webkit-search-decoration { -webkit-appearance: none; }
+:where(input[type="search"])::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  cursor: pointer;
+  background: var(--bg-3) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23F7F7F9' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M8 8l8 8M16 8l-8 8'/%3E%3C/svg%3E") center / 12px no-repeat;
+}
+
+/* Fecha y hora: icono del calendario en lila */
+:where(input:is([type="date"], [type="time"], [type="datetime-local"])) {
+  font-variant-numeric: tabular-nums;
+}
+:where(input:is([type="date"], [type="time"], [type="datetime-local"]))::-webkit-calendar-picker-indicator {
+  width: 20px;
+  height: 20px;
+  padding: 6px;
+  cursor: pointer;
+  border-radius: var(--r-sm);
+  color: transparent;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23CBBDF9' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3.5' y='5' width='17' height='15.5' rx='4'/%3E%3Cpath d='M3.5 10h17M8 3v4M16 3v4'/%3E%3C/svg%3E") center / 20px no-repeat;
+  transition: background-color var(--t-fast) ease, scale var(--t-base) var(--spring);
+}
+:where(input[type="time"])::-webkit-calendar-picker-indicator {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23CBBDF9' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='8.5'/%3E%3Cpath d='M12 7.5V12l3 2'/%3E%3C/svg%3E");
+}
+:where(input:is([type="date"], [type="time"], [type="datetime-local"]))::-webkit-calendar-picker-indicator:hover {
+  background-color: var(--c-soft);
+  scale: 1.1;
+}
+:where(input)::-webkit-datetime-edit-fields-wrapper { padding: 0; }
+:where(input)::-webkit-datetime-edit-text { color: var(--text-3); padding: 0 2px; }
+:where(input)::-webkit-datetime-edit-day-field:focus,
+:where(input)::-webkit-datetime-edit-month-field:focus,
+:where(input)::-webkit-datetime-edit-year-field:focus,
+:where(input)::-webkit-datetime-edit-hour-field:focus,
+:where(input)::-webkit-datetime-edit-minute-field:focus,
+:where(input)::-webkit-datetime-edit-ampm-field:focus {
+  background: var(--c-soft);
+  color: var(--c);
+  border-radius: 6px;
+}
+
+/* ══ 3. SELECT · flecha propia; menú 100% nuestro donde se pueda ═══ */
+:where(select) {
+  padding-right: calc(var(--sp-4) + 24px);
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23CBBDF9' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--sp-4) center;
+  background-size: 18px;
+  text-overflow: ellipsis;
+}
+:where(select[multiple], select[size]) {
+  padding: var(--sp-2);
+  background-image: none;
+}
+:where(optgroup) {
+  font-weight: var(--fw-bold);
+  color: var(--text-3);
+}
+:where(option) {
+  font-weight: var(--fw-regular);
+  color: var(--text-1);
+  background: var(--bg-1);
+}
+
+/* Select personalizable (Chrome 135+): el desplegable es nuestro */
+@supports (appearance: base-select) {
+  :where(select:not([multiple], [size])),
+  :where(select:not([multiple], [size]))::picker(select) {
+    appearance: base-select;
+  }
+  :where(select:not([multiple], [size])) {
+    display: flex;
+    align-items: center;
+    background-image: none;
+    padding-right: var(--sp-4);
+  }
+  :where(select)::picker-icon {
+    content: "";
+    width: 18px;
+    height: 18px;
+    margin-left: auto;
+    background: var(--c);
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") center / contain no-repeat;
+    transition: rotate var(--t-base) var(--spring);
+  }
+  :where(select):open::picker-icon {
+    rotate: 180deg;
+  }
+  :where(select)::picker(select) {
+    margin-block: var(--sp-2);
+    padding: var(--sp-2);
+    min-width: anchor-size(width);
+    max-height: min(360px, 60dvh);
+    color: var(--text-1);
+    background: var(--bg-1);
+    border: var(--border) solid var(--line);
+    border-radius: var(--r-md);
+    box-shadow: 0 var(--depth) 0 var(--bg-3), 0 16px 40px rgb(0 0 0 / 0.35);
+    opacity: 0;
+    translate: 0 -6px;
+    scale: 0.97;
+    transform-origin: top center;
+    transition:
+      opacity var(--t-fast) ease,
+      translate var(--t-base) var(--spring),
+      scale var(--t-base) var(--spring),
+      overlay var(--t-base) allow-discrete,
+      display var(--t-base) allow-discrete;
+  }
+  :where(select):open::picker(select) {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+  }
+  @starting-style {
+    :where(select):open::picker(select) {
+      opacity: 0;
+      translate: 0 -6px;
+      scale: 0.97;
+    }
+  }
+  :where(select) :where(option) {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    min-height: var(--h-sm);
+    padding: 0 var(--sp-3);
+    border-radius: var(--r-sm);
+    background: transparent;
+    cursor: pointer;
+    transition: background-color var(--t-fast) ease, color var(--t-fast) ease;
+  }
+  :where(select) :where(option):is(:hover, :focus-visible) {
+    background: var(--bg-2);
+    outline: none;
+  }
+  :where(select) :where(option):checked {
+    background: var(--c-soft);
+    color: var(--c);
+    font-weight: var(--fw-semibold);
+  }
+  :where(select) :where(option)::checkmark {
+    order: 1;
+    margin-left: auto;
+    color: var(--c);
+    font-weight: var(--fw-heavy);
+  }
+  :where(select) :where(optgroup) {
+    padding-top: var(--sp-2);
+  }
+  :where(select) :where(optgroup) > :where(legend) {
+    padding: var(--sp-1) var(--sp-3);
+    font-size: var(--fs-caption);
+    font-weight: var(--fw-heavy);
+    letter-spacing: var(--ls-caption);
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+}
+
+/* ══ 4. CHECKBOX y RADIO ═══════════════════════════════════════════ */
+:where(input:is([type="checkbox"], [type="radio"])) {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: none;
+  display: inline-grid;
+  place-content: center;
+  width: 26px;
+  height: 26px;
+  margin: 0;
+  vertical-align: middle;
+  background: var(--bg-2) center / 16px no-repeat;
+  border: var(--border) solid var(--line);
+  box-shadow: 0 var(--depth) 0 var(--bg-3);
+  cursor: pointer;
+  transition:
+    background-color var(--t-fast) ease,
+    border-color var(--t-fast) ease,
+    box-shadow var(--t-base) var(--spring),
+    transform var(--t-base) var(--spring);
+}
+:where(input[type="checkbox"]:not([role="switch"])) {
+  border-radius: 9px;
+}
+:where(input:is([type="checkbox"], [type="radio"])):hover:not(:disabled) {
+  border-color: var(--line-hover);
+}
+:where(input:is([type="checkbox"], [type="radio"])):active:not(:disabled) {
+  transform: translateY(var(--depth)) scale(0.9);
+  box-shadow: 0 0 0 var(--bg-3);
+  transition-duration: var(--t-instant);
+}
+:where(input:is([type="checkbox"], [type="radio"])):focus-visible {
+  outline: var(--border) solid var(--c);
+  outline-offset: 3px;
+}
+:where(input:is([type="checkbox"], [type="radio"])):disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ✓ marcado: rellena con el tono y la palomita hace "pop" */
+:where(input[type="checkbox"]:not([role="switch"])):is(:checked, :indeterminate) {
+  background-color: var(--c);
+  border-color: var(--c);
+  box-shadow: 0 var(--depth) 0 var(--c-deep);
+  animation: n-pop var(--t-slow) var(--spring);
+}
+:where(input[type="checkbox"]:not([role="switch"])):checked {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231A1A1E' stroke-width='3.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");
+}
+:where(input[type="checkbox"]:not([role="switch"])):indeterminate {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231A1A1E' stroke-width='3.6' stroke-linecap='round'%3E%3Cpath d='M6 12h12'/%3E%3C/svg%3E");
+}
+
+/* ◉ radio: el anillo interior se cierra hasta dejar un punto */
+:where(input[type="radio"]) {
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 0 13px var(--bg-2),
+    0 var(--depth) 0 var(--bg-3);
+}
+:where(input[type="radio"]):checked {
+  background-color: var(--c);
+  border-color: var(--c);
+  box-shadow:
+    inset 0 0 0 5px var(--bg-2),
+    0 var(--depth) 0 var(--c-deep);
+}
+:where(input[type="radio"]):active:not(:disabled) {
+  box-shadow: inset 0 0 0 7px var(--bg-2), 0 0 0 var(--bg-3);
+}
+
+/* ⏻ INTERRUPTOR · <input type="checkbox" role="switch"> */
+:where(input[type="checkbox"][role="switch"]) {
+  --thumb: 22px;
+  --pad: 3px;
+  width: 54px;
+  height: 32px;
+  border-radius: var(--r-full);
+  background-color: var(--bg-3);
+  /* el "pulgar" es un degradado: así se mueve con background-position en cualquier navegador */
+  background-image:
+    radial-gradient(circle at center, var(--text-1) 0 calc(var(--thumb) / 2 - 0.5px), transparent calc(var(--thumb) / 2));
+  background-size: calc(var(--thumb) + 2px) calc(var(--thumb) + 2px);
+  background-position: var(--pad) center;
+  transition:
+    background-position var(--t-base) var(--spring),
+    background-color var(--t-fast) ease,
+    border-color var(--t-fast) ease,
+    box-shadow var(--t-base) var(--spring),
+    transform var(--t-base) var(--spring);
+}
+:where(input[type="checkbox"][role="switch"]):checked {
+  background-color: var(--c);
+  border-color: var(--c);
+  background-position: calc(100% - var(--pad)) center;
+  box-shadow: 0 var(--depth) 0 var(--c-deep);
+  background-image:
+    radial-gradient(circle at center, var(--bg-0) 0 calc(var(--thumb) / 2 - 0.5px), transparent calc(var(--thumb) / 2));
+}
+:where(input[type="checkbox"][role="switch"]):active:not(:disabled) {
+  transform: translateY(var(--depth)) scale(0.96);
+}
+
+/* Etiqueta que envuelve un check/radio/switch → fila táctil de 48 px */
+:where(label:has(> input:is([type="checkbox"], [type="radio"]))) {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: var(--h-md);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-medium);
+  color: var(--text-2);
+  cursor: pointer;
+  transition: color var(--t-fast) ease;
+}
+:where(label:has(> input:is([type="checkbox"], [type="radio"]):checked)) {
+  color: var(--text-1);
+}
+:where(label:has(> input:disabled)) {
+  cursor: not-allowed;
+  color: var(--text-3);
+}
+:where(label:has(> input[role="switch"])) {
+  justify-content: space-between;
+}
+
+/* ══ 5. RANGE · deslizador ═════════════════════════════════════════ */
+:where(input[type="range"]) {
+  --val: 50%;
+  --track: 12px;
+  --knob: 28px;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  height: var(--h-md);
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+}
+:where(input[type="range"])::-webkit-slider-runnable-track {
+  height: var(--track);
+  border-radius: var(--r-full);
+  background: linear-gradient(to right, var(--c) 0 var(--val), var(--bg-2) var(--val) 100%);
+  box-shadow: inset 0 var(--depth) 0 rgb(0 0 0 / 0.18);
+}
+:where(input[type="range"])::-moz-range-track {
+  height: var(--track);
+  border-radius: var(--r-full);
+  background: var(--bg-2);
+}
+:where(input[type="range"])::-moz-range-progress {
+  height: var(--track);
+  border-radius: var(--r-full);
+  background: var(--c);
+}
+:where(input[type="range"])::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: var(--knob);
+  height: var(--knob);
+  margin-top: calc((var(--track) - var(--knob)) / 2);
+  border-radius: 50%;
+  background: var(--text-1);
+  border: 3px solid var(--c);
+  box-shadow: 0 var(--depth) 0 var(--c-deep);
+  transition: transform var(--t-base) var(--spring);
+}
+:where(input[type="range"])::-moz-range-thumb {
+  width: var(--knob);
+  height: var(--knob);
+  border-radius: 50%;
+  background: var(--text-1);
+  border: 3px solid var(--c);
+  box-shadow: 0 var(--depth) 0 var(--c-deep);
+  transition: transform var(--t-base) var(--spring);
+}
+:where(input[type="range"]):hover::-webkit-slider-thumb { transform: scale(1.08); }
+:where(input[type="range"]):active::-webkit-slider-thumb { transform: scale(1.2); }
+:where(input[type="range"]):active::-moz-range-thumb { transform: scale(1.2); }
+:where(input[type="range"]):focus-visible { outline: none; }
+:where(input[type="range"]):focus-visible::-webkit-slider-thumb { box-shadow: 0 var(--depth) 0 var(--c-deep), 0 0 0 6px var(--c-soft); }
+:where(input[type="range"]):disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ══ 6. ARCHIVO · zona punteada con botón 3D dentro ════════════════ */
+:where(input[type="file"]) {
+  width: 100%;
+  padding: var(--sp-2);
+  font-size: var(--fs-small);
+  color: var(--text-3);
+  background: var(--bg-1);
+  border: var(--border) dashed var(--line);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: border-color var(--t-fast) ease, background-color var(--t-fast) ease;
+}
+:where(input[type="file"]):hover {
+  border-color: var(--c);
+  background: var(--c-soft);
+}
+:where(input[type="file"])::file-selector-button {
+  margin-right: var(--sp-3);
+  min-height: var(--h-sm);
+  padding: 0 var(--sp-4);
+  font-family: var(--font-display);
+  font-weight: var(--fw-display);
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  background: var(--c);
+  border: 0;
+  border-radius: var(--r-sm);
+  box-shadow: 0 var(--depth) 0 var(--c-deep);
+  cursor: pointer;
+  transition: transform var(--t-base) var(--spring), box-shadow var(--t-instant) ease;
+}
+:where(input[type="file"])::file-selector-button:active {
+  transform: translateY(var(--depth)) scale(var(--press-scale));
+  box-shadow: 0 0 0 var(--c-deep);
+}
+
+/* ══ 7. LABEL con campo · FIELDSET · LEGEND · OUTPUT ═════════════════════════ */
+/* <label> seguido de su campo, o envolviendo texto + campo */
+:where(label:has(> :is(input:not([type="checkbox"], [type="radio"]), textarea, select))) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+:where(label):has(+ :is(input, textarea, select)) {
+  margin-bottom: var(--sp-2);
+}
+
+:where(fieldset) {
+  min-width: 0;
+  margin: 0;
+  padding: var(--sp-4) var(--sp-5) var(--sp-5);
+  border: var(--border) solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--bg-1);
+}
+:where(fieldset):disabled {
+  opacity: 0.6;
+}
+:where(legend) {
+  padding: 0 var(--sp-2);
+  margin-left: calc(var(--sp-2) * -1);
+  font-family: var(--font-display);
+  font-weight: var(--fw-display);
+  font-size: 1.1rem;
+  color: var(--text-1);
+}
+
+:where(output) {
+  display: inline-flex;
+  align-items: center;
+  min-width: 3.2em;
+  justify-content: center;
+  padding: 2px var(--sp-3);
+  font-family: var(--font-display);
+  font-weight: var(--fw-display);
+  font-variant-numeric: tabular-nums;
+  color: var(--c);
+  background: var(--c-soft);
+  border-radius: var(--r-full);
+}
+
+/* ══ 8. PROGRESS · METER ═══════════════════════════════════════════ */
+:where(progress, meter) {
+  appearance: none;
+  -webkit-appearance: none;
+  display: block;
+  width: 100%;
+  height: 16px;
+  border: 0;
+  border-radius: var(--r-full);
+  overflow: hidden;
+  background: var(--bg-2);
+  box-shadow: inset 0 var(--depth) 0 rgb(0 0 0 / 0.18);
+}
+/* el relleno lleva brillo arriba y sombra abajo: se ve "gordito" */
+:where(progress)::-webkit-progress-bar {
+  background: transparent;
+}
+:where(progress)::-webkit-progress-value {
+  border-radius: var(--r-full);
+  background: var(--c);
+  box-shadow:
+    inset 0 -4px 0 rgb(0 0 0 / 0.14),
+    inset 0 3px 0 rgb(255 255 255 / 0.28);
+  transition: inline-size var(--t-slow) var(--spring);
+}
+:where(progress)::-moz-progress-bar {
+  border-radius: var(--r-full);
+  background: var(--c);
+  box-shadow:
+    inset 0 -4px 0 rgb(0 0 0 / 0.14),
+    inset 0 3px 0 rgb(255 255 255 / 0.28);
+}
+/* sin valor = indeterminado: rayas que avanzan */
+:where(progress:indeterminate) {
+  background:
+    repeating-linear-gradient(-45deg, var(--c-soft) 0 12px, transparent 12px 24px),
+    var(--bg-2);
+  background-size: 34px 100%, auto;
+  animation: n-stripes 0.8s linear infinite;
+}
+:where(progress:indeterminate)::-webkit-progress-bar { background: transparent; }
+:where(progress:indeterminate)::-moz-progress-bar { background: transparent; }
+
+:where(meter)::-webkit-meter-bar {
+  height: 100%;
+  border: 0;
+  border-radius: var(--r-full);
+  background: transparent;
+}
+:where(meter)::-webkit-meter-optimum-value,
+:where(meter)::-webkit-meter-suboptimum-value,
+:where(meter)::-webkit-meter-even-less-good-value {
+  border-radius: var(--r-full);
+  box-shadow:
+    inset 0 -4px 0 rgb(0 0 0 / 0.14),
+    inset 0 3px 0 rgb(255 255 255 / 0.28);
+}
+:where(meter)::-webkit-meter-optimum-value { background: var(--success); }
+:where(meter)::-webkit-meter-suboptimum-value { background: var(--warning); }
+:where(meter)::-webkit-meter-even-less-good-value { background: var(--danger); }
+:where(meter):-moz-meter-optimum::-moz-meter-bar { background: var(--success); border-radius: var(--r-full); }
+:where(meter):-moz-meter-sub-optimum::-moz-meter-bar { background: var(--warning); border-radius: var(--r-full); }
+:where(meter):-moz-meter-sub-sub-optimum::-moz-meter-bar { background: var(--danger); border-radius: var(--r-full); }
+
+/* ══ 9. DETAILS / SUMMARY · acordeón que se abre animado ═══════════ */
+:where(details) {
+  background: var(--bg-1);
+  border: var(--border) solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: 0 var(--depth) 0 var(--bg-3);
+  transition: border-color var(--t-fast) ease;
+}
+:where(details[open]) {
+  border-color: var(--c-deep);
+}
+:where(summary) {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: var(--h-lg);
+  padding: 0 var(--sp-5);
+  font-family: var(--font-display);
+  font-weight: var(--fw-display);
+  font-size: 1.1rem;
+  color: var(--text-1);
+  list-style: none;
+  cursor: pointer;
+  border-radius: calc(var(--r-lg) - var(--border));
+  user-select: none;
+  -webkit-user-select: none;
+}
+:where(summary)::-webkit-details-marker { display: none; }
+:where(summary)::after {
+  content: "";
+  flex: none;
+  width: 28px;
+  height: 28px;
+  margin-left: auto;
+  border-radius: 50%;
+  background: var(--c-soft);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23CBBDF9' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 10l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 16px;
+  transition: rotate var(--t-base) var(--spring);
+}
+:where(details[open]) > :where(summary)::after {
+  rotate: 180deg;
+}
+:where(summary):hover {
+  background: rgb(255 255 255 / 0.03);
+}
+:where(summary):focus-visible {
+  outline-offset: -2px;
+}
+:where(details) > :where(:not(summary)) {
+  padding-inline: var(--sp-5);
+  color: var(--text-2);
+}
+:where(details) > :where(:not(summary)):last-child {
+  padding-bottom: var(--sp-5);
+}
+/* Al abrir: el contenido baja un poco y aparece. Sin animar la altura
+   (animar height:auto da tirones al final en varios navegadores). */
+:where(details[open]) > :where(:not(summary)) {
+  animation: n-reveal var(--t-base) var(--ease-out) both;
+}
+
+/* ══ 10. DIALOG · modal nativo que entra con resorte ═══════════════ */
+:where(dialog) {
+  margin: auto; /* el reset pone margin:0 y lo descentraría */
+  width: min(440px, calc(100vw - 2 * var(--gutter)));
+  max-height: calc(100dvh - 2 * var(--gutter));
+  padding: var(--sp-6);
+  color: var(--text-1);
+  background: var(--bg-1);
+  border: var(--border) solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: 0 var(--depth) 0 var(--bg-3);
+  opacity: 0;
+  scale: 0.9;
+  translate: 0 12px;
+  transition:
+    opacity var(--t-base) ease,
+    scale var(--t-slow) var(--spring),
+    translate var(--t-slow) var(--spring),
+    overlay var(--t-slow) allow-discrete,
+    display var(--t-slow) allow-discrete;
+}
+:where(dialog[open]) {
+  opacity: 1;
+  scale: 1;
+  translate: 0 0;
+}
+@starting-style {
+  :where(dialog[open]) {
+    opacity: 0;
+    scale: 0.9;
+    translate: 0 12px;
+  }
+}
+:where(dialog)::backdrop {
+  background: rgb(20 20 24 / 0);
+  backdrop-filter: blur(0);
+  transition:
+    background-color var(--t-base) ease,
+    backdrop-filter var(--t-base) ease,
+    overlay var(--t-slow) allow-discrete,
+    display var(--t-slow) allow-discrete;
+}
+:where(dialog[open])::backdrop {
+  background: rgb(20 20 24 / 0.66);
+  backdrop-filter: blur(4px);
+}
+@starting-style {
+  :where(dialog[open])::backdrop {
+    background: rgb(20 20 24 / 0);
+    backdrop-filter: blur(0);
+  }
+}
+/* ══ 11. HOJA INFERIOR (bottom sheet) ═════════════════════════════
+   · <dialog data-sheet>  → siempre hoja que sube desde abajo
+   · <dialog> normal      → hoja en móvil (≤ 520 px), modal centrado en el resto
+   · <select>             → su menú es hoja en tablet y móvil (más abajo)
+   Tirador arriba, esquinas solo arriba, respeta el "notch" de abajo. */
+:where(dialog[data-sheet]) {
+  position: fixed;
+  inset: auto 0 0 0;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 640px;
+  max-height: 88dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--sp-8) var(--sp-5) calc(var(--sp-6) + env(safe-area-inset-bottom, 0px));
+  border-bottom: 0;
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  box-shadow: none;
+  opacity: 1;
+  scale: 1;
+  translate: 0 100%;
+  transition:
+    translate var(--t-slow) var(--ease-sheet),
+    overlay var(--t-slow) allow-discrete,
+    display var(--t-slow) allow-discrete;
+}
+:where(dialog[data-sheet][open]) { translate: 0 0; }
+@starting-style {
+  :where(dialog[data-sheet][open]) { translate: 0 100%; }
+}
+@media (max-width: 520px) {
+  :where(dialog:modal) {
+    position: fixed;
+    inset: auto 0 0 0;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 640px;
+    max-height: 88dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--sp-8) var(--sp-5) calc(var(--sp-6) + env(safe-area-inset-bottom, 0px));
+    border-bottom: 0;
+    border-radius: var(--r-lg) var(--r-lg) 0 0;
+    box-shadow: none;
+    opacity: 1;
+    scale: 1;
+    translate: 0 100%;
+    transition:
+      translate var(--t-slow) var(--ease-sheet),
+      overlay var(--t-slow) allow-discrete,
+      display var(--t-slow) allow-discrete;
+  }
+  :where(dialog:modal[open]) { translate: 0 0; }
+  @starting-style {
+    :where(dialog:modal[open]) { translate: 0 100%; }
+  }
+}
+/* tirador */
+:where(dialog[data-sheet])::before {
+  content: "";
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  width: 44px;
+  height: 5px;
+  translate: -50% 0;
+  border-radius: var(--r-full);
+  background: var(--line);
+}
+@media (max-width: 520px) {
+  :where(dialog:modal)::before {
+    content: "";
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    width: 44px;
+    height: 5px;
+    translate: -50% 0;
+    border-radius: var(--r-full);
+    background: var(--line);
+  }
+}
+
+/* El menú del <select> como hoja en tablet y móvil (Chrome/Android).
+   En iPhone/iPad Safari ya abre su propia rueda/hoja del sistema. */
+@supports (appearance: base-select) {
+  @media (max-width: 1024px), (pointer: coarse) {
+    :where(select)::picker(select) {
+      position: fixed;
+      inset: auto 0 0 0;
+      position-area: none;
+      position-try-fallbacks: none;
+      margin: 0 auto;
+      width: 100%;
+      min-width: 0;
+      max-width: 640px;
+      max-height: 70dvh;
+      padding: var(--sp-8) var(--sp-3) calc(var(--sp-4) + env(safe-area-inset-bottom, 0px));
+      border-bottom: 0;
+      border-radius: var(--r-lg) var(--r-lg) 0 0;
+      /* tirador + fondo */
+      background:
+        radial-gradient(circle at 2.5px 50%, var(--line) 2.5px, transparent 3px) top 12px left calc(50% - 19.5px) / 5px 5px no-repeat,
+        radial-gradient(circle at 2.5px 50%, var(--line) 2.5px, transparent 3px) top 12px left calc(50% + 19.5px) / 5px 5px no-repeat,
+        linear-gradient(var(--line), var(--line)) top 12px center / 39px 5px no-repeat,
+        var(--bg-1);
+      /* velo oscuro detrás: una sombra gigante (el picker no tiene ::backdrop) */
+      box-shadow: 0 0 0 100vmax rgb(20 20 24 / 0);
+      opacity: 1;
+      scale: 1;
+      translate: 0 100%;
+      transition:
+        translate var(--t-slow) var(--ease-sheet),
+        box-shadow var(--t-base) ease,
+        overlay var(--t-slow) allow-discrete,
+        display var(--t-slow) allow-discrete;
+    }
+    :where(select):open::picker(select) {
+      translate: 0 0;
+      box-shadow: 0 0 0 100vmax rgb(20 20 24 / 0.66);
+    }
+    @starting-style {
+      :where(select):open::picker(select) {
+        translate: 0 100%;
+        box-shadow: 0 0 0 100vmax rgb(20 20 24 / 0);
+      }
+    }
+    /* filas más grandes para el dedo */
+    :where(select) :where(option) {
+      min-height: 52px;
+      padding: 0 var(--sp-4);
+      font-size: 1.05rem;
+    }
+  }
+}
+
+/* ══ Extras pequeños que aparecen en contenido ═════════════════════ */
+:where(hr) {
+  border: 0;
+  height: var(--border);
+  background: var(--line);
+  border-radius: var(--r-full);
+}
+:where(kbd) {
+  display: inline-block;
+  padding: 1px 7px;
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  color: var(--text-1);
+  background: var(--bg-2);
+  border: var(--border) solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 var(--depth) 0 var(--bg-3);
+}
+:where(mark) {
+  color: var(--ink);
+  background: var(--butter);
+  padding: 0 4px;
+  border-radius: 6px;
+}
+
+/* ── Animaciones ───────────────────────────────────────────────── */
+@keyframes n-spin {
+  to { rotate: 360deg; }
+}
+@keyframes n-pop {
+  0% { scale: 0.7; }
+  60% { scale: var(--pop-scale); }
+  100% { scale: 1; }
+}
+@keyframes n-reveal {
+  from { opacity: 0; translate: 0 -6px; }
+  to { opacity: 1; translate: 0 0; }
+}
+@keyframes n-stripes {
+  to { background-position: 34px 0, 0 0; }
+}
+
+}
+@layer reset {
+  *, *::before, *::after { box-sizing: border-box; }
+  * { margin: 0; }
+  input, button, textarea, select { font: inherit; color: inherit; }
+}
+@layer base {
+  h1, h2, h3 { font-family: var(--font-display); font-weight: var(--fw-display); line-height: var(--lh-heading); letter-spacing: -0.01em; text-wrap: balance; }
+  p { text-wrap: pretty; }
+  :focus-visible { outline: var(--border) solid var(--brand); outline-offset: 3px; }
+}
+
+/* Fuera de capas a propósito: el visor de artefactos inyecta body{background:#fff} sin capa */
+html, body { background: var(--bg-0); color-scheme: dark; }
+body { margin: 0; min-height: 100dvh; color: var(--text-1); font-family: var(--font-body); font-size: var(--fs-body); line-height: var(--lh-body); -webkit-font-smoothing: antialiased; }
+
+/* ── Página de muestra (solo maquetación) ── */
+.wrap { max-width: 1080px; margin: 0 auto; padding: var(--sp-10) var(--sp-4) var(--sp-16); display: flex; flex-direction: column; gap: var(--sp-10); }
+.hero { display: flex; flex-direction: column; gap: var(--sp-3); }
+.eyebrow { font-size: var(--fs-caption); font-weight: var(--fw-heavy); letter-spacing: var(--ls-caption); text-transform: uppercase; color: var(--text-3); }
+.hero h1 { font-size: clamp(2.2rem, 6vw, var(--fs-display)); line-height: var(--lh-tight); }
+.hero h1 span { color: var(--c); transition: color var(--t-base) ease; }
+.hero p { color: var(--text-2); max-width: 62ch; }
+.toolbar { position: sticky; top: 0; z-index: 5; background: var(--bg-0); padding-block: var(--sp-3); display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); }
+.toolbar b { font-size: var(--fs-small); color: var(--text-3); margin-right: var(--sp-1); }
+.dot { width: 36px; height: 36px; min-height: 0; border-radius: 50%; border: 3px solid var(--bg-0); outline: var(--border) solid transparent; cursor: pointer; padding: 0; transition: transform var(--t-base) var(--spring), outline-color var(--t-fast) ease; }
+.dot:hover { transform: scale(1.1); }
+.dot[aria-pressed="true"] { outline-color: var(--text-1); }
+section { display: flex; flex-direction: column; gap: var(--sp-5); }
+.sec-h { display: flex; align-items: baseline; gap: var(--sp-3); flex-wrap: wrap; }
+.sec-h h2 { font-size: var(--fs-h2); }
+.sec-h code { font-family: var(--font-mono); font-size: var(--fs-small); color: var(--text-3); }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--sp-4); }
+.card { background: var(--bg-1); border: var(--border) solid var(--line); border-radius: var(--r-lg); padding: var(--sp-5); display: flex; flex-direction: column; gap: var(--sp-4); min-width: 0; }
+.card h3 { font-size: 1.15rem; }
+.note { font-size: var(--fs-small); color: var(--text-3); }
+.row { display: flex; flex-wrap: wrap; gap: var(--sp-3); align-items: center; }
+.stack { display: flex; flex-direction: column; gap: var(--sp-3); }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+.inline { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); }
+.word { font-family: var(--font-display); font-weight: var(--fw-display); font-size: var(--fs-h2); color: var(--sky); line-height: 1; }
+.ipa { font-family: var(--font-ipa); color: var(--text-3); }
+.gone { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: var(--sp-3); }
+.gone div { background: var(--bg-1); border: var(--border) dashed var(--line); border-radius: var(--r-md); padding: var(--sp-3) var(--sp-4); font-size: var(--fs-small); color: var(--text-3); }
+.gone b { display: block; font-family: var(--font-mono); color: var(--rose); text-decoration: line-through; font-weight: 500; margin-bottom: 2px; }
+.dlg-head { display: flex; flex-direction: column; gap: var(--sp-2); margin-bottom: var(--sp-5); }
+.dlg-head h2 { font-size: var(--fs-h3); }
+.dlg-head p { color: var(--text-2); }
+.dlg-actions { display: flex; gap: var(--sp-3); justify-content: flex-end; flex-wrap: wrap; }
+@media (max-width: 520px) { .pair { grid-template-columns: 1fr; } .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main class="wrap" id="main">
+  <header class="hero">
+    <span class="eyebrow">Sistema de diseño · elementos nativos</span>
+    <h1>Elementos nativos con <span>nuestro estilo</span></h1>
+    <p>Son los controles del propio navegador (<code>&lt;button&gt;</code>, <code>&lt;input&gt;</code>, <code>&lt;select&gt;</code>, <code>&lt;dialog&gt;</code>…), sin librerías y sin JavaScript para verse así. Funcionan con teclado y lector de pantalla, porque son los de verdad. Cambia el tono de abajo: todo hereda el color.</p>
+  </header>
+
+  <div class="toolbar" role="group" aria-label="Tono">
+    <b>Tono</b>
+    <button class="dot" data-set="brand" style="background:var(--lilac)" aria-label="Marca (lila)" aria-pressed="true"></button>
+    <button class="dot" data-set="info" style="background:var(--sky)" aria-label="Info (cielo)"></button>
+    <button class="dot" data-set="success" style="background:var(--mint)" aria-label="Acierto (menta)"></button>
+    <button class="dot" data-set="warning" style="background:var(--butter)" aria-label="Aviso (mantequilla)"></button>
+    <button class="dot" data-set="ai" style="background:var(--peach)" aria-label="IA (melocotón)"></button>
+    <button class="dot" data-set="danger" style="background:var(--rose)" aria-label="Error (rosa)"></button>
+  </div>
+
+  <!-- 1 · BOTONES -->
+  <section>
+    <div class="sec-h"><h2>Botones</h2><code>&lt;button&gt;</code></div>
+    <div class="grid">
+      <div class="card">
+        <h3>Tonos</h3>
+        <div class="row">
+          <button type="submit">Comprobar</button>
+          <button>Neutro</button>
+        </div>
+        <div class="row">
+          <button data-tone="success">¡Correcto!</button>
+          <button data-tone="danger">Reintentar</button>
+          <button data-tone="info">Escuchar</button>
+          <button data-tone="warning">Examen</button>
+          <button data-tone="ai">Generar</button>
+        </div>
+        <p class="note">Sin atributo es neutro; <code>type="submit"</code> o <code>data-tone</code> lo pintan de pastel con su borde 3D.</p>
+      </div>
+      <div class="card">
+        <h3>Variantes y tamaños</h3>
+        <div class="row">
+          <button type="submit" data-size="sm">Pequeño</button>
+          <button type="submit">Normal</button>
+          <button type="submit" data-size="lg">Grande</button>
+        </div>
+        <div class="row">
+          <button data-variant="soft">Suave</button>
+          <button data-variant="ghost">Fantasma</button>
+          <button data-icon aria-label="Reproducir audio">🔊</button>
+          <button data-icon type="submit" aria-label="Me gusta">♥</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Estados</h3>
+        <div class="row">
+          <button type="submit" aria-busy="true">Generando</button>
+          <button type="submit" disabled>Desactivado</button>
+        </div>
+        <button type="submit" data-block data-size="lg" id="fakeload">Continuar</button>
+        <p class="note">Pulsa "Continuar": entra en estado de carga 1,5 s.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · CAMPOS -->
+  <section>
+    <div class="sec-h"><h2>Campos de texto</h2><code>&lt;input&gt; · &lt;textarea&gt; · &lt;datalist&gt;</code></div>
+    <div class="grid">
+      <div class="card">
+        <h3>Texto</h3>
+        <label>Nombre <input type="text" placeholder="¿Cómo te llamas?"></label>
+        <label>Correo <input type="email" placeholder="tu@correo.com" value="esto no es un correo" aria-invalid="true"></label>
+        <p class="note" style="margin-top:calc(var(--sp-2) * -1);color:var(--rose)">Ese correo no es válido.</p>
+        <label>Contraseña <input type="password" value="secreto123"></label>
+      </div>
+      <div class="card">
+        <h3>Especiales</h3>
+        <label>Buscar <input type="search" placeholder="Buscar palabra…" value="serendipity"></label>
+        <div class="pair">
+          <label>Palabras al día <input type="number" value="15" min="1" max="100"></label>
+          <label>Teléfono <input type="tel" placeholder="+34 600 000 000"></label>
+        </div>
+        <label>Web <input type="url" placeholder="https://"></label>
+      </div>
+      <div class="card">
+        <h3>Fecha y hora</h3>
+        <label>Fecha del examen <input type="date" value="2026-12-14"></label>
+        <div class="pair">
+          <label>Recordatorio <input type="time" value="20:30"></label>
+          <label>Idioma <input list="langs" placeholder="Escribe…"></label>
+        </div>
+        <datalist id="langs"><option value="Inglés"><option value="Portugués"><option value="Francés"><option value="Alemán"><option value="Italiano"></datalist>
+        <label>Inicio <input type="datetime-local" value="2026-11-03T09:00"></label>
+      </div>
+      <div class="card">
+        <h3>Multilínea</h3>
+        <label>Escribe una frase con «get over» <textarea placeholder="Crece sola mientras escribes…">I finally got over my fear of speaking English.</textarea></label>
+        <label>Solo lectura <input type="text" value="Corrección generada por la IA" readonly></label>
+        <label>Desactivado <input type="text" value="No disponible" disabled></label>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · SELECT -->
+  <section>
+    <div class="sec-h"><h2>Lista desplegable</h2><code>&lt;select&gt; · &lt;optgroup&gt; · &lt;option&gt;</code></div>
+    <div class="grid">
+      <div class="card">
+        <h3>Simple</h3>
+        <label>Idioma que aprendes
+          <select>
+            <option>🇬🇧 Inglés</option>
+            <option selected>🇧🇷 Portugués</option>
+            <option>🇫🇷 Francés</option>
+            <option>🇩🇪 Alemán</option>
+            <option>🇮🇹 Italiano</option>
+          </select>
+        </label>
+        <p class="note">En ordenador el menú se abre debajo, redondeado y con resorte. <b style="color:var(--text-2)">En tablet y móvil se abre como hoja inferior</b> (achica la ventana a menos de 1024 px para verlo). En iPhone/iPad sale la rueda del sistema.</p>
+      </div>
+      <div class="card">
+        <h3>Con grupos</h3>
+        <label>Nivel MCER
+          <select>
+            <optgroup label="Básico"><option>A1 · Acceso</option><option>A2 · Plataforma</option></optgroup>
+            <optgroup label="Independiente"><option selected>B1 · Umbral</option><option>B2 · Avanzado</option></optgroup>
+            <optgroup label="Competente"><option>C1 · Dominio eficaz</option><option>C2 · Maestría</option></optgroup>
+          </select>
+        </label>
+        <label>Desactivado <select disabled><option>Sin opciones</option></select></label>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · SELECCIÓN -->
+  <section>
+    <div class="sec-h"><h2>Casillas, opciones e interruptores</h2><code>checkbox · radio · role="switch" · &lt;fieldset&gt; · &lt;legend&gt;</code></div>
+    <div class="grid">
+      <fieldset>
+        <legend>¿Qué quieres practicar?</legend>
+        <label><input type="checkbox" checked> Palabras</label>
+        <label><input type="checkbox" checked> Expresiones</label>
+        <label><input type="checkbox"> Historias</label>
+        <label><input type="checkbox" id="indet"> Todo (algunos marcados)</label>
+        <label><input type="checkbox" disabled> Exámenes (pronto)</label>
+      </fieldset>
+      <fieldset>
+        <legend>¿Cuál es correcta?</legend>
+        <label><input type="radio" name="q"> She have visited London.</label>
+        <label><input type="radio" name="q" checked> She has visited London.</label>
+        <label><input type="radio" name="q"> She has visit London.</label>
+      </fieldset>
+      <fieldset>
+        <legend>Ajustes</legend>
+        <label>Sonidos <input type="checkbox" role="switch" checked></label>
+        <label>Vibración <input type="checkbox" role="switch"></label>
+        <label>Recordatorio diario <input type="checkbox" role="switch" checked data-tone="success"></label>
+        <label>Modo claro (nunca 😄) <input type="checkbox" role="switch" disabled></label>
+      </fieldset>
+    </div>
+  </section>
+
+  <!-- 5 · RANGOS Y MEDIDORES -->
+  <section>
+    <div class="sec-h"><h2>Deslizador, progreso y medidor</h2><code>range · &lt;output&gt; · &lt;progress&gt; · &lt;meter&gt;</code></div>
+    <div class="grid">
+      <div class="card">
+        <h3>Deslizador</h3>
+        <div class="inline"><label for="speed">Velocidad de la voz</label><output id="speedOut" for="speed">1.0×</output></div>
+        <input type="range" id="speed" min="0.5" max="1.5" step="0.1" value="1">
+        <div class="inline"><label for="goal">Meta diaria</label><output id="goalOut" for="goal">20 min</output></div>
+        <input type="range" id="goal" min="5" max="60" step="5" value="20" data-tone="success">
+      </div>
+      <div class="card">
+        <h3>Progreso</h3>
+        <div class="inline"><span class="note">Lección 3 de 5</span><button data-size="sm" data-variant="soft" id="adv">Avanzar</button></div>
+        <progress id="prog" value="60" max="100" data-tone="success"></progress>
+        <span class="note">La IA está generando la historia…</span>
+        <progress data-tone="ai"></progress>
+      </div>
+      <div class="card">
+        <h3>Medidor</h3>
+        <span class="note">Dominio de la palabra (bien)</span>
+        <meter min="0" max="100" low="40" high="75" optimum="100" value="88"></meter>
+        <span class="note">Repaso pendiente (regular)</span>
+        <meter min="0" max="100" low="40" high="75" optimum="100" value="58"></meter>
+        <span class="note">Palabras olvidadas (mal)</span>
+        <meter min="0" max="100" low="40" high="75" optimum="100" value="22"></meter>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · ARCHIVO + EXTRAS -->
+  <section>
+    <div class="sec-h"><h2>Archivo y detalles de texto</h2><code>file · &lt;kbd&gt; · &lt;mark&gt; · &lt;hr&gt;</code></div>
+    <div class="grid">
+      <div class="card">
+        <h3>Subir archivo</h3>
+        <label>Importar mazo de Anki <input type="file" accept=".apkg,.csv"></label>
+        <label data-tone="info">Foto para la palabra <input type="file" accept="image/*"></label>
+      </div>
+      <div class="card">
+        <h3>En el contenido</h3>
+        <p><span class="word">serendipity</span></p>
+        <p class="ipa">/ˌser.ənˈdɪp.ə.ti/</p>
+        <p>Finding something good <mark>by chance</mark>, without looking for it.</p>
+        <hr>
+        <p class="note">Atajo: pulsa <kbd>Espacio</kbd> para girar la tarjeta y <kbd>1</kbd>–<kbd>4</kbd> para responder.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 · DETAILS + DIALOG -->
+  <section>
+    <div class="sec-h"><h2>Acordeón, modal y hoja inferior</h2><code>&lt;details&gt; · &lt;summary&gt; · &lt;dialog&gt; · &lt;dialog data-sheet&gt;</code></div>
+    <div class="grid">
+      <div class="stack">
+        <details open>
+          <summary>¿Qué es el nivel MCER?</summary>
+          <p>Es la escala europea para medir tu nivel: de A1 (empiezas) a C2 (como nativo). La app adapta palabras, historias y exámenes a tu nivel.</p>
+        </details>
+        <details>
+          <summary>¿Por qué la IA tarda un poco?</summary>
+          <p>Genera contenido nuevo solo para ti: puede tardar entre 40 y 70 segundos. Mientras tanto te enseñamos consejos.</p>
+        </details>
+        <details data-tone="success">
+          <summary>¿Cómo funciona Anki?</summary>
+          <p>Repetición espaciada: te pregunta cada tarjeta justo antes de que la olvides.</p>
+        </details>
+      </div>
+      <div class="card">
+        <h3>Ventana modal</h3>
+        <p class="note">Entra con resorte y difumina el fondo. En el móvil sube desde abajo como una hoja. <kbd>Esc</kbd> la cierra.</p>
+        <div class="row">
+          <button type="submit" id="openDlg">Terminar lección</button>
+          <button data-tone="danger" data-variant="soft" id="openDlg2">Borrar mazo</button>
+        </div>
+        <hr>
+        <h3>Hoja inferior</h3>
+        <p class="note">Sube desde abajo con su tirador, en cualquier tamaño de pantalla. Para elegir entre opciones, filtros o acciones rápidas. Toca fuera o pulsa <kbd>Esc</kbd> para cerrarla.</p>
+        <div class="row">
+          <button type="submit" data-tone="info" id="openSheet">Cambiar idioma</button>
+          <button id="openSheet2">Más acciones</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 · DESCARTADOS -->
+  <section>
+    <div class="sec-h"><h2>Descartados</h2><code>no se estilan</code></div>
+    <div class="gone">
+      <div><b>&lt;iframe&gt;</b>No metemos contenido de otras webs.</div>
+      <div><b>&lt;video&gt;</b>La app no tiene vídeo.</div>
+      <div><b>&lt;audio&gt;</b>El del navegador no se puede estilar: haremos un reproductor propio para la voz de la IA.</div>
+      <div><b>type="color"</b>Una app de idiomas no elige colores.</div>
+      <div><b>type="month" / "week"</b>No los usamos; con <code>date</code> basta.</div>
+      <div><b>type="image"</b>Antiguo: se usa un botón normal con icono.</div>
+      <div><b>type="reset"</b>Mala práctica: borra todo lo escrito de un toque.</div>
+      <div><b>type="hidden"</b>No se ve: no hay nada que estilar.</div>
+    </div>
+  </section>
+</main>
+
+<dialog id="dlg" closedby="any">
+  <form method="dialog">
+    <div class="dlg-head">
+      <h2>¡Lección completada! 🎉</h2>
+      <p>Has ganado <output data-tone="success">+40 XP</output> y tu racha sube a 7 días.</p>
+    </div>
+    <div class="dlg-actions">
+      <button value="later">Ahora no</button>
+      <button type="submit" data-tone="success" value="next">Siguiente lección</button>
+    </div>
+  </form>
+</dialog>
+<dialog id="sheet" data-sheet closedby="any">
+  <form method="dialog" class="stack">
+    <div class="dlg-head" style="margin-bottom:var(--sp-2)">
+      <h2>¿Qué idioma aprendes?</h2>
+      <p>Puedes cambiarlo cuando quieras; tu progreso se guarda por idioma.</p>
+    </div>
+    <label><input type="radio" name="lang" checked> 🇬🇧 Inglés</label>
+    <label><input type="radio" name="lang"> 🇧🇷 Portugués</label>
+    <label><input type="radio" name="lang"> 🇫🇷 Francés</label>
+    <label><input type="radio" name="lang"> 🇩🇪 Alemán</label>
+    <label><input type="radio" name="lang"> 🇮🇹 Italiano</label>
+    <button type="submit" data-tone="info" data-block data-size="lg" style="margin-top:var(--sp-3)">Guardar</button>
+  </form>
+</dialog>
+<dialog id="sheet2" data-sheet closedby="any">
+  <form method="dialog" class="stack">
+    <button data-block>🔊 Escuchar pronunciación</button>
+    <button data-block>⭐ Guardar en Anki</button>
+    <button data-block>✏️ Editar palabra</button>
+    <button data-block data-tone="danger" data-variant="soft">🗑️ Borrar palabra</button>
+  </form>
+</dialog>
+<dialog id="dlg2" closedby="any">
+  <form method="dialog">
+    <div class="dlg-head">
+      <h2>¿Borrar el mazo?</h2>
+      <p>Se borrarán 248 tarjetas y su historial de repaso. No se puede deshacer.</p>
+    </div>
+    <div class="dlg-actions">
+      <button value="cancel">Cancelar</button>
+      <button type="submit" data-tone="danger" value="delete">Sí, borrar</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+const main = document.getElementById('main');
+document.querySelectorAll('.dot').forEach(d => d.addEventListener('click', () => {
+  main.dataset.tone = d.dataset.set;
+  document.querySelectorAll('.dot').forEach(x => x.setAttribute('aria-pressed', String(x === d)));
+}));
+document.getElementById('indet').indeterminate = true;
+const fill = r => r.style.setProperty('--val', ((r.value - r.min) / (r.max - r.min) * 100) + '%');
+const speed = document.getElementById('speed'), goal = document.getElementById('goal');
+const sync = () => {
+  fill(speed); fill(goal);
+  document.getElementById('speedOut').textContent = Number(speed.value).toFixed(1) + '×';
+  document.getElementById('goalOut').textContent = goal.value + ' min';
+};
+speed.addEventListener('input', sync); goal.addEventListener('input', sync); sync();
+const prog = document.getElementById('prog');
+document.getElementById('adv').addEventListener('click', () => { prog.value = prog.value >= 100 ? 20 : prog.value + 20; });
+const fake = document.getElementById('fakeload');
+fake.addEventListener('click', () => { fake.setAttribute('aria-busy', 'true'); setTimeout(() => fake.removeAttribute('aria-busy'), 1500); });
+document.getElementById('openDlg').addEventListener('click', () => document.getElementById('dlg').showModal());
+document.getElementById('openDlg2').addEventListener('click', () => document.getElementById('dlg2').showModal());
+['sheet','sheet2'].forEach((id,i)=>document.getElementById(i?'openSheet2':'openSheet').addEventListener('click', () => document.getElementById(id).showModal()));
+</script>
+</body>
+</html>

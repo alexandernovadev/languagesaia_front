@@ -1,0 +1,100 @@
+/* Orden de capas: reset → base → native. Lo que no esté en capa
+   (CSS Modules de los componentes) gana siempre. */
+@layer reset, base, native;
+
+/* Fuentes autoalojadas (sin Google Fonts) */
+@import "@fontsource-variable/baloo-2";
+@import "@fontsource-variable/lexend";
+@import "@fontsource/noto-sans/400.css";
+@import "@fontsource/noto-sans/600.css";
+
+@import "./tokens.css";
+@import "./native.css" layer(native);
+
+@layer reset {
+  /* ── Reset mínimo ─────────────────────────────────────────────── */
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  * {
+    margin: 0;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  img,
+  picture,
+  video,
+  canvas,
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+
+  input,
+  button,
+  textarea,
+  select {
+    font: inherit;
+    color: inherit;
+  }
+
+  button {
+    cursor: pointer;
+  }
+}
+
+@layer base {
+  body {
+    min-height: 100dvh;
+    background: var(--bg-0);
+    color: var(--text-1);
+    font-family: var(--font-body);
+    font-size: var(--fs-body);
+    line-height: var(--lh-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: var(--fw-display);
+    line-height: var(--lh-heading);
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+    overflow-wrap: break-word;
+  }
+
+  a {
+    color: var(--brand);
+    text-underline-offset: 3px;
+  }
+
+  ::selection {
+    background: var(--lilac-soft);
+    color: var(--text-1);
+  }
+
+  :focus-visible {
+    outline: var(--border) solid var(--brand);
+    outline-offset: 3px;
+  }
+
+  #root {
+    isolation: isolate;
+  }
+}
