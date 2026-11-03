@@ -1,0 +1,255 @@
+<title>Tipografía LanguagesAI</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Baloo+2:wght@500;600;700;800&family=Fredoka:wght@500;600;700&family=Lexend:wght@400;500;600;700&family=Noto+Sans:wght@400;600&family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: specimen sheet — a sticky pairing picker, then the same real content rendered in the chosen pair. */
+:root {
+  color-scheme: dark;
+  /* Palette (closed): graphite + harmonised pastels */
+  --bg-0: #202024; --bg-1: #29292E; --bg-2: #333338; --bg-3: #3E3E44; --line: #4A4A51;
+  --text-1: #F7F7F9; --text-2: #D4D4DA; --text-3: #B0B0B9; --ink: #1A1A1E;
+  --lilac: #CBBDF9;  --lilac-deep: #8E7CC2;  --lilac-soft: rgba(203,189,249,.14);
+  --sky: #9BD2FA;    --sky-deep: #4E94C3;    --sky-soft: rgba(155,210,250,.14);
+  --mint: #91DEBC;   --mint-deep: #3CA17B;   --mint-soft: rgba(145,222,188,.14);
+  --butter: #ECDC92; --butter-deep: #AF9B3E; --butter-soft: rgba(236,220,146,.14);
+  --peach: #F9BB92;  --peach-deep: #BF7946;  --peach-soft: rgba(249,187,146,.14);
+  --rose: #F6B2B9;   --rose-deep: #BD6F79;   --rose-soft: rgba(246,178,185,.14);
+
+  /* Type — pairing A by default; the picker swaps these two */
+  --font-display: "Fredoka", ui-rounded, system-ui, sans-serif;
+  --font-body: "Nunito", ui-rounded, system-ui, sans-serif;
+  --display-weight: 600;
+  --font-ipa: "Noto Sans", "Lucida Sans Unicode", "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+
+  /* Type scale — ratio 1.25 (major third), base 16 */
+  --fs-display: 3rem;     /* 48 */
+  --fs-h1: 2.25rem;       /* 36 */
+  --fs-h2: 1.75rem;       /* 28 */
+  --fs-h3: 1.375rem;      /* 22 */
+  --fs-read: 1.1875rem;   /* 19 — story reader */
+  --fs-body: 1rem;        /* 16 */
+  --fs-small: .875rem;    /* 14 */
+  --fs-caption: .75rem;   /* 12 */
+}
+:root[data-pair="b"] { --font-display: "Baloo 2", ui-rounded, system-ui, sans-serif; --font-body: "Lexend", system-ui, sans-serif; --display-weight: 700; }
+:root[data-pair="c"] { --font-display: "Nunito", ui-rounded, system-ui, sans-serif; --font-body: "Atkinson Hyperlegible", system-ui, sans-serif; --display-weight: 900; }
+
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg-0); color: var(--text-1);
+  font-family: var(--font-body); font-size: var(--fs-body); line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 80px;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg-0); }
+main { max-width: 980px; margin: 0 auto; display: flex; flex-direction: column; gap: 56px; }
+h1, h2, h3, .display { font-family: var(--font-display); font-weight: var(--display-weight); margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+p { margin: 0; max-width: 65ch; color: var(--text-2); }
+code, .mono { font-family: var(--font-mono); font-size: .8rem; }
+.eyebrow { font-family: var(--font-body); font-size: var(--fs-caption); font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); }
+section { display: flex; flex-direction: column; gap: 20px; }
+.head { display: flex; flex-direction: column; gap: 8px; }
+.head h2 { font-size: var(--fs-h2); }
+
+/* ── Intro + picker ─────────────────── */
+.intro { display: flex; flex-direction: column; gap: 16px; }
+.intro h1 { font-size: clamp(2.2rem, 6vw, var(--fs-display)); line-height: 1.05; }
+.intro h1 span { color: var(--lilac); }
+.picker-bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg-0); padding-block: 12px; margin-block: -12px; }
+.picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.pick {
+  font: inherit; text-align: left; cursor: pointer; color: var(--text-1);
+  background: var(--bg-1); border: 2px solid var(--line); border-radius: 16px; padding: 14px 16px;
+  box-shadow: 0 4px 0 var(--bg-3); display: flex; flex-direction: column; gap: 4px; min-width: 0;
+  transition: transform .08s ease, box-shadow .08s ease, border-color .15s ease;
+}
+.pick:active { transform: translateY(4px); box-shadow: 0 0 0 var(--bg-3); }
+.pick[aria-pressed="true"] { border-color: var(--lilac); box-shadow: 0 4px 0 var(--lilac-deep); }
+.pick:focus-visible, .btn:focus-visible, .opt:focus-visible { outline: 3px solid var(--sky); outline-offset: 3px; }
+.pick b { font-size: 1.25rem; line-height: 1.1; }
+.pick small { color: var(--text-3); font-size: var(--fs-small); }
+.pick[data-pair="a"] b { font-family: "Fredoka", sans-serif; font-weight: 600; }
+.pick[data-pair="b"] b { font-family: "Baloo 2", sans-serif; font-weight: 700; }
+.pick[data-pair="c"] b { font-family: "Nunito", sans-serif; font-weight: 900; }
+
+.verdict { background: var(--bg-1); border-radius: 16px; padding: 18px 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; border: 2px solid var(--line); }
+.verdict div { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.verdict h3 { font-size: var(--fs-h3); }
+.verdict ul { margin: 0; padding-left: 18px; color: var(--text-2); display: flex; flex-direction: column; gap: 4px; }
+.verdict .pros h3 { color: var(--mint); }
+.verdict .cons h3 { color: var(--peach); }
+
+/* ── Real content ───────────────────── */
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+.panel { background: var(--bg-1); border: 2px solid var(--line); border-radius: 20px; padding: 22px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+
+.word-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.word { font-family: var(--font-display); font-weight: var(--display-weight); font-size: var(--fs-h1); line-height: 1.05; color: var(--sky); }
+.ipa { font-family: var(--font-ipa); color: var(--text-3); font-size: var(--fs-body); }
+.tags { display: flex; gap: 8px; flex-wrap: wrap; }
+.tag { font-size: var(--fs-caption); font-weight: 800; padding: 4px 10px; border-radius: 999px; background: var(--c-soft); color: var(--c); letter-spacing: .02em; }
+.def { color: var(--text-1); font-size: var(--fs-body); }
+.example { margin: 0; padding: 12px 14px; border-radius: 12px; background: var(--bg-2); color: var(--text-2); }
+.example b { color: var(--text-1); }
+.langs { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: var(--fs-small); }
+.langs span:nth-child(odd) { color: var(--text-3); font-weight: 800; }
+
+.q { font-family: var(--font-display); font-weight: var(--display-weight); font-size: var(--fs-h3); line-height: 1.25; }
+.opts { display: grid; gap: 10px; }
+.opt { font: inherit; font-weight: 700; text-align: left; color: var(--text-1); background: var(--bg-2); border: 2px solid var(--line); border-radius: 14px; padding: 12px 14px; box-shadow: 0 4px 0 var(--bg-3); cursor: pointer; }
+.opt.right { background: var(--mint-soft); border-color: var(--mint-deep); color: var(--mint); box-shadow: 0 4px 0 var(--mint-deep); }
+.big-feedback { font-family: var(--font-display); font-weight: var(--display-weight); font-size: var(--fs-h2); color: var(--mint); }
+
+.btns { display: flex; flex-wrap: wrap; gap: 12px; }
+.btn { font-family: var(--font-display); font-weight: var(--display-weight); font-size: 1.05rem; letter-spacing: .02em; border: 0; border-radius: 14px; padding: 12px 20px; cursor: pointer; background: var(--c); color: var(--ink); box-shadow: 0 4px 0 var(--c-deep); transition: transform .08s ease, box-shadow .08s ease; }
+.btn:active { transform: translateY(4px); box-shadow: 0 0 0 var(--c-deep); }
+
+/* Reader */
+.reader { background: var(--bg-1); border: 2px solid var(--line); border-radius: 20px; padding: clamp(20px, 4vw, 40px); display: flex; flex-direction: column; gap: 18px; }
+.reader-meta { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; color: var(--text-3); font-size: var(--fs-small); }
+.reader h3 { font-size: var(--fs-h2); color: var(--peach); }
+.reader .story { font-size: var(--fs-read); line-height: 1.75; color: var(--text-2); max-width: 62ch; display: flex; flex-direction: column; gap: 1em; }
+.reader .story p { max-width: none; }
+.reader .story .w { color: var(--text-1); background: var(--sky-soft); border-radius: 6px; padding: 0 3px; box-shadow: inset 0 -2px 0 var(--sky-deep); }
+
+/* Scale */
+.scale { display: flex; flex-direction: column; background: var(--bg-1); border: 2px solid var(--line); border-radius: 20px; overflow: hidden; }
+.step { display: grid; grid-template-columns: 150px 1fr; gap: 16px; align-items: baseline; padding: 14px 20px; border-top: 1px solid var(--line); }
+.step:first-child { border-top: 0; }
+.step .meta { display: flex; flex-direction: column; gap: 2px; }
+.step .meta b { font-size: var(--fs-small); }
+.step .meta span { color: var(--text-3); font-family: var(--font-mono); font-size: .72rem; }
+.step .sample { min-width: 0; overflow-wrap: anywhere; color: var(--text-1); }
+
+.c-mint   { --c: var(--mint);   --c-deep: var(--mint-deep);   --c-soft: var(--mint-soft); }
+.c-lilac  { --c: var(--lilac);  --c-deep: var(--lilac-deep);  --c-soft: var(--lilac-soft); }
+.c-sky    { --c: var(--sky);    --c-deep: var(--sky-deep);    --c-soft: var(--sky-soft); }
+.c-peach  { --c: var(--peach);  --c-deep: var(--peach-deep);  --c-soft: var(--peach-soft); }
+.c-butter { --c: var(--butter); --c-deep: var(--butter-deep); --c-soft: var(--butter-soft); }
+
+@media (max-width: 760px) {
+  .grid2, .verdict { grid-template-columns: 1fr; }
+  .picker { grid-template-columns: 1fr; }
+  .step { grid-template-columns: 1fr; gap: 4px; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+</style>
+
+<main>
+  <section class="intro">
+    <span class="eyebrow">Sistema de diseño · paso 2 · Tipografía</span>
+    <h1>La letra también <span>habla</span></h1>
+    <p>Tres combinaciones de títulos y texto. Elige una arriba y todo lo de abajo cambia: la tarjeta de palabra, el examen, los botones y el lector de historias. Fíjate sobre todo en el lector, porque es donde vas a pasar más tiempo leyendo.</p>
+  </section>
+
+  <div class="picker-bar">
+    <div class="picker" role="group" aria-label="Combinación tipográfica">
+      <button class="pick" id="pair-a" data-pair="a" aria-pressed="true"><b>A · Redonda</b><small>Fredoka + Nunito</small></button>
+      <button class="pick" id="pair-b" data-pair="b" aria-pressed="false"><b>B · Gordita</b><small>Baloo 2 + Lexend</small></button>
+      <button class="pick" id="pair-c" data-pair="c" aria-pressed="false"><b>C · Legible</b><small>Nunito Black + Atkinson</small></button>
+    </div>
+  </div>
+
+  <section>
+    <div class="verdict" id="verdict">
+      <div class="pros"><h3 id="pros-title">A favor</h3><ul id="pros"></ul></div>
+      <div class="cons"><h3 id="cons-title">En contra</h3><ul id="cons"></ul></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="head"><span class="eyebrow">Palabras y exámenes</span><h2>Lo que más se repite</h2></div>
+    <div class="grid2">
+      <div class="panel">
+        <div class="word-top">
+          <div>
+            <div class="word">serendipity</div>
+            <div class="ipa">/ˌsɛr.ənˈdɪp.ɪ.ti/</div>
+          </div>
+          <div class="tags"><span class="tag c-lilac">noun</span><span class="tag c-butter">B2</span></div>
+        </div>
+        <p class="def">The fact of finding something pleasant or valuable by chance, without looking for it.</p>
+        <blockquote class="example">Meeting my best friend on the train was pure <b>serendipity</b>.</blockquote>
+        <div class="langs">
+          <span>ES</span><span>serendipia · encontrar algo por casualidad</span>
+          <span>PT</span><span>serendipidade · descoberta feliz e inesperada</span>
+        </div>
+      </div>
+      <div class="panel">
+        <span class="eyebrow">Pregunta 3 de 10</span>
+        <div class="q">Elige la frase correcta en present perfect</div>
+        <div class="opts">
+          <button class="opt" id="o1">She have visited London twice.</button>
+          <button class="opt right" id="o2">She has visited London twice.</button>
+          <button class="opt" id="o3">She has visit London twice.</button>
+        </div>
+        <div class="big-feedback">¡Correcto! +10 XP</div>
+        <div class="btns">
+          <button class="btn c-mint" id="b1">Continuar</button>
+          <button class="btn c-lilac" id="b2">Generar examen</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="head"><span class="eyebrow">Lector de historias</span><h2>Donde más se lee</h2><p>Texto a 19 px, interlineado 1.75 y unas 62 letras por línea, que es el rango más cómodo para leer en pantalla. Las palabras resaltadas son las que puedes tocar para ver su significado.</p></div>
+    <article class="reader">
+      <div class="reader-meta"><span class="tag c-peach">Capítulo 2</span><span>English · B1 · 4 min de lectura</span></div>
+      <h3>The Lighthouse Keeper</h3>
+      <div class="story">
+        <p>Every night, Marta climbed the <span class="w">spiral</span> staircase of the old lighthouse. The wind <span class="w">howled</span> against the windows, but she was never afraid. She had grown up listening to the sea, and its noise felt like a song only she could understand.</p>
+        <p>One evening, she noticed a small boat drifting toward the rocks. Without thinking twice, she <span class="w">grabbed</span> the lantern and ran down to the shore.</p>
+      </div>
+    </article>
+  </section>
+
+  <section>
+    <div class="head"><span class="eyebrow">Escala</span><h2>Ocho tamaños, ni uno más</h2><p>Cada tamaño es 1.25 veces el anterior (escala de tercera mayor), con base en 16 px. Todo en la app usa uno de estos ocho.</p></div>
+    <div class="scale">
+      <div class="step"><div class="meta"><b>display</b><span>48 px · títulos héroe</span></div><div class="sample display" style="font-size:var(--fs-display);line-height:1.05">¡Racha de 7 días!</div></div>
+      <div class="step"><div class="meta"><b>h1</b><span>36 px · palabra grande</span></div><div class="sample display" style="font-size:var(--fs-h1);line-height:1.1">serendipity</div></div>
+      <div class="step"><div class="meta"><b>h2</b><span>28 px · títulos de pantalla</span></div><div class="sample display" style="font-size:var(--fs-h2);line-height:1.15">Mis palabras</div></div>
+      <div class="step"><div class="meta"><b>h3</b><span>22 px · tarjetas, preguntas</span></div><div class="sample display" style="font-size:var(--fs-h3);line-height:1.25">Phrasal verbs con «get»</div></div>
+      <div class="step"><div class="meta"><b>read</b><span>19 px · lector</span></div><div class="sample" style="font-size:var(--fs-read);line-height:1.75">Ela abriu a janela e sentiu o cheiro do mar. Mañana será otro día.</div></div>
+      <div class="step"><div class="meta"><b>body</b><span>16 px · texto general</span></div><div class="sample" style="font-size:var(--fs-body)">Definiciones, ejemplos, mensajes del chat con la IA.</div></div>
+      <div class="step"><div class="meta"><b>small</b><span>14 px · ayudas</span></div><div class="sample" style="font-size:var(--fs-small);color:var(--text-2)">Vista 12 veces · última vez hace 2 días</div></div>
+      <div class="step"><div class="meta"><b>caption</b><span>12 px · etiquetas</span></div><div class="sample" style="font-size:var(--fs-caption);font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3)">Pregunta 3 de 10</div></div>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  const root = document.documentElement;
+  const notes = {
+    a: {
+      pros: ['Las dos son redondeadas: la sensación más amable y "de app de idiomas".', 'Fredoka da títulos y botones con mucha personalidad.', 'Nunito es cálida y se lee bien en tamaños medios.'],
+      cons: ['Nunito es algo estrecha: en textos muy largos cansa un poco más que Lexend.', 'Fredoka en títulos muy largos puede verse infantil.']
+    },
+    b: {
+      pros: ['Lexend se diseñó para leer con fluidez: la mejor para el lector de historias.', 'Baloo 2 es gordita y alegre, ideal para botones y "¡Correcto!".', 'Gran diferencia entre títulos y texto: jerarquía muy clara.'],
+      cons: ['Lexend es más neutra: el texto se siente menos "redondito".', 'Baloo 2 ocupa mucho alto; los títulos largos necesitan más espacio.']
+    },
+    c: {
+      pros: ['Atkinson Hyperlegible está hecha para que ninguna letra se confunda (I, l, 1).', 'Nunito Black en títulos mantiene lo redondeado.', 'La opción más clara en pantallas pequeñas.'],
+      cons: ['Atkinson es la menos "simpática" de las tres.', 'Mezclar una letra técnica con una redonda se nota algo menos armónico.']
+    }
+  };
+  const fill = (id, items) => { const ul = document.getElementById(id); ul.innerHTML = ''; items.forEach(t => { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); }); };
+  const set = pair => {
+    if (pair === 'a') root.removeAttribute('data-pair'); else root.setAttribute('data-pair', pair);
+    document.querySelectorAll('.pick').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.pair === pair)));
+    fill('pros', notes[pair].pros); fill('cons', notes[pair].cons);
+    try { localStorage.setItem('tipo-pair', pair); } catch (e) {}
+  };
+  document.querySelectorAll('.pick').forEach(b => b.addEventListener('click', () => set(b.dataset.pair)));
+  let saved = 'a';
+  try { saved = localStorage.getItem('tipo-pair') || 'a'; } catch (e) {}
+  set(notes[saved] ? saved : 'a');
+})();
+</script>

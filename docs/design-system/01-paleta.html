@@ -1,0 +1,461 @@
+<title>Paleta LanguagesAI</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;600;700;800&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: one centred column of "lessons"; each section is a stop on the path, swatches as chunky pressable tiles. */
+:root {
+  color-scheme: dark;
+
+  /* Surfaces — graphite gray, never pure black */
+  --bg-0: #202024;   /* app background */
+  --bg-1: #29292E;   /* cards */
+  --bg-2: #333338;   /* raised: inputs, chips */
+  --bg-3: #3E3E44;   /* hover, pressed edge of neutral buttons */
+  --line: #4A4A51;   /* borders, dividers */
+
+  /* Text */
+  --text-1: #F7F7F9;
+  --text-2: #D4D4DA;
+  --text-3: #B0B0B9;
+  --ink:    #1A1A1E; /* text placed on top of a pastel */
+
+  /* Pastels: base · deep (3D edge / border) · soft (tinted surface) */
+  /* Harmonised in OKLCH: same lightness (L 0.83–0.84) and chroma (0.08–0.09), only hue changes.
+     Butter sits a bit higher (L 0.89) so yellow reads as yellow, not khaki. deep = L −0.20, C +0.02. */
+  --lilac: #CBBDF9;  --lilac-deep: #8E7CC2;  --lilac-soft: rgba(203,189,249,.14);
+  --sky: #9BD2FA;    --sky-deep: #4E94C3;    --sky-soft: rgba(155,210,250,.14);
+  --mint: #91DEBC;   --mint-deep: #3CA17B;   --mint-soft: rgba(145,222,188,.14);
+  --butter: #ECDC92; --butter-deep: #AF9B3E; --butter-soft: rgba(236,220,146,.14);
+  --peach: #F9BB92;  --peach-deep: #BF7946;  --peach-soft: rgba(249,187,146,.14);
+  --rose: #F6B2B9;   --rose-deep: #BD6F79;   --rose-soft: rgba(246,178,185,.14);
+
+  /* Type */
+  --font-display: "Fredoka", "Nunito", ui-rounded, system-ui, sans-serif;
+  --font-body: "Nunito", ui-rounded, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+
+  --radius: 16px;
+  --press: 4px;
+}
+
+* { box-sizing: border-box; }
+.picker { display: flex; flex-wrap: wrap; gap: 10px; }
+.picker button {
+  font: inherit; font-weight: 800; color: var(--text-1); cursor: pointer;
+  background: var(--bg-2); border: 2px solid var(--line); border-radius: 12px; padding: 8px 14px;
+  box-shadow: 0 3px 0 var(--bg-3); display: flex; align-items: center; gap: 8px;
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+.picker button:active { transform: translateY(3px); box-shadow: 0 0 0 var(--bg-3); }
+.picker button[aria-pressed="true"] { border-color: var(--lilac); color: var(--lilac); box-shadow: 0 3px 0 var(--lilac-deep); }
+.picker button:focus-visible { outline: 3px solid var(--sky); outline-offset: 3px; }
+.picker i { width: 18px; height: 18px; border-radius: 6px; border: 1px solid rgba(255,255,255,.25); display: inline-block; }
+body { transition: background .3s ease; }
+body {
+  background: var(--bg-0);
+  color: var(--text-1);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 40px 80px;
+}
+main { max-width: 980px; margin: 0 auto; display: flex; flex-direction: column; gap: 64px; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(2.2rem, 6vw, 3.6rem); line-height: 1.05; }
+h2 { font-size: clamp(1.5rem, 3.4vw, 2rem); }
+h3 { font-size: 1.15rem; }
+p { margin: 0; max-width: 65ch; color: var(--text-2); }
+code, .mono { font-family: var(--font-mono); font-size: .82rem; }
+.eyebrow { font-size: .78rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); }
+section { display: flex; flex-direction: column; gap: 20px; }
+.section-head { display: flex; flex-direction: column; gap: 8px; }
+
+/* ── Hero ───────────────────────────── */
+.hero { display: grid; grid-template-columns: 1.2fr 1fr; gap: 32px; align-items: center; }
+.hero-copy { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.hero h1 span { color: var(--lilac); }
+.bubbles { position: relative; aspect-ratio: 1 / 1; max-width: 100%; }
+.bubble {
+  position: absolute; border-radius: 50%;
+  display: grid; place-items: center;
+  font-family: var(--font-display); font-weight: 700; color: var(--ink);
+  box-shadow: 0 var(--press) 0 var(--edge);
+  animation: float 6s ease-in-out infinite;
+}
+.bubble:nth-child(1) { --edge: var(--lilac-deep); background: var(--lilac); width: 46%; height: 46%; left: 6%; top: 8%; font-size: clamp(1.4rem, 4vw, 2.2rem); }
+.bubble:nth-child(2) { --edge: var(--mint-deep); background: var(--mint); width: 30%; height: 30%; right: 6%; top: 14%; animation-delay: -1.5s; font-size: clamp(1rem, 2.6vw, 1.4rem); }
+.bubble:nth-child(3) { --edge: var(--peach-deep); background: var(--peach); width: 34%; height: 34%; left: 22%; bottom: 6%; animation-delay: -3s; font-size: clamp(1rem, 2.8vw, 1.5rem); }
+.bubble:nth-child(4) { --edge: var(--sky-deep); background: var(--sky); width: 24%; height: 24%; right: 12%; bottom: 18%; animation-delay: -4.5s; font-size: clamp(.9rem, 2.2vw, 1.2rem); }
+@keyframes float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-8px) } }
+
+/* ── Inspiration ───────────────────── */
+.insp { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.insp article { background: var(--bg-1); border: 2px solid var(--line); border-radius: var(--radius); padding: 20px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.insp article.ours { border-color: var(--lilac-deep); background: linear-gradient(180deg, var(--lilac-soft), var(--bg-1) 60%); }
+.insp ul { margin: 0; padding-left: 18px; color: var(--text-2); display: flex; flex-direction: column; gap: 6px; }
+
+/* ── Swatches ──────────────────────── */
+.ramp { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.chip-sw { border-radius: var(--radius); padding: 14px; min-height: 120px; display: flex; flex-direction: column; justify-content: space-between; border: 2px solid var(--line); min-width: 0; }
+.chip-sw b { font-family: var(--font-display); font-weight: 600; font-size: 1rem; }
+.chip-sw small { color: var(--text-2); font-size: .82rem; line-height: 1.35; }
+
+.text-rows { display: flex; flex-direction: column; gap: 10px; }
+.text-row { display: grid; grid-template-columns: 140px 1fr auto; gap: 16px; align-items: center; background: var(--bg-1); border-radius: 12px; padding: 14px 18px; }
+.text-row .sample { font-weight: 700; font-size: 1.05rem; min-width: 0; }
+.ratio { font-family: var(--font-mono); font-size: .8rem; padding: 4px 10px; border-radius: 999px; background: var(--bg-2); color: var(--text-2); white-space: nowrap; }
+.ratio.ok { color: var(--mint); }
+.ratio.warn { color: var(--butter); }
+
+.pastels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.pastel { background: var(--bg-1); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; border: 2px solid var(--line); min-width: 0; }
+.pastel .top { background: var(--c); color: var(--ink); padding: 18px; box-shadow: inset 0 calc(var(--press) * -1) 0 var(--c-deep); display: flex; justify-content: space-between; align-items: flex-end; gap: 8px; min-height: 104px; }
+.pastel .top b { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; }
+.pastel .tri { display: grid; grid-template-columns: repeat(3, 1fr); }
+.pastel .tri div { padding: 10px 12px; font-size: .75rem; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pastel .tri div span:first-child { font-weight: 800; color: var(--text-1); }
+.pastel .tri div span:last-child { font-family: var(--font-mono); color: var(--text-2); font-size: .72rem; overflow-wrap: anywhere; }
+.pastel .role { padding: 12px 16px 16px; color: var(--text-2); font-size: .9rem; border-top: 1px solid var(--line); }
+.pastel .role strong { color: var(--c); }
+
+/* ── Roles ─────────────────────────── */
+.roles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.role-card { background: var(--bg-1); border-radius: var(--radius); padding: 18px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.legend { display: flex; flex-direction: column; gap: 10px; }
+.legend div { display: grid; grid-template-columns: 22px 1fr auto; gap: 12px; align-items: center; }
+.dot { width: 22px; height: 22px; border-radius: 8px; background: var(--c); box-shadow: 0 3px 0 var(--c-deep); }
+.legend span:nth-child(2) { font-weight: 700; }
+.legend em { font-style: normal; color: var(--text-3); font-size: .85rem; text-align: right; }
+
+.levels { display: flex; flex-wrap: wrap; gap: 10px; }
+.level { font-family: var(--font-display); font-weight: 700; color: var(--ink); background: var(--c); box-shadow: 0 3px 0 var(--c-deep); padding: 6px 14px; border-radius: 12px; font-size: 1rem; }
+
+/* ── Live preview ──────────────────── */
+.preview { display: grid; grid-template-columns: 1.1fr 1fr; gap: 20px; align-items: start; }
+.panel { background: var(--bg-1); border-radius: 20px; padding: 22px; display: flex; flex-direction: column; gap: 18px; min-width: 0; border: 2px solid var(--line); }
+.q { font-family: var(--font-display); font-size: 1.35rem; font-weight: 600; }
+.q mark { background: var(--sky-soft); color: var(--sky); padding: 0 6px; border-radius: 8px; }
+.options { display: grid; gap: 10px; }
+.opt {
+  font: inherit; font-weight: 700; text-align: left; color: var(--text-1);
+  background: var(--bg-2); border: 2px solid var(--line); border-radius: 14px;
+  padding: 14px 16px; cursor: pointer;
+  box-shadow: 0 var(--press) 0 var(--bg-3);
+  transition: transform .08s ease, box-shadow .08s ease, background .15s ease, border-color .15s ease;
+}
+.opt:hover { border-color: var(--sky-deep); }
+.opt:active { transform: translateY(var(--press)); box-shadow: 0 0 0 var(--bg-3); }
+.opt.right { background: var(--mint-soft); border-color: var(--mint-deep); color: var(--mint); box-shadow: 0 var(--press) 0 var(--mint-deep); }
+.opt.wrong { background: var(--rose-soft); border-color: var(--rose-deep); color: var(--rose); box-shadow: 0 var(--press) 0 var(--rose-deep); animation: shake .35s; }
+@keyframes shake { 25% { transform: translateX(-6px) } 75% { transform: translateX(6px) } }
+.opt:focus-visible, .btn:focus-visible { outline: 3px solid var(--sky); outline-offset: 3px; }
+
+.feedback { border-radius: 14px; padding: 14px 16px; font-weight: 700; background: var(--bg-2); color: var(--text-2); }
+.feedback.right { background: var(--mint-soft); color: var(--mint); }
+.feedback.wrong { background: var(--rose-soft); color: var(--rose); }
+
+.btn {
+  font: inherit; font-family: var(--font-display); font-weight: 600; font-size: 1.05rem; letter-spacing: .02em;
+  border: 0; border-radius: 14px; padding: 13px 20px; cursor: pointer;
+  background: var(--c); color: var(--ink);
+  box-shadow: 0 var(--press) 0 var(--c-deep);
+  transition: transform .08s ease, box-shadow .08s ease, filter .15s ease;
+}
+.btn:hover { filter: brightness(1.05); }
+.btn:active { transform: translateY(var(--press)); box-shadow: 0 0 0 var(--c-deep); }
+.btn.ghost { background: transparent; color: var(--text-1); border: 2px solid var(--line); box-shadow: 0 var(--press) 0 var(--line); }
+.btns { display: flex; flex-wrap: wrap; gap: 12px; }
+
+.progress { height: 16px; background: var(--bg-2); border-radius: 999px; overflow: hidden; }
+.progress div { height: 100%; width: 60%; background: var(--mint); border-radius: 999px; box-shadow: inset 0 -4px 0 rgba(0,0,0,.15), inset 0 4px 0 rgba(255,255,255,.25); transition: width .5s cubic-bezier(.3,1.4,.5,1); }
+
+.word-card { display: flex; flex-direction: column; gap: 10px; }
+.word-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.word { font-family: var(--font-display); font-size: 2rem; font-weight: 700; color: var(--sky); }
+.tags { display: flex; gap: 8px; flex-wrap: wrap; }
+.tag { font-size: .78rem; font-weight: 800; padding: 4px 10px; border-radius: 999px; background: var(--c-soft); color: var(--c); }
+.word-card blockquote { margin: 0; padding: 12px 14px; border-radius: 12px; background: var(--bg-2); color: var(--text-2); }
+.word-card blockquote b { color: var(--text-1); }
+
+/* ── Rules ─────────────────────────── */
+.rules { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.rules ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; color: var(--text-2); }
+.rules .do h3 { color: var(--mint); }
+.rules .dont h3 { color: var(--rose); }
+
+/* colour scopes */
+.c-mint   { --c: var(--mint);   --c-deep: var(--mint-deep);   --c-soft: var(--mint-soft); }
+.c-lilac  { --c: var(--lilac);  --c-deep: var(--lilac-deep);  --c-soft: var(--lilac-soft); }
+.c-sky    { --c: var(--sky);    --c-deep: var(--sky-deep);    --c-soft: var(--sky-soft); }
+.c-peach  { --c: var(--peach);  --c-deep: var(--peach-deep);  --c-soft: var(--peach-soft); }
+.c-butter { --c: var(--butter); --c-deep: var(--butter-deep); --c-soft: var(--butter-soft); }
+.c-rose   { --c: var(--rose);   --c-deep: var(--rose-deep);   --c-soft: var(--rose-soft); }
+
+@media (max-width: 820px) {
+  .hero, .preview, .roles, .rules { grid-template-columns: 1fr; }
+  .bubbles { max-width: 360px; width: 100%; margin: 0 auto; }
+  .insp, .pastels { grid-template-columns: 1fr 1fr; }
+  .ramp { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 520px) {
+  .insp, .pastels { grid-template-columns: 1fr; }
+  .ramp { grid-template-columns: 1fr 1fr; }
+  .text-row { grid-template-columns: 1fr auto; }
+  .text-row .mono { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+
+<main>
+  <section class="hero">
+    <div class="hero-copy">
+      <span class="eyebrow">Sistema de diseño · paso 1 de N · Color</span>
+      <h1>Grafito,<br><span>caramelos pastel</span></h1>
+      <p>La base es un gris grafito casi neutro. Al no tener color propio, deja que los pasteles sean los protagonistas. Los seis pasteles están calculados para tener la misma luz y la misma intensidad: solo cambia el tono, por eso combinan entre sí y ninguno grita más que otro.</p>
+    </div>
+    <div class="bubbles" aria-hidden="true">
+      <div class="bubble">Hola</div>
+      <div class="bubble">Hi</div>
+      <div class="bubble">Olá</div>
+      <div class="bubble">B2</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <span class="eyebrow">De dónde sale</span>
+      <h2>Lo que tomamos de cada referencia</h2>
+    </div>
+    <div class="insp">
+      <article>
+        <h3>Duolingo</h3>
+        <ul>
+          <li>El color es feedback: verde = bien, rojo = mal, sin dudar.</li>
+          <li>Botones gruesos que se hunden al pulsar (borde inferior más oscuro).</li>
+          <li>Su modo oscuro es azul pizarra, no negro.</li>
+          <li>Colores muy saturados y enérgicos.</li>
+        </ul>
+      </article>
+      <article>
+        <h3>Busuu</h3>
+        <ul>
+          <li>Más calma y más aire entre elementos.</li>
+          <li>Tarjetas con fondos tintados suaves en lugar de bloques de color.</li>
+          <li>Un color principal claro y el resto como apoyo.</li>
+        </ul>
+      </article>
+      <article class="ours">
+        <h3>LanguagesAI</h3>
+        <ul>
+          <li>La energía y los botones 3D de Duolingo.</li>
+          <li>La calma y los tintes de Busuu.</li>
+          <li>Pero en <b>pastel</b>: menos saturado, más suave a la vista en oscuro, para leer historias largas sin cansarse.</li>
+          <li>Paleta propia, no copia ninguna marca.</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <span class="eyebrow">Superficies</span>
+      <h2>Cinco capas de grafito</h2>
+      <p>Cada capa sube un poco en luz. Son grises casi neutros, así que ningún pastel choca con el fondo. La profundidad se marca con luz, sin sombras negras.</p>
+    </div>
+    <div class="ramp">
+      <div class="chip-sw" style="background:var(--bg-0)"><b>bg-0</b><small><span class="mono" data-hex="--bg-0">#202024</span><br>Fondo de la app</small></div>
+      <div class="chip-sw" style="background:var(--bg-1)"><b>bg-1</b><small><span class="mono" data-hex="--bg-1">#29292E</span><br>Tarjetas</small></div>
+      <div class="chip-sw" style="background:var(--bg-2)"><b>bg-2</b><small><span class="mono" data-hex="--bg-2">#333338</span><br>Inputs, chips, opciones</small></div>
+      <div class="chip-sw" style="background:var(--bg-3)"><b>bg-3</b><small><span class="mono" data-hex="--bg-3">#3E3E44</span><br>Hover y borde 3D neutro</small></div>
+      <div class="chip-sw" style="background:var(--line)"><b>line</b><small style="color:var(--text-1)"><span class="mono" data-hex="--line">#4A4A51</span><br>Bordes y divisores</small></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <span class="eyebrow">Texto</span>
+      <h2>Tres niveles de texto, todos legibles</h2>
+      <p>Contraste medido con la fórmula WCAG sobre el fondo de la app. El mínimo para leer cómodo es 4.5.</p>
+    </div>
+    <div class="text-rows">
+      <div class="text-row"><span class="mono">text-1 · #F7F7F9</span><span class="sample" style="color:var(--text-1)">Títulos, palabras, respuestas</span><span class="ratio ok" data-ratio="--text-1">17.0 : 1</span></div>
+      <div class="text-row"><span class="mono">text-2 · #D4D4DA</span><span class="sample" style="color:var(--text-2)">Texto de lectura, definiciones</span><span class="ratio ok" data-ratio="--text-2">9.5 : 1</span></div>
+      <div class="text-row"><span class="mono">text-3 · #B0B0B9</span><span class="sample" style="color:var(--text-3)">Metadatos, fechas, ayudas</span><span class="ratio ok" data-ratio="--text-3">6.5 : 1</span></div>
+    </div>
+    <p id="text3-note"><b style="color:var(--butter)">Ojo con text-3:</b> sobre <code>bg-2</code> queda en 4.8 y sobre <code>bg-3</code> en 4.0. Con este fondo solo es seguro sobre <code>bg-0</code>, <code>bg-1</code>, <code>bg-2</code>.</p>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <span class="eyebrow">Pasteles</span>
+      <h2>Seis colores que combinan</h2>
+      <p>Misma luz y misma intensidad, solo cambia el tono. Sobre grafito todos quedan entre 9.3 y 10.3 de contraste, así que ninguno destaca por accidente. El texto encima de un pastel siempre es oscuro (<code>ink</code>) y supera 9.9 : 1. La cifra de cada tarjeta es ese contraste.</p>
+    </div>
+    <div class="pastels">
+      <div class="pastel c-lilac"><div class="top"><b>Lila</b><span class="mono">10.1 : 1</span></div><div class="tri"><div><span>base</span><span>#CBBDF9</span></div><div><span>deep</span><span>#8E7CC2</span></div><div><span>soft</span><span>14%</span></div></div><div class="role"><strong>Marca.</strong> Acción principal, navegación activa, identidad.</div></div>
+      <div class="pastel c-mint"><div class="top"><b>Menta</b><span class="mono">11.1 : 1</span></div><div class="tri"><div><span>base</span><span>#91DEBC</span></div><div><span>deep</span><span>#3CA17B</span></div><div><span>soft</span><span>14%</span></div></div><div class="role"><strong>Correcto.</strong> Respuesta bien, progreso, confirmar.</div></div>
+      <div class="pastel c-rose"><div class="top"><b>Rosa</b><span class="mono">9.9 : 1</span></div><div class="tri"><div><span>base</span><span>#F6B2B9</span></div><div><span>deep</span><span>#BD6F79</span></div><div><span>soft</span><span>14%</span></div></div><div class="role"><strong>Error.</strong> Respuesta mal, borrar, peligro.</div></div>
+      <div class="pastel c-sky"><div class="top"><b>Cielo</b><span class="mono">10.7 : 1</span></div><div class="tri"><div><span>base</span><span>#9BD2FA</span></div><div><span>deep</span><span>#4E94C3</span></div><div><span>soft</span><span>14%</span></div></div><div class="role"><strong>Info.</strong> Enlaces, palabras clicables, foco.</div></div>
+      <div class="pastel c-butter"><div class="top"><b>Mantequilla</b><span class="mono">12.6 : 1</span></div><div class="tri"><div><span>base</span><span>#ECDC92</span></div><div><span>deep</span><span>#AF9B3E</span></div><div><span>soft</span><span>14%</span></div></div><div class="role"><strong>Aviso.</strong> Rachas, logros, "casi bien".</div></div>
+      <div class="pastel c-peach"><div class="top"><b>Melocotón</b><span class="mono">10.4 : 1</span></div><div class="tri"><div><span>base</span><span>#F9BB92</span></div><div><span>deep</span><span>#BF7946</span></div><div><span>soft</span><span>14%</span></div></div><div class="role"><strong>Calidez.</strong> Historias, IA generando, destacados.</div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <span class="eyebrow">Significado</span>
+      <h2>Cada módulo y cada nivel tiene su color</h2>
+      <p>Así sabes dónde estás sin leer nada: el color del módulo tiñe su icono, su cabecera y sus etiquetas.</p>
+    </div>
+    <div class="roles">
+      <div class="role-card">
+        <h3>Módulos</h3>
+        <div class="legend">
+          <div class="c-sky"><span class="dot"></span><span>Palabras</span><em>cielo</em></div>
+          <div class="c-lilac"><span class="dot"></span><span>Expresiones</span><em>lila</em></div>
+          <div class="c-peach"><span class="dot"></span><span>Historias</span><em>melocotón</em></div>
+          <div class="c-butter"><span class="dot"></span><span>Exámenes</span><em>mantequilla</em></div>
+          <div class="c-mint"><span class="dot"></span><span>Anki</span><em>menta</em></div>
+        </div>
+      </div>
+      <div class="role-card">
+        <h3>Niveles CEFR</h3>
+        <p>De fresco a intenso: el color sube de "fácil" a "reto" siguiendo el arcoíris pastel.</p>
+        <div class="levels">
+          <span class="level c-mint">A1</span>
+          <span class="level c-sky">A2</span>
+          <span class="level c-lilac">B1</span>
+          <span class="level c-butter">B2</span>
+          <span class="level c-peach">C1</span>
+          <span class="level c-rose">C2</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <span class="eyebrow">En vivo</span>
+      <h2>Así se siente usarlo</h2>
+      <p>Toca las opciones y los botones: se hunden al pulsar y el color responde.</p>
+    </div>
+    <div class="preview">
+      <div class="panel">
+        <div class="progress" aria-label="Progreso del examen"><div id="bar"></div></div>
+        <div class="q">¿Qué significa <mark>serendipity</mark>?</div>
+        <div class="options" id="options">
+          <button class="opt" id="opt-a" data-ok="0">Una tristeza profunda</button>
+          <button class="opt" id="opt-b" data-ok="1">Encontrar algo bueno por casualidad</button>
+          <button class="opt" id="opt-c" data-ok="0">Un plan muy detallado</button>
+        </div>
+        <div class="feedback" id="feedback" role="status">Elige una respuesta.</div>
+        <div class="btns">
+          <button class="btn c-mint" id="btn-check">Comprobar</button>
+          <button class="btn ghost" id="btn-reset">Reiniciar</button>
+        </div>
+      </div>
+      <div class="panel word-card">
+        <div class="word-head">
+          <span class="word">serendipity</span>
+          <div class="tags"><span class="tag c-lilac">noun</span><span class="tag c-butter">B2</span></div>
+        </div>
+        <p>Encontrar algo agradable o valioso por casualidad, sin buscarlo.</p>
+        <blockquote>Meeting my best friend on the train was pure <b>serendipity</b>.</blockquote>
+        <div class="btns">
+          <button class="btn c-lilac" id="btn-gen">Generar ejemplos</button>
+          <button class="btn c-sky" id="btn-chat">Preguntar a la IA</button>
+          <button class="btn c-rose" id="btn-del">Borrar</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <span class="eyebrow">Reglas</span>
+      <h2>Cómo usar la paleta</h2>
+    </div>
+    <div class="rules">
+      <div class="panel do">
+        <h3>Sí</h3>
+        <ul>
+          <li>Texto oscuro (<code>ink</code>) encima de cualquier pastel.</li>
+          <li>El tono <code>deep</code> para el borde inferior 3D y los bordes de foco.</li>
+          <li>El tono <code>soft</code> para fondos de tarjetas, etiquetas y estados.</li>
+          <li>Un pastel dominante por pantalla: el del módulo.</li>
+        </ul>
+      </div>
+      <div class="panel dont">
+        <h3>No</h3>
+        <ul>
+          <li>Negro puro (<code>#000</code>) ni blanco puro (<code>#FFF</code>) en ningún sitio.</li>
+          <li>Texto pastel sobre fondo pastel.</li>
+          <li>Menta y rosa para decorar: están reservados para bien y mal.</li>
+          <li>Más de dos pasteles fuertes juntos fuera de los niveles CEFR.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  const root = document.documentElement;
+  const lum = hex => {
+    const n = hex.replace('#', '');
+    const c = [0, 2, 4].map(i => parseInt(n.slice(i, i + 2), 16) / 255)
+      .map(v => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  };
+  const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+  const tok = name => getComputedStyle(root).getPropertyValue(name).trim();
+  const refresh = () => {
+    document.querySelectorAll('[data-hex]').forEach(el => { el.textContent = tok(el.dataset.hex).toUpperCase(); });
+    document.querySelectorAll('[data-ratio]').forEach(el => {
+      const r = ratio(tok(el.dataset.ratio), tok('--bg-0'));
+      el.textContent = r.toFixed(1) + ' : 1';
+      el.className = 'ratio ' + (r >= 4.5 ? 'ok' : 'warn');
+    });
+    const t3 = tok('--text-3');
+    const safe = ['--bg-0', '--bg-1', '--bg-2', '--bg-3'].filter(b => ratio(t3, tok(b)) >= 4.5).map(b => '<code>' + b.slice(2) + '</code>');
+    const r2 = ratio(t3, tok('--bg-2')).toFixed(1), r3 = ratio(t3, tok('--bg-3')).toFixed(1);
+    document.getElementById('text3-note').innerHTML = '<b style="color:var(--butter)">Ojo con text-3:</b> sobre <code>bg-2</code> queda en ' + r2 + ' y sobre <code>bg-3</code> en ' + r3 + '. Con este fondo solo es seguro sobre ' + (safe.length ? safe.join(', ') : 'ninguna capa') + '.';
+  };
+  refresh();
+
+  const opts = [...document.querySelectorAll('.opt')];
+  const feedback = document.getElementById('feedback');
+  const bar = document.getElementById('bar');
+  let picked = null;
+  opts.forEach(o => o.addEventListener('click', () => {
+    opts.forEach(x => x.classList.remove('right', 'wrong'));
+    picked = o;
+    opts.forEach(x => x.style.borderColor = '');
+    o.style.borderColor = 'var(--sky)';
+    feedback.className = 'feedback';
+    feedback.textContent = 'Pulsa Comprobar.';
+  }));
+  document.getElementById('btn-check').addEventListener('click', () => {
+    if (!picked) { feedback.className = 'feedback'; feedback.textContent = 'Primero elige una respuesta.'; return; }
+    picked.style.borderColor = '';
+    const ok = picked.dataset.ok === '1';
+    picked.classList.add(ok ? 'right' : 'wrong');
+    feedback.className = 'feedback ' + (ok ? 'right' : 'wrong');
+    feedback.textContent = ok ? '¡Correcto! +10 XP' : 'Casi. La respuesta es "encontrar algo bueno por casualidad".';
+    if (ok) bar.style.width = '80%';
+  });
+  document.getElementById('btn-reset').addEventListener('click', () => {
+    picked = null;
+    opts.forEach(x => { x.classList.remove('right', 'wrong'); x.style.borderColor = ''; });
+    feedback.className = 'feedback';
+    feedback.textContent = 'Elige una respuesta.';
+    bar.style.width = '60%';
+  });
+})();
+</script>

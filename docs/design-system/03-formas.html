@@ -1,0 +1,302 @@
+<title>Formas LanguagesAI</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Lexend:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: two sticky pickers (corners, depth) above a phone-like column of real components, then the spacing ruler. */
+:root {
+  color-scheme: dark;
+  /* Palette (closed) */
+  --bg-0: #202024; --bg-1: #29292E; --bg-2: #333338; --bg-3: #3E3E44; --line: #4A4A51;
+  --text-1: #F7F7F9; --text-2: #D4D4DA; --text-3: #B0B0B9; --ink: #1A1A1E;
+  --lilac: #CBBDF9;  --lilac-deep: #8E7CC2;  --lilac-soft: rgba(203,189,249,.14);
+  --sky: #9BD2FA;    --sky-deep: #4E94C3;    --sky-soft: rgba(155,210,250,.14);
+  --mint: #91DEBC;   --mint-deep: #3CA17B;   --mint-soft: rgba(145,222,188,.14);
+  --butter: #ECDC92; --butter-deep: #AF9B3E; --butter-soft: rgba(236,220,146,.14);
+  --peach: #F9BB92;  --peach-deep: #BF7946;  --peach-soft: rgba(249,187,146,.14);
+  --rose: #F6B2B9;   --rose-deep: #BD6F79;   --rose-soft: rgba(246,178,185,.14);
+  /* Type (closed): B */
+  --font-display: "Baloo 2", ui-rounded, system-ui, sans-serif;
+  --font-body: "Lexend", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+
+  /* Spacing — 4 px grid */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; --sp-10: 40px; --sp-12: 48px; --sp-16: 64px;
+
+  /* Corners — default "redonda" */
+  --r-sm: 10px; --r-md: 16px; --r-lg: 22px; --r-full: 999px;
+  /* Depth — default "media" */
+  --depth: 4px;
+  --border: 2px;
+  /* Hit targets */
+  --h-sm: 40px; --h-md: 48px; --h-lg: 56px;
+}
+:root[data-corners="suave"]   { --r-sm: 6px;  --r-md: 10px; --r-lg: 14px; }
+:root[data-corners="burbuja"] { --r-sm: 14px; --r-md: 22px; --r-lg: 30px; }
+:root[data-depth="sutil"]     { --depth: 2px; }
+:root[data-depth="marcada"]   { --depth: 6px; }
+
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg-0); color: var(--text-1);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 80px;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg-0); }
+main { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: var(--sp-12); }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 700; margin: 0; line-height: 1.15; text-wrap: balance; }
+h1 { font-size: clamp(2.2rem, 6vw, 3rem); line-height: 1.05; }
+h1 span { color: var(--lilac); }
+h2 { font-size: 1.75rem; }
+h3 { font-size: 1.375rem; }
+p { margin: 0; max-width: 65ch; color: var(--text-2); }
+code, .mono { font-family: var(--font-mono); font-size: .78rem; }
+.eyebrow { font-size: .75rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); }
+section { display: flex; flex-direction: column; gap: var(--sp-5); }
+.head { display: flex; flex-direction: column; gap: var(--sp-2); }
+
+/* ── Pickers ─────────────────── */
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg-0); padding-block: var(--sp-3); margin-block: calc(var(--sp-3) * -1); display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4); }
+.group { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-2); }
+.seg button {
+  font: inherit; font-weight: 600; font-size: .9rem; color: var(--text-1); cursor: pointer;
+  min-height: var(--h-sm); padding: 0 var(--sp-2);
+  background: var(--bg-1); border: var(--border) solid var(--line); border-radius: var(--r-sm);
+  box-shadow: 0 var(--depth) 0 var(--bg-3);
+  transition: transform .08s ease, box-shadow .08s ease, border-radius .25s ease;
+}
+.seg button:active { transform: translateY(var(--depth)); box-shadow: 0 0 0 var(--bg-3); }
+.seg button[aria-pressed="true"] { border-color: var(--lilac); color: var(--lilac); box-shadow: 0 var(--depth) 0 var(--lilac-deep); }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--sky); outline-offset: 3px; }
+
+/* ── Components ─────────────── */
+.showcase { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-5); align-items: start; }
+.col { display: flex; flex-direction: column; gap: var(--sp-5); min-width: 0; }
+.card { background: var(--bg-1); border: var(--border) solid var(--line); border-radius: var(--r-lg); padding: var(--sp-5); display: flex; flex-direction: column; gap: var(--sp-4); transition: border-radius .25s ease; min-width: 0; }
+.card h3 { font-size: 1.375rem; }
+
+.btn {
+  font-family: var(--font-display); font-weight: 700; letter-spacing: .02em; font-size: 1.05rem;
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  min-height: var(--h-md); padding: 0 var(--sp-5);
+  border: 0; border-radius: var(--r-md); cursor: pointer;
+  background: var(--c); color: var(--ink); box-shadow: 0 var(--depth) 0 var(--c-deep);
+  transition: transform .08s ease, box-shadow .08s ease, border-radius .25s ease, filter .15s ease;
+}
+.btn:hover { filter: brightness(1.05); }
+.btn:active { transform: translateY(var(--depth)); box-shadow: 0 0 0 var(--c-deep); }
+.btn.sm { min-height: var(--h-sm); font-size: .95rem; padding: 0 var(--sp-4); border-radius: var(--r-sm); }
+.btn.lg { min-height: var(--h-lg); font-size: 1.2rem; padding: 0 var(--sp-6); }
+.btn.block { width: 100%; }
+.btn.ghost { background: var(--bg-2); color: var(--text-1); box-shadow: 0 var(--depth) 0 var(--bg-3); border: var(--border) solid var(--line); }
+.btn.icon { width: var(--h-md); padding: 0; }
+.btns { display: flex; flex-wrap: wrap; gap: var(--sp-3); align-items: center; }
+
+.field { display: flex; flex-direction: column; gap: var(--sp-2); }
+.field label { font-size: .875rem; font-weight: 600; color: var(--text-2); }
+.input {
+  font: inherit; color: var(--text-1); min-height: var(--h-md); padding: 0 var(--sp-4);
+  background: var(--bg-2); border: var(--border) solid var(--line); border-radius: var(--r-md);
+  transition: border-color .15s ease, border-radius .25s ease;
+}
+.input::placeholder { color: var(--text-3); }
+.input:focus { border-color: var(--sky); outline: none; box-shadow: 0 0 0 4px var(--sky-soft); }
+
+.chips { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.chip { font-size: .8rem; font-weight: 600; padding: var(--sp-1) var(--sp-3); border-radius: var(--r-full); background: var(--c-soft); color: var(--c); border: var(--border) solid transparent; }
+.chip.on { border-color: var(--c); }
+
+.list { display: flex; flex-direction: column; background: var(--bg-1); border: var(--border) solid var(--line); border-radius: var(--r-lg); overflow: hidden; transition: border-radius .25s ease; }
+.row { display: grid; grid-template-columns: auto 1fr auto; gap: var(--sp-3); align-items: center; padding: var(--sp-3) var(--sp-4); min-height: 64px; border-top: 1px solid var(--line); }
+.row:first-child { border-top: 0; }
+.avatar { width: 40px; height: 40px; border-radius: var(--r-sm); display: grid; place-items: center; font-family: var(--font-display); font-weight: 800; color: var(--ink); background: var(--c); box-shadow: 0 3px 0 var(--c-deep); transition: border-radius .25s ease; }
+.row b { font-weight: 600; display: block; }
+.row small { color: var(--text-3); font-size: .8rem; }
+.level { font-family: var(--font-display); font-weight: 800; font-size: .85rem; padding: 2px 10px; border-radius: var(--r-sm); background: var(--c); color: var(--ink); box-shadow: 0 3px 0 var(--c-deep); }
+
+.flash {
+  aspect-ratio: 4 / 3; max-width: 100%; border-radius: var(--r-lg);
+  background: var(--bg-2); border: var(--border) solid var(--line); box-shadow: 0 calc(var(--depth) * 1.5) 0 var(--bg-3);
+  display: grid; place-items: center; text-align: center; padding: var(--sp-6); gap: var(--sp-2);
+  transition: border-radius .25s ease;
+}
+.flash .w { font-family: var(--font-display); font-weight: 800; font-size: 2.25rem; color: var(--mint); line-height: 1; }
+.flash small { color: var(--text-3); }
+
+.progress { height: 14px; background: var(--bg-2); border-radius: var(--r-full); overflow: hidden; }
+.progress div { height: 100%; width: 65%; background: var(--mint); border-radius: var(--r-full); box-shadow: inset 0 -3px 0 rgba(0,0,0,.15), inset 0 3px 0 rgba(255,255,255,.25); }
+
+.nav { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--sp-1); background: var(--bg-1); border: var(--border) solid var(--line); border-radius: var(--r-lg); padding: var(--sp-2); transition: border-radius .25s ease; }
+.nav button { font: inherit; font-size: .7rem; font-weight: 600; color: var(--text-3); background: transparent; border: var(--border) solid transparent; border-radius: var(--r-md); min-height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer; transition: border-radius .25s ease; }
+.nav button i { width: 22px; height: 22px; border-radius: 7px; background: var(--c); box-shadow: 0 2px 0 var(--c-deep); }
+.nav button[aria-current="page"] { color: var(--c); background: var(--c-soft); border-color: var(--c-deep); }
+
+/* ── Spacing ruler ──────────── */
+.ruler { background: var(--bg-1); border: var(--border) solid var(--line); border-radius: var(--r-lg); padding: var(--sp-5); display: flex; flex-direction: column; gap: var(--sp-2); }
+.tick { display: grid; grid-template-columns: 64px 1fr 1.6fr; gap: var(--sp-3); align-items: center; }
+.tick b { font-family: var(--font-mono); font-size: .78rem; color: var(--text-2); font-weight: 500; }
+.tick span.bar-px { height: 14px; background: var(--lilac); border-radius: 4px; box-shadow: 0 2px 0 var(--lilac-deep); }
+.tick em { font-style: normal; color: var(--text-3); font-size: .82rem; min-width: 0; }
+.tick .track { min-width: 0; }
+
+.specs { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-4); }
+.spec { background: var(--bg-1); border: var(--border) solid var(--line); border-radius: var(--r-lg); padding: var(--sp-5); display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; transition: border-radius .25s ease; }
+.spec .big { font-family: var(--font-display); font-weight: 800; font-size: 2rem; line-height: 1; color: var(--c); }
+.spec p { font-size: .9rem; }
+.live-vals { font-family: var(--font-mono); font-size: .78rem; color: var(--text-3); }
+
+.c-mint   { --c: var(--mint);   --c-deep: var(--mint-deep);   --c-soft: var(--mint-soft); }
+.c-lilac  { --c: var(--lilac);  --c-deep: var(--lilac-deep);  --c-soft: var(--lilac-soft); }
+.c-sky    { --c: var(--sky);    --c-deep: var(--sky-deep);    --c-soft: var(--sky-soft); }
+.c-peach  { --c: var(--peach);  --c-deep: var(--peach-deep);  --c-soft: var(--peach-soft); }
+.c-butter { --c: var(--butter); --c-deep: var(--butter-deep); --c-soft: var(--butter-soft); }
+.c-rose   { --c: var(--rose);   --c-deep: var(--rose-deep);   --c-soft: var(--rose-soft); }
+
+@media (max-width: 760px) {
+  .showcase, .bar { grid-template-columns: 1fr; }
+  .specs { grid-template-columns: 1fr; }
+  .tick { grid-template-columns: 56px 1fr; }
+  .tick em { grid-column: 1 / -1; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+</style>
+
+<main>
+  <section>
+    <span class="eyebrow">Sistema de diseño · paso 3 · Espacio y formas</span>
+    <h1>Todo encaja en una <span>rejilla de 4</span></h1>
+    <p>Dos decisiones de personalidad: cuánto se redondean las esquinas y cuánto se hunden los botones. Combínalas arriba y mira cómo cambian los componentes de verdad. El espaciado y los tamaños táctiles son fijos: están más abajo.</p>
+  </section>
+
+  <div class="bar">
+    <div class="group">
+      <span class="eyebrow">Esquinas</span>
+      <div class="seg" role="group" aria-label="Esquinas">
+        <button id="cor-suave" data-k="corners" data-v="suave" aria-pressed="false">Suave</button>
+        <button id="cor-redonda" data-k="corners" data-v="redonda" aria-pressed="true">Redonda</button>
+        <button id="cor-burbuja" data-k="corners" data-v="burbuja" aria-pressed="false">Burbuja</button>
+      </div>
+    </div>
+    <div class="group">
+      <span class="eyebrow">Profundidad 3D</span>
+      <div class="seg" role="group" aria-label="Profundidad">
+        <button id="dep-sutil" data-k="depth" data-v="sutil" aria-pressed="false">Sutil</button>
+        <button id="dep-media" data-k="depth" data-v="media" aria-pressed="true">Media</button>
+        <button id="dep-marcada" data-k="depth" data-v="marcada" aria-pressed="false">Marcada</button>
+      </div>
+    </div>
+  </div>
+
+  <section>
+    <div class="live-vals" id="live">radios 10 / 16 / 22 px · hundimiento 4 px · borde 2 px</div>
+    <div class="showcase">
+      <div class="col">
+        <div class="card">
+          <span class="eyebrow">Botones · 3 alturas</span>
+          <div class="btns">
+            <button class="btn sm c-lilac" id="b-sm">Pequeño 40</button>
+            <button class="btn c-lilac" id="b-md">Normal 48</button>
+            <button class="btn lg c-lilac" id="b-lg">Grande 56</button>
+          </div>
+          <div class="btns">
+            <button class="btn c-mint" id="b-ok">Comprobar</button>
+            <button class="btn c-rose" id="b-del">Borrar</button>
+            <button class="btn ghost" id="b-ghost">Cancelar</button>
+            <button class="btn icon c-sky" id="b-icon" aria-label="Escuchar">▶</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <span class="eyebrow">Formulario</span>
+          <div class="field"><label for="in-word">Nueva palabra</label><input class="input" id="in-word" placeholder="p. ej. serendipity" value=""></div>
+          <div class="chips">
+            <span class="chip c-sky on">English</span><span class="chip c-sky">Español</span><span class="chip c-sky">Português</span>
+          </div>
+          <button class="btn block c-peach" id="b-gen">Generar con IA</button>
+        </div>
+
+        <div class="card">
+          <span class="eyebrow">Navegación móvil</span>
+          <div class="nav">
+            <button id="n1" class="c-sky" aria-current="page"><i></i>Palabras</button>
+            <button id="n2" class="c-lilac"><i></i>Expresiones</button>
+            <button id="n3" class="c-peach"><i></i>Historias</button>
+            <button id="n4" class="c-butter"><i></i>Exámenes</button>
+            <button id="n5" class="c-mint"><i></i>Anki</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="list">
+          <div class="row c-sky"><span class="avatar">S</span><div><b>serendipity</b><small>noun · vista 12 veces</small></div><span class="level c-butter">B2</span></div>
+          <div class="row c-sky"><span class="avatar">W</span><div><b>whimsical</b><small>adjective · vista 3 veces</small></div><span class="level c-peach">C1</span></div>
+          <div class="row c-sky"><span class="avatar">G</span><div><b>get along</b><small>phrasal verb · nueva</small></div><span class="level c-sky">A2</span></div>
+        </div>
+
+        <div class="card">
+          <span class="eyebrow">Anki · tarjeta 8 de 20</span>
+          <div class="progress" aria-label="Progreso"><div></div></div>
+          <div class="flash"><div><div class="w">whimsical</div><small>Toca para ver la definición</small></div></div>
+          <div class="btns">
+            <button class="btn c-rose" id="a1">Otra vez</button>
+            <button class="btn c-butter" id="a2">Difícil</button>
+            <button class="btn c-mint" id="a3">Fácil</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="head"><span class="eyebrow">Fijo</span><h2>Espaciado en múltiplos de 4</h2><p>Todo espacio (márgenes, separaciones, rellenos) sale de esta lista. Nunca 13 px ni 7 px: así todo se alinea sin pensarlo.</p></div>
+    <div class="ruler">
+      <div class="tick"><b>sp-1 · 4</b><div class="track"><span class="bar-px" style="display:block;width:4px"></span></div><em>Icono con su texto</em></div>
+      <div class="tick"><b>sp-2 · 8</b><div class="track"><span class="bar-px" style="display:block;width:8px"></span></div><em>Entre chips, label e input</em></div>
+      <div class="tick"><b>sp-3 · 12</b><div class="track"><span class="bar-px" style="display:block;width:12px"></span></div><em>Entre botones, entre opciones</em></div>
+      <div class="tick"><b>sp-4 · 16</b><div class="track"><span class="bar-px" style="display:block;width:16px"></span></div><em>Margen lateral en móvil, relleno de inputs</em></div>
+      <div class="tick"><b>sp-5 · 20</b><div class="track"><span class="bar-px" style="display:block;width:20px"></span></div><em>Relleno de tarjetas, entre tarjetas</em></div>
+      <div class="tick"><b>sp-6 · 24</b><div class="track"><span class="bar-px" style="display:block;width:24px"></span></div><em>Relleno de botones grandes</em></div>
+      <div class="tick"><b>sp-8 · 32</b><div class="track"><span class="bar-px" style="display:block;width:32px"></span></div><em>Entre bloques dentro de una pantalla</em></div>
+      <div class="tick"><b>sp-12 · 48</b><div class="track"><span class="bar-px" style="display:block;width:48px"></span></div><em>Entre secciones</em></div>
+      <div class="tick"><b>sp-16 · 64</b><div class="track"><span class="bar-px" style="display:block;width:64px"></span></div><em>Respiro de pantallas grandes</em></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="head"><span class="eyebrow">Fijo</span><h2>Medidas que no se negocian</h2></div>
+    <div class="specs">
+      <div class="spec c-sky"><span class="big">48 px</span><h3>Tamaño táctil</h3><p>Todo lo que se pulsa mide al menos 48 px de alto. Con el pulgar en el móvil nunca fallas.</p></div>
+      <div class="spec c-lilac"><span class="big">2 px</span><h3>Borde</h3><p>Un solo grosor para todo. Grueso, como en las apps de idiomas, para que las formas se lean "de juguete".</p></div>
+      <div class="spec c-mint"><span class="big">0</span><h3>Sombras difusas</h3><p>Ninguna. La profundidad la dan el borde 3D inferior y las capas de grafito.</p></div>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  const root = document.documentElement;
+  const state = { corners: 'redonda', depth: 'media' };
+  const vals = { corners: { suave: '6 / 10 / 14', redonda: '10 / 16 / 22', burbuja: '14 / 22 / 30' }, depth: { sutil: '2', media: '4', marcada: '6' } };
+  const apply = () => {
+    if (state.corners === 'redonda') root.removeAttribute('data-corners'); else root.setAttribute('data-corners', state.corners);
+    if (state.depth === 'media') root.removeAttribute('data-depth'); else root.setAttribute('data-depth', state.depth);
+    document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', String(state[b.dataset.k] === b.dataset.v)));
+    document.getElementById('live').textContent = 'radios ' + vals.corners[state.corners] + ' px · hundimiento ' + vals.depth[state.depth] + ' px · borde 2 px';
+    try { localStorage.setItem('formas', JSON.stringify(state)); } catch (e) {}
+  };
+  try { Object.assign(state, JSON.parse(localStorage.getItem('formas') || '{}')); } catch (e) {}
+  if (!vals.corners[state.corners]) state.corners = 'redonda';
+  if (!vals.depth[state.depth]) state.depth = 'media';
+  document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => { state[b.dataset.k] = b.dataset.v; apply(); }));
+  document.querySelectorAll('.nav button').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.nav button').forEach(x => x.removeAttribute('aria-current'));
+    b.setAttribute('aria-current', 'page');
+  }));
+  apply();
+})();
+</script>

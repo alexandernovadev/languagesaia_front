@@ -1,0 +1,1278 @@
+<title>Escuadrón LanguagesAI</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Lexend:wght@400;500;600&display=swap">
+<style>
+/* Layout: a stage with the selected hero + its character sheet, mood controls, then the squad row. */
+:root {
+  color-scheme: dark;
+  --bg-0: #202024; --bg-1: #29292E; --bg-2: #333338; --bg-3: #3E3E44; --line: #4A4A51;
+  --text-1: #F7F7F9; --text-2: #D4D4DA; --text-3: #B0B0B9; --ink: #1A1A1E;
+  --lilac: #CBBDF9;  --lilac-deep: #8E7CC2;  --lilac-soft: rgba(203,189,249,.18);
+  --sky: #9BD2FA;    --sky-deep: #4E94C3;    --sky-soft: rgba(155,210,250,.18);
+  --mint: #91DEBC;   --mint-deep: #3CA17B;   --mint-soft: rgba(145,222,188,.22);
+  --butter: #ECDC92; --butter-deep: #AF9B3E; --butter-soft: rgba(236,220,146,.25);
+  --peach: #F9BB92;  --peach-deep: #BF7946;  --peach-soft: rgba(249,187,146,.18);
+  --rose: #F6B2B9;   --rose-deep: #BD6F79;
+  --m1: #232328; --m2: #44444D; --m3: #8B8B97; --m4: #E6E6EC; --visor: #121215;
+  --font-display: "Baloo 2", ui-rounded, system-ui, sans-serif;
+  --font-body: "Lexend", system-ui, sans-serif;
+  --r-sm: 14px; --r-md: 22px; --r-lg: 30px; --depth: 2px; --border: 2px;
+  --t-instant: 80ms; --t-fast: 150ms; --t-base: 250ms; --t-slow: 400ms; --t-party: 700ms;
+  --spring: cubic-bezier(.34, 1.56, .64, 1); --ease-out: cubic-bezier(.2, .8, .2, 1); --ease-in-out: cubic-bezier(.65, 0, .35, 1);
+  --snap: cubic-bezier(.3, 1.35, .5, 1);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg-0); color: var(--text-1);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 80px;
+}
+main { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 36px; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 700; margin: 0; line-height: 1.1; text-wrap: balance; }
+h1 { font-size: clamp(2.2rem, 6vw, 3rem); }
+h1 span { color: var(--butter); }
+h2 { font-size: 2rem; color: var(--c); }
+p { margin: 0; max-width: 65ch; color: var(--text-2); }
+.eyebrow { font-size: .75rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); }
+section { display: flex; flex-direction: column; gap: 16px; }
+
+.btn { font-family: var(--font-display); font-weight: 700; font-size: 1rem; min-height: 44px; padding: 0 16px; border: var(--border) solid var(--line); border-radius: var(--r-sm); cursor: pointer; background: var(--bg-2); color: var(--text-1); box-shadow: 0 var(--depth) 0 var(--bg-3); transition: transform var(--t-base) var(--spring), box-shadow var(--t-instant); }
+.btn:active { transform: translateY(var(--depth)) scale(.95); box-shadow: 0 0 0 var(--bg-3); transition-duration: var(--t-instant); }
+.btn[aria-pressed="true"] { border-color: var(--c); color: var(--c); box-shadow: 0 var(--depth) 0 var(--c-deep); }
+.btn.solid { background: var(--lilac); color: var(--ink); border-color: transparent; box-shadow: 0 var(--depth) 0 var(--lilac-deep); }
+button:focus-visible { outline: 3px solid var(--sky); outline-offset: 3px; }
+.btns { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.stage { background: radial-gradient(110% 80% at 30% 100%, var(--c-soft), transparent 55%), var(--bg-1); border: var(--border) solid var(--line); border-radius: var(--r-lg); padding: 24px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 24px; align-items: center; position: relative; overflow: hidden; }
+.hero-wrap { position: relative; display: grid; place-items: end center; min-height: 400px; }
+.hero-wrap .robot { width: min(310px, 100%); height: auto; position: relative; z-index: 1; }
+.floor { position: absolute; bottom: 12px; left: 50%; width: 150px; height: 16px; translate: -50% 0; border-radius: 50%; background: rgba(0,0,0,.38); filter: blur(3px); transition: scale var(--t-slow) var(--ease-out), opacity var(--t-slow); }
+.stage[data-flying="1"] .floor { scale: .55; opacity: .35; }
+.stage[data-hop="1"] .floor { animation: floorHop .95s var(--ease-out); }
+@keyframes floorHop { 16% { scale: 1.08 } 42% { scale: .6; opacity: .45 } 66% { scale: 1.12; opacity: 1 } 100% { scale: 1 } }
+.dust { position: absolute; bottom: 14px; width: 14px; height: 14px; border-radius: 50%; background: var(--m3); opacity: .5; z-index: 0; animation: dust .6s var(--ease-out) forwards; }
+@keyframes dust { from { transform: translate(0,0) scale(.5); opacity: .55 } to { transform: translate(var(--dx), -10px) scale(1.6); opacity: 0 } }
+.sheet { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.say { font-family: var(--font-display); font-weight: 700; font-size: 1.2rem; background: var(--bg-2); border-radius: var(--r-md); padding: 10px 16px; align-self: flex-start; }
+.say.bump { animation: popb var(--t-party) var(--spring); }
+@keyframes popb { 0% { transform: scale(.85) } 50% { transform: scale(1.05) } 100% { transform: scale(1) } }
+.traits { display: flex; flex-wrap: wrap; gap: 6px; }
+.trait { font-size: .78rem; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--c-soft); color: var(--c); }
+.details { margin: 0; padding-left: 18px; color: var(--text-2); font-size: .9rem; display: grid; gap: 3px; }
+
+.squad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.member { font: inherit; color: var(--text-1); background: var(--bg-1); border: var(--border) solid var(--line); border-radius: var(--r-lg); padding: 12px 6px 10px; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; min-width: 0; box-shadow: 0 var(--depth) 0 var(--bg-3); transition: transform var(--t-base) var(--spring), border-color var(--t-fast); }
+.member:active { transform: scale(.96); }
+.member[aria-pressed="true"] { border-color: var(--c); box-shadow: 0 var(--depth) 0 var(--c-deep); background: linear-gradient(180deg, var(--c-soft), var(--bg-1) 70%); }
+.member .robot { width: 100%; max-width: 130px; height: auto; }
+.member b { font-family: var(--font-display); font-size: 1.1rem; color: var(--c); }
+.member small { color: var(--text-3); font-size: .75rem; }
+
+/* ───────── Materials ───────── */
+.robot { overflow: visible; }
+.robot .c { fill: var(--c); } .robot .cd { fill: var(--c-deep); }
+.robot .m1 { fill: var(--m1); } .robot .m2 { fill: var(--m2); } .robot .m3 { fill: var(--m3); } .robot .m4 { fill: var(--m4); } .robot .vis { fill: var(--visor); }
+.robot .a-butter { fill: var(--butter); } .robot .a-butter-d { fill: var(--butter-deep); } .robot .a-peach-d { fill: var(--peach-deep); }
+.robot .shine { fill: #fff; opacity: .32; }
+.robot .stroke-cd { fill: none; stroke: var(--c-deep); stroke-linecap: round; stroke-linejoin: round; }
+.robot .stroke-m1 { fill: none; stroke: var(--m1); stroke-linecap: round; stroke-linejoin: round; }
+.robot .stroke-m2 { fill: none; stroke: var(--m2); stroke-linecap: round; stroke-linejoin: round; }
+.robot .stroke-m3 { fill: none; stroke: var(--m3); stroke-linecap: round; stroke-linejoin: round; }
+.robot .stroke-m4 { fill: none; stroke: var(--m4); stroke-linecap: round; stroke-linejoin: round; }
+.robot .led { fill: var(--c); filter: drop-shadow(0 0 2.5px var(--c)); }
+.robot .led-s { fill: none; stroke: var(--c); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 2.5px var(--c)); }
+.robot .inkf { fill: var(--ink); }
+.robot .ink-s { fill: none; stroke: var(--ink); stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; }
+.robot .glyph { font-family: var(--font-display); font-weight: 800; text-anchor: middle; dominant-baseline: central; }
+.robot .bulb { fill: var(--butter); filter: drop-shadow(0 0 4px var(--butter)); animation: bulb 1.8s ease-in-out infinite; }
+@keyframes bulb { 0%,100% { opacity: 1 } 50% { opacity: .4 } }
+.robot .fl-o { fill: var(--peach); } .robot .fl-i { fill: var(--butter); }
+.robot .zz { font-family: var(--font-display); font-weight: 800; font-size: 16px; fill: var(--text-3); opacity: 0; }
+.robot .flight { opacity: 0; transition: opacity var(--t-fast); }
+.robot .flame { transform-box: fill-box; transform-origin: 50% 0; }
+.robot .blink { transform-box: fill-box; transform-origin: center; animation: blink 9s infinite; }
+@keyframes blink { 0%, 44%, 48%, 89%, 92%, 95%, 100% { transform: scaleY(1) } 46% { transform: scaleY(.08) } 90.5% { transform: scaleY(.08) } 93.5% { transform: scaleY(.08) } }
+.robot .eyes > g { display: none; }
+.robot .eyes > .f-idle { display: inline; }
+.robot:not([data-mood="idle"]):not([data-mood="wave"]) .eyes > .f-idle { display: none; }
+.robot[data-mood="happy"] .eyes > .f-happy, .robot[data-mood="party"] .eyes > .f-party, .robot[data-mood="think"] .eyes > .f-think, .robot[data-mood="sad"] .eyes > .f-sad, .robot[data-mood="sleep"] .eyes > .f-sleep { display: inline; }
+.robot .think-dot { transform-box: fill-box; transform-origin: center; animation: tdot 1s ease-in-out infinite; }
+.robot .think-dot:nth-child(2) { animation-delay: .15s } .robot .think-dot:nth-child(3) { animation-delay: .3s }
+@keyframes tdot { 0%,100% { transform: translateY(0); opacity: .35 } 50% { transform: translateY(-3px); opacity: 1 } }
+
+
+/* ───────── Detail layers ───────── */
+.robot .shade { fill: #000; opacity: .14; }
+.robot .hl { fill: #fff; opacity: .2; }
+.robot .hl-s { fill: none; stroke: #fff; stroke-opacity: .3; stroke-width: 1.6; stroke-linecap: round; }
+.robot .seam { fill: none; stroke: #000; stroke-opacity: .25; stroke-width: 1.2; stroke-linecap: round; }
+.robot .stitch { fill: none; stroke: #fff; stroke-opacity: .42; stroke-width: 1; stroke-dasharray: 2 2; }
+.robot .glare { fill: none; stroke: #fff; stroke-opacity: .45; stroke-width: 1.8; stroke-linecap: round; }
+.robot .blushled { fill: var(--rose); opacity: .75; filter: drop-shadow(0 0 2px var(--rose)); }
+.robot .tongue { fill: var(--rose); }
+.robot .brow { stroke-width: 2.6; }
+.robot .ribbon { fill: var(--rose); }
+.robot .stroke-c { fill: none; stroke: var(--c); stroke-linecap: round; }
+.robot .tear { fill: var(--sky); filter: drop-shadow(0 0 2px var(--sky)); transform-box: fill-box; opacity: 0; animation: tear 1.8s ease-in infinite 1s; }
+@keyframes tear { 0% { transform: translateY(0); opacity: 0 } 15% { opacity: 1 } 80% { transform: translateY(10px); opacity: .9 } 100% { transform: translateY(12px); opacity: 0 } }
+.robot .snore, .robot .snoreline { transform-box: fill-box; transform-origin: center; animation: snore 2.4s ease-in-out infinite; }
+@keyframes snore { 0%,100% { transform: scale(.7) } 50% { transform: scale(1.3) } }
+
+/* ───────── Skeleton: every joint pivots in viewBox units (origin set inline) ───────── */
+.robot .body-all, .robot .torso, .robot .shoulders, .robot .head, .robot .eyes,
+.robot .arm-l, .robot .arm-r, .robot .fore-l, .robot .fore-r,
+.robot .leg-l, .robot .leg-r, .robot .shin-l, .robot .shin-r,
+.robot .sway, .robot .wobble, .robot .lantern, .robot .hat, .robot .orbit, .robot .orb { transform-box: view-box; }
+
+/* Secondary motion that always runs */
+.robot .sway { animation: sway 2.6s var(--ease-in-out) infinite; }
+@keyframes sway { 0%,100% { transform: rotate(-4deg) } 50% { transform: rotate(4deg) } }
+.robot .wobble { animation: wobble 1.7s var(--ease-in-out) infinite .4s; }
+@keyframes wobble { 0%,100% { transform: rotate(-5deg) } 50% { transform: rotate(5deg) } }
+
+/* ═══ IDLE: breathe, shift weight, glance around ═══ */
+.robot .body-all { animation: idleBody 3.4s var(--ease-in-out) infinite; transition: translate var(--t-slow) var(--spring); }
+.robot .torso { animation: breathe 3.4s var(--ease-in-out) infinite; }
+.robot .head { animation: idleHead 3.4s var(--ease-in-out) infinite .3s; }
+.robot .arm-l { animation: idleArmL 3.4s var(--ease-in-out) infinite .1s; }
+.robot .arm-r { animation: idleArmR 3.4s var(--ease-in-out) infinite .2s; }
+.robot .fore-l { animation: idleForeL 3.4s var(--ease-in-out) infinite .3s; }
+.robot .fore-r { animation: idleForeR 3.4s var(--ease-in-out) infinite .4s; }
+.robot .leg-l { animation: idleLegL 3.4s var(--ease-in-out) infinite; }
+.robot .leg-r { animation: idleLegR 3.4s var(--ease-in-out) infinite; }
+.robot .shin-l { animation: idleShinL 3.4s var(--ease-in-out) infinite; }
+.robot .shin-r { animation: idleShinR 3.4s var(--ease-in-out) infinite; }
+.robot[data-mood="idle"] .eyes { animation: glance 7s var(--ease-in-out) infinite; }
+@keyframes idleBody { 0%,100% { transform: translate(0,0) rotate(0) } 25% { transform: translate(-1.5px,-1px) rotate(-.7deg) } 50% { transform: translate(0,-2.5px) rotate(0) } 75% { transform: translate(1.5px,-1px) rotate(.7deg) } }
+@keyframes breathe { 0%,100% { transform: scale(1,1) } 50% { transform: scale(.994,1.028) } }
+@keyframes idleHead { 0%,100% { transform: rotate(-2deg) } 50% { transform: rotate(2deg) translateY(-1px) } }
+@keyframes idleArmL { 0%,100% { transform: rotate(4deg) } 50% { transform: rotate(-2deg) } }
+@keyframes idleArmR { 0%,100% { transform: rotate(-4deg) } 50% { transform: rotate(2deg) } }
+@keyframes idleForeL { 0%,100% { transform: rotate(-5deg) } 50% { transform: rotate(-12deg) } }
+@keyframes idleForeR { 0%,100% { transform: rotate(5deg) } 50% { transform: rotate(12deg) } }
+@keyframes idleLegL { 0%,100% { transform: rotate(1.2deg) } 25% { transform: rotate(2deg) } 75% { transform: rotate(-.6deg) } }
+@keyframes idleLegR { 0%,100% { transform: rotate(-1.2deg) } 25% { transform: rotate(.6deg) } 75% { transform: rotate(-2deg) } }
+@keyframes idleShinL { 0%,100% { transform: rotate(-1deg) } 25% { transform: rotate(-3deg) } 75% { transform: rotate(0) } }
+@keyframes idleShinR { 0%,100% { transform: rotate(1deg) } 25% { transform: rotate(0) } 75% { transform: rotate(3deg) } }
+@keyframes glance { 0%, 38%, 100% { transform: translateX(0) } 42%, 54% { transform: translateX(-2.5px) } 58%, 70% { transform: translateX(2.5px) } 74% { transform: translateX(0) } }
+
+/* ═══ WAVE: wave from the elbow, other hand on the hip, weight on one leg ═══ */
+.robot[data-mood="wave"] .arm-r { animation: waveArmR .45s var(--snap) forwards; }
+.robot[data-mood="wave"] .fore-r { animation: waveForeR .4s var(--ease-in-out) .25s infinite alternate; }
+.robot[data-mood="wave"] .arm-l { animation: hipArmL .45s var(--snap) forwards; }
+.robot[data-mood="wave"] .fore-l { animation: hipForeL .45s var(--snap) .07s both; }
+.robot[data-mood="wave"] .head { animation: waveHead .8s var(--ease-in-out) infinite alternate; }
+.robot[data-mood="wave"] .body-all { animation: waveBody .8s var(--ease-in-out) infinite alternate; }
+.robot[data-mood="wave"] .leg-r { animation: popLegR .45s var(--snap) forwards; }
+.robot[data-mood="wave"] .shin-r { animation: popShinR .45s var(--snap) .05s both; }
+.robot[data-mood="wave"] .leg-l { animation: plantLegL .45s var(--snap) forwards; }
+@keyframes waveArmR { from { transform: rotate(-4deg) } 70% { transform: rotate(-158deg) } to { transform: rotate(-150deg) } }
+@keyframes waveForeR { from { transform: rotate(-38deg) } to { transform: rotate(26deg) } }
+@keyframes hipArmL { to { transform: rotate(36deg) } }
+@keyframes hipForeL { to { transform: rotate(-102deg) } }
+@keyframes waveHead { from { transform: rotate(3deg) } to { transform: rotate(9deg) translateY(-1px) } }
+@keyframes waveBody { from { transform: rotate(-1deg) } to { transform: rotate(-2.5deg) translateY(-1px) } }
+@keyframes popLegR { to { transform: rotate(-5deg) } }
+@keyframes popShinR { to { transform: rotate(12deg) } }
+@keyframes plantLegL { to { transform: rotate(3deg) } }
+
+/* ═══ HAPPY: anticipate → jump with tucked legs + fist pump → land and settle ═══ */
+.robot[data-mood="happy"] .body-all { animation: hopBody .95s var(--ease-out) forwards; }
+.robot[data-mood="happy"] .torso { animation: hopTorso .95s var(--ease-out) forwards; }
+.robot[data-mood="happy"] .head { animation: hopHead .95s var(--ease-out) .08s both; }
+.robot[data-mood="happy"] .leg-l { animation: hopLegL .95s var(--ease-out) forwards; }
+.robot[data-mood="happy"] .leg-r { animation: hopLegR .95s var(--ease-out) forwards; }
+.robot[data-mood="happy"] .shin-l { animation: hopShinL .95s var(--ease-out) .03s both; }
+.robot[data-mood="happy"] .shin-r { animation: hopShinR .95s var(--ease-out) .03s both; }
+.robot[data-mood="happy"] .arm-r { animation: pumpArmR .95s var(--ease-out) forwards; }
+.robot[data-mood="happy"] .fore-r { animation: pumpForeR .95s var(--ease-out) .06s both; }
+.robot[data-mood="happy"] .arm-l { animation: pumpArmL .95s var(--ease-out) forwards; }
+.robot[data-mood="happy"] .fore-l { animation: pumpForeL .95s var(--ease-out) .06s both; }
+.robot[data-mood="happy"] .wobble { animation-duration: .5s; }
+@keyframes hopBody { 0% { transform: translateY(0) scale(1,1) } 16% { transform: translateY(5px) scale(1.06,.92) } 42% { transform: translateY(-26px) scale(.96,1.05) } 66% { transform: translateY(3px) scale(1.07,.92) } 82% { transform: translateY(-2px) scale(.99,1.02) } 100% { transform: translateY(0) scale(1,1) } }
+@keyframes hopTorso { 16% { transform: scale(1.02,.95) } 42% { transform: scale(.98,1.04) } 66% { transform: scale(1.03,.94) } 100% { transform: scale(1,1) } }
+@keyframes hopHead { 0% { transform: rotate(0) } 16% { transform: translateY(3px) rotate(2deg) } 42% { transform: translateY(-2px) rotate(-7deg) } 66% { transform: translateY(4px) rotate(3deg) } 100% { transform: rotate(-3deg) } }
+@keyframes hopLegL { 0% { transform: rotate(0) } 16% { transform: rotate(9deg) } 42% { transform: rotate(26deg) } 66% { transform: rotate(9deg) } 100% { transform: rotate(0) } }
+@keyframes hopLegR { 0% { transform: rotate(0) } 16% { transform: rotate(-9deg) } 42% { transform: rotate(-26deg) } 66% { transform: rotate(-9deg) } 100% { transform: rotate(0) } }
+@keyframes hopShinL { 0% { transform: rotate(0) } 16% { transform: rotate(-16deg) } 42% { transform: rotate(-46deg) } 66% { transform: rotate(-14deg) } 100% { transform: rotate(0) } }
+@keyframes hopShinR { 0% { transform: rotate(0) } 16% { transform: rotate(16deg) } 42% { transform: rotate(46deg) } 66% { transform: rotate(14deg) } 100% { transform: rotate(0) } }
+@keyframes pumpArmR { 0% { transform: rotate(-4deg) } 16% { transform: rotate(16deg) } 42% { transform: rotate(-168deg) } 60% { transform: rotate(-150deg) } 100% { transform: rotate(-158deg) } }
+@keyframes pumpForeR { 0% { transform: rotate(0) } 16% { transform: rotate(30deg) } 42% { transform: rotate(-8deg) } 55% { transform: rotate(-48deg) } 72% { transform: rotate(-4deg) } 100% { transform: rotate(-22deg) } }
+@keyframes pumpArmL { 0% { transform: rotate(4deg) } 16% { transform: rotate(-12deg) } 42% { transform: rotate(42deg) } 66% { transform: rotate(18deg) } 100% { transform: rotate(12deg) } }
+@keyframes pumpForeL { 0% { transform: rotate(0) } 42% { transform: rotate(-42deg) } 100% { transform: rotate(-20deg) } }
+
+/* ═══ PARTY: take off, cheer with both arms, bicycle legs, head bop ═══ */
+.robot[data-mood="party"] .body-all { translate: 0 -24px; animation: flyBody 1.4s var(--ease-in-out) infinite; }
+.robot[data-mood="party"] .flight { opacity: 1; }
+.robot[data-mood="party"] .flame { animation: flame .16s ease-in-out infinite alternate; }
+.robot[data-mood="party"] .torso { animation: partyTorso .35s var(--ease-in-out) infinite alternate; }
+.robot[data-mood="party"] .head { animation: partyHead .7s var(--ease-in-out) infinite alternate; }
+.robot[data-mood="party"] .arm-l { animation: raiseL .3s var(--snap) forwards, cheerL .7s var(--ease-in-out) .3s infinite alternate; }
+.robot[data-mood="party"] .arm-r { animation: raiseR .3s var(--snap) forwards, cheerR .7s var(--ease-in-out) .3s infinite alternate-reverse; }
+.robot[data-mood="party"] .fore-l { animation: cheerForeL .35s var(--ease-in-out) infinite alternate; }
+.robot[data-mood="party"] .fore-r { animation: cheerForeR .35s var(--ease-in-out) -.17s infinite alternate; }
+.robot[data-mood="party"] .leg-l { animation: pedalLegL .7s var(--ease-in-out) infinite alternate; }
+.robot[data-mood="party"] .leg-r { animation: pedalLegR .7s var(--ease-in-out) infinite alternate-reverse; }
+.robot[data-mood="party"] .shin-l { animation: pedalShinL .7s var(--ease-in-out) infinite alternate; }
+.robot[data-mood="party"] .shin-r { animation: pedalShinR .7s var(--ease-in-out) infinite alternate-reverse; }
+.robot[data-mood="party"] .sway { animation-duration: .8s; }
+.robot[data-mood="party"] .wobble { animation-duration: .45s; }
+@keyframes flyBody { 0%,100% { transform: translateY(0) rotate(-3deg) } 50% { transform: translateY(-8px) rotate(3deg) } }
+@keyframes flame { from { transform: scaleY(.8) } to { transform: scaleY(1.2) } }
+@keyframes partyTorso { from { transform: scale(1,1) } to { transform: scale(1.015,1.035) } }
+@keyframes partyHead { from { transform: rotate(-7deg) } to { transform: rotate(7deg) translateY(-1px) } }
+@keyframes raiseL { from { transform: rotate(4deg) } to { transform: rotate(150deg) } }
+@keyframes raiseR { from { transform: rotate(-4deg) } to { transform: rotate(-150deg) } }
+@keyframes cheerL { from { transform: rotate(145deg) } to { transform: rotate(168deg) } }
+@keyframes cheerR { from { transform: rotate(-145deg) } to { transform: rotate(-168deg) } }
+@keyframes cheerForeL { from { transform: rotate(-28deg) } to { transform: rotate(14deg) } }
+@keyframes cheerForeR { from { transform: rotate(28deg) } to { transform: rotate(-14deg) } }
+@keyframes pedalLegL { from { transform: rotate(12deg) } to { transform: rotate(-6deg) } }
+@keyframes pedalLegR { from { transform: rotate(-12deg) } to { transform: rotate(6deg) } }
+@keyframes pedalShinL { from { transform: rotate(-38deg) } to { transform: rotate(-2deg) } }
+@keyframes pedalShinR { from { transform: rotate(38deg) } to { transform: rotate(2deg) } }
+
+/* ═══ THINK: hand on chin tapping, other arm folded, weight on one leg, foot tapping ═══ */
+.robot[data-mood="think"] .arm-r { animation: chinArmR .5s var(--snap) forwards; }
+.robot[data-mood="think"] .fore-r { animation: chinForeR .5s var(--snap) .07s both, chinTapR .45s var(--ease-in-out) .5s infinite alternate; }
+.robot[data-mood="think"] .arm-l { animation: foldArmL .5s var(--snap) forwards; }
+.robot[data-mood="think"] .fore-l { animation: foldForeL .5s var(--snap) .07s both; }
+.robot[data-mood="think"] .head { animation: thinkHead 2.6s var(--ease-in-out) infinite; }
+.robot[data-mood="think"] .body-all { animation: thinkBody 2.6s var(--ease-in-out) infinite; }
+.robot[data-mood="think"] .leg-r { animation: weightR .45s var(--snap) forwards; }
+.robot[data-mood="think"] .leg-l { animation: tapLegL .45s var(--snap) forwards; }
+.robot[data-mood="think"] .shin-l { animation: footTap .4s var(--ease-in-out) .45s infinite alternate; }
+.robot[data-mood="think"] .bulb { animation-duration: .35s; }
+@keyframes chinArmR { to { transform: rotate(-55deg) } }
+@keyframes chinForeR { to { transform: rotate(176deg) } }
+@keyframes chinTapR { from { transform: rotate(176deg) } to { transform: rotate(168deg) } }
+@keyframes foldArmL { to { transform: rotate(-14deg) } }
+@keyframes foldForeL { to { transform: rotate(-88deg) } }
+@keyframes thinkHead { 0%,100% { transform: rotate(7deg) } 50% { transform: rotate(11deg) translateX(2px) } }
+@keyframes thinkBody { 0%,100% { transform: rotate(1deg) } 50% { transform: rotate(2.2deg) translateY(-1px) } }
+@keyframes weightR { to { transform: rotate(-3deg) } }
+@keyframes tapLegL { to { transform: rotate(5deg) } }
+@keyframes footTap { from { transform: rotate(-2deg) } to { transform: rotate(-13deg) } }
+/* Heroes whose right hand is busy (mic, lantern) think with the left */
+.r-tula[data-mood="think"] .arm-l { animation: chinArmL .5s var(--snap) forwards; }
+.r-tula[data-mood="think"] .fore-l { animation: chinForeL .5s var(--snap) forwards, chinTapL .45s var(--ease-in-out) .5s infinite alternate; }
+.r-tula[data-mood="think"] .arm-r { animation: foldArmR .5s var(--snap) forwards; }
+.r-tula[data-mood="think"] .fore-r { animation: foldForeR .5s var(--snap) forwards; }
+.r-tula[data-mood="think"] .head { animation: thinkHeadL 2.6s var(--ease-in-out) infinite; }
+@keyframes chinArmL { to { transform: rotate(55deg) } }
+@keyframes chinForeL { to { transform: rotate(-176deg) } }
+@keyframes chinTapL { from { transform: rotate(-176deg) } to { transform: rotate(-168deg) } }
+@keyframes foldArmR { to { transform: rotate(14deg) } }
+@keyframes foldForeR { to { transform: rotate(88deg) } }
+@keyframes thinkHeadL { 0%,100% { transform: rotate(-7deg) } 50% { transform: rotate(-11deg) translateX(-2px) } }
+
+/* ═══ SAD: shoulders drop, head hangs and sighs, arms limp, a sad little kick ═══ */
+.robot[data-mood="sad"] .head { animation: sadHead 1s var(--ease-out) forwards, sigh 3.5s var(--ease-in-out) 1s infinite; }
+.robot[data-mood="sad"] .torso { animation: slump 1s var(--ease-out) forwards; }
+.robot[data-mood="sad"] .shoulders { animation: shrugDown 1s var(--ease-out) forwards; }
+.robot[data-mood="sad"] .arm-l { animation: limpL 1s var(--ease-out) forwards; }
+.robot[data-mood="sad"] .arm-r { animation: limpR 1s var(--ease-out) forwards; }
+.robot[data-mood="sad"] .fore-l { animation: limpForeL 1s var(--ease-out) .06s both; }
+.robot[data-mood="sad"] .fore-r { animation: limpForeR 1s var(--ease-out) .06s both; }
+.robot[data-mood="sad"] .leg-l { animation: sadLegL 1s var(--ease-out) forwards; }
+.robot[data-mood="sad"] .shin-l { animation: sadShinL 1s var(--ease-out) .03s both; }
+.robot[data-mood="sad"] .leg-r { animation: sadKick 3.5s var(--ease-in-out) .9s infinite; }
+.robot[data-mood="sad"] .shin-r { animation: sadKickShin 3.5s var(--ease-in-out) .9s infinite; }
+.robot[data-mood="sad"] .body-all { animation: sadBody 1s var(--ease-out) forwards; }
+.robot[data-mood="sad"] .bulb { animation: none; opacity: .3; }
+.robot[data-mood="sad"] .sway { animation-duration: 5s; }
+@keyframes sadHead { to { transform: translateY(6px) rotate(-9deg) } }
+@keyframes sigh { 0%,100% { transform: translateY(6px) rotate(-9deg) } 50% { transform: translateY(8px) rotate(-12deg) } }
+@keyframes slump { to { transform: scale(1.01,.95) } }
+@keyframes shrugDown { to { transform: translateY(5px) } }
+@keyframes limpL { to { transform: translateY(4px) rotate(-7deg) } }
+@keyframes limpR { to { transform: translateY(4px) rotate(7deg) } }
+@keyframes limpForeL { to { transform: rotate(-6deg) } }
+@keyframes limpForeR { to { transform: rotate(6deg) } }
+@keyframes sadLegL { to { transform: rotate(2deg) } }
+@keyframes sadShinL { to { transform: rotate(-5deg) } }
+@keyframes sadKick { 0%,55%,100% { transform: rotate(-2deg) } 68% { transform: rotate(-13deg) } 78% { transform: rotate(-4deg) } }
+@keyframes sadKickShin { 0%,55%,100% { transform: rotate(5deg) } 68% { transform: rotate(24deg) } 78% { transform: rotate(6deg) } }
+@keyframes sadBody { to { transform: translateY(3px) } }
+
+/* ═══ SLEEP: nodding with a little jolt, deep breathing, soft knees ═══ */
+.robot[data-mood="sleep"] .head { animation: nod 4.8s var(--ease-in-out) infinite; }
+.robot[data-mood="sleep"] .torso { animation: deepBreath 4.8s var(--ease-in-out) infinite; }
+.robot[data-mood="sleep"] .body-all { animation: sleepBody 4.8s var(--ease-in-out) infinite; }
+.robot[data-mood="sleep"] .arm-l { animation: sleepArmL 1.2s var(--ease-out) forwards; }
+.robot[data-mood="sleep"] .arm-r { animation: sleepArmR 1.2s var(--ease-out) forwards; }
+.robot[data-mood="sleep"] .fore-l { animation: sleepForeL 1.2s var(--ease-out) .06s both; }
+.robot[data-mood="sleep"] .fore-r { animation: sleepForeR 1.2s var(--ease-out) .06s both; }
+.robot[data-mood="sleep"] .leg-l { animation: sleepLegL 1.2s var(--ease-out) forwards; }
+.robot[data-mood="sleep"] .leg-r { animation: sleepLegR 1.2s var(--ease-out) forwards; }
+.robot[data-mood="sleep"] .shin-l { animation: sleepShinL 1.2s var(--ease-out) .03s both; }
+.robot[data-mood="sleep"] .shin-r { animation: sleepShinR 1.2s var(--ease-out) .03s both; }
+.robot[data-mood="sleep"] .bulb { animation: none; opacity: .12; filter: none; }
+.robot[data-mood="sleep"] .sway, .robot[data-mood="sleep"] .wobble { animation-duration: 6s; }
+.robot[data-mood="sleep"] .zz { animation: zz 2.4s ease-in-out infinite; }
+.robot[data-mood="sleep"] .zz + .zz { animation-delay: 1.2s; }
+@keyframes nod { 0% { transform: rotate(-9deg) translateY(4px) } 55% { transform: rotate(-17deg) translateY(8px) } 61% { transform: rotate(-4deg) translateY(1px) } 75%,100% { transform: rotate(-9deg) translateY(4px) } }
+@keyframes deepBreath { 0%,100% { transform: scale(1,.97) } 50% { transform: scale(.99,1.035) } }
+@keyframes sleepBody { 0%,100% { transform: translateY(4px) rotate(-1deg) } 50% { transform: translateY(3px) rotate(1deg) } }
+@keyframes sleepArmL { to { transform: translateY(3px) rotate(9deg) } }
+@keyframes sleepArmR { to { transform: translateY(3px) rotate(-9deg) } }
+@keyframes sleepForeL { to { transform: rotate(12deg) } }
+@keyframes sleepForeR { to { transform: rotate(-12deg) } }
+@keyframes sleepLegL { to { transform: rotate(4deg) } }
+@keyframes sleepLegR { to { transform: rotate(-4deg) } }
+@keyframes sleepShinL { to { transform: rotate(-8deg) } }
+@keyframes sleepShinR { to { transform: rotate(8deg) } }
+@keyframes zz { 0% { opacity: 0; transform: translate(0,0) } 30% { opacity: 1 } 100% { opacity: 0; transform: translate(12px,-18px) } }
+
+/* ───────── Per-hero touches ───────── */
+.r-lumi .orb { animation: orb 3s var(--ease-in-out) infinite; transform-origin: 158px 128px; }
+@keyframes orb { 0%,100% { transform: translateY(0) rotate(-6deg) } 50% { transform: translateY(-8px) rotate(6deg) } }
+.r-lumi .orb-c { fill: var(--sky-soft); stroke: var(--sky); stroke-width: 2; }
+.r-lumi .orb-t { fill: var(--sky); font-size: 13px; }
+.r-lumi .tile-t { fill: var(--ink); font-size: 7.5px; }
+.r-lumi[data-mood="party"] .orb { animation: orbspin .9s linear infinite; }
+@keyframes orbspin { to { transform: rotate(360deg) translateY(-6px) } }
+.r-lumi[data-mood="sad"] .orb { animation: orbdrop 1s var(--ease-out) forwards; }
+@keyframes orbdrop { to { transform: translateY(26px) rotate(20deg); opacity: .5 } }
+
+/* ── Nubo: field analyst ── */
+.r-nubo .legging { fill: #6A5BA6; }
+.r-nubo .knit { fill: #E9E3FF; }
+.r-nubo .face { fill: #2E2747; }
+.r-nubo .tab-frame { fill: var(--m3); }
+.r-nubo .tab-screen { fill: #2E2747; }
+.r-nubo .stroke-c { fill: none; stroke: var(--c); stroke-linecap: round; }
+.r-nubo .lace { fill: none; stroke: var(--butter); stroke-width: 1.8; stroke-linecap: round; }
+.r-nubo .lash { stroke-width: 1.8; }
+.r-nubo .blush { fill: var(--rose); opacity: .6; }
+.r-nubo .mag-ring { fill: none; stroke: var(--butter-deep); stroke-width: 3.5; }
+.r-nubo .mag-glass { fill: var(--lilac-soft); }
+.r-nubo .glint { fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; opacity: .5; animation: glint 3s ease-in-out infinite; }
+@keyframes glint { 0%, 80%, 100% { opacity: .35 } 88% { opacity: 1 } }
+.r-nubo .hud { fill: var(--lilac-soft); stroke: var(--m4); stroke-width: 1.6; }
+.r-nubo .hud-grid { fill: none; stroke: var(--lilac); stroke-width: .6; opacity: .55; }
+.r-nubo .hud-scan { fill: var(--lilac); opacity: .8; transform-box: view-box; animation: hudScan 1.6s var(--ease-in-out) infinite alternate; }
+@keyframes hudScan { from { transform: translateY(0) } to { transform: translateY(12px) } }
+.r-nubo .cup-led { fill: var(--lilac); filter: drop-shadow(0 0 3px var(--lilac)); animation: bulb 2.2s ease-in-out infinite; }
+.r-nubo .mic { animation: bulb 1.1s ease-in-out infinite; }
+.r-nubo .dish { transform-box: fill-box; transform-origin: center; animation: dish 4s var(--ease-in-out) infinite; }
+@keyframes dish { 0%,100% { transform: scaleX(1) } 50% { transform: scaleX(.3) } }
+.r-nubo .bar { transform-box: fill-box; transform-origin: 50% 100%; animation: barUp .9s var(--ease-in-out) infinite alternate; }
+.r-nubo .bar:nth-of-type(2) { animation-delay: -.3s } .r-nubo .bar:nth-of-type(3) { animation-delay: -.6s } .r-nubo .bar:nth-of-type(4) { animation-delay: -.45s }
+@keyframes barUp { from { transform: scaleY(.35) } to { transform: scaleY(1) } }
+.r-nubo .rotor { transform-box: fill-box; transform-origin: center; animation: rotor .09s linear infinite alternate; }
+@keyframes rotor { from { transform: scaleX(1) } to { transform: scaleX(.12) } }
+.r-nubo .hover { fill: var(--lilac); opacity: .55; filter: drop-shadow(0 0 5px var(--lilac)); }
+.r-nubo .skirt { transform-box: view-box; }
+.r-nubo .bun-r { animation-delay: .25s; }
+
+/* Wave: hug the tablet, wave with the magnifier (overlapping: forearm trails the upper arm) */
+.r-nubo[data-mood="wave"] .arm-l { animation: nHugL .5s var(--snap) both; }
+.r-nubo[data-mood="wave"] .fore-l { animation: nHugFL .5s var(--snap) .07s both; }
+.r-nubo[data-mood="wave"] .fore-r { animation: waveForeR .42s var(--ease-in-out) .32s infinite alternate both; }
+.r-nubo[data-mood="wave"] .glint { animation: glint .42s ease-in-out infinite; }
+@keyframes nHugL { to { transform: rotate(-18deg) } }
+@keyframes nHugFL { to { transform: rotate(-82deg) } }
+
+/* Eureka hop: lean back, spring up with the magnifier held high, skirt flares, land */
+.r-nubo[data-mood="happy"] .arm-r { animation: nEurekaR 1s var(--ease-out) both; }
+.r-nubo[data-mood="happy"] .fore-r { animation: nEurekaFR 1s var(--ease-out) .06s both; }
+.r-nubo[data-mood="happy"] .arm-l { animation: nEurekaL 1s var(--ease-out) .03s both; }
+.r-nubo[data-mood="happy"] .fore-l { animation: nEurekaFL 1s var(--ease-out) .1s both; }
+.r-nubo[data-mood="happy"] .skirt { animation: flare 1s var(--ease-out) both; }
+.r-nubo[data-mood="happy"] .glint { animation: glint .3s ease-in-out 3 .4s; }
+@keyframes nEurekaR { 0% { transform: rotate(-4deg) } 16% { transform: rotate(18deg) } 42% { transform: rotate(-170deg) } 62% { transform: rotate(-155deg) } 100% { transform: rotate(-162deg) } }
+@keyframes nEurekaFR { 0% { transform: rotate(0) } 16% { transform: rotate(25deg) } 42% { transform: rotate(-4deg) } 56% { transform: rotate(-26deg) } 74% { transform: rotate(6deg) } 100% { transform: rotate(-6deg) } }
+@keyframes nEurekaL { 0% { transform: rotate(4deg) } 16% { transform: rotate(-10deg) } 42% { transform: rotate(48deg) } 70% { transform: rotate(22deg) } 100% { transform: rotate(14deg) } }
+@keyframes nEurekaFL { 0% { transform: rotate(0) } 42% { transform: rotate(-36deg) } 100% { transform: rotate(-18deg) } }
+@keyframes flare { 0% { transform: scale(1,1) } 16% { transform: scale(1.04,.97) } 42% { transform: scale(1.14,.93) } 66% { transform: scale(1.02,1.02) } 80% { transform: scale(1.08,.96) } 100% { transform: scale(1,1) } }
+
+/* Flight: rotor out, arms open like wings, feet swinging pigeon-toed */
+.r-nubo[data-mood="party"] .arm-l { animation: nWingL .4s var(--snap) both, nGlideL 1.4s var(--ease-in-out) .4s infinite; }
+.r-nubo[data-mood="party"] .arm-r { animation: nWingR .4s var(--snap) both, nGlideR 1.4s var(--ease-in-out) .4s infinite; }
+.r-nubo[data-mood="party"] .fore-l { animation: nWingFL 1.4s var(--ease-in-out) .1s infinite; }
+.r-nubo[data-mood="party"] .fore-r { animation: nWingFR 1.4s var(--ease-in-out) .1s infinite; }
+.r-nubo[data-mood="party"] .leg-l { animation: nDangleL .7s var(--ease-in-out) infinite alternate; }
+.r-nubo[data-mood="party"] .leg-r { animation: nDangleR .7s var(--ease-in-out) infinite alternate-reverse; }
+.r-nubo[data-mood="party"] .shin-l { animation: nSwingL .7s var(--ease-in-out) infinite alternate; }
+.r-nubo[data-mood="party"] .shin-r { animation: nSwingR .7s var(--ease-in-out) infinite alternate-reverse; }
+.r-nubo[data-mood="party"] .skirt { animation: flutter .35s var(--ease-in-out) infinite alternate; }
+.r-nubo[data-mood="party"] .dish { animation-duration: .8s; }
+@keyframes nWingL { from { transform: rotate(4deg) } to { transform: rotate(78deg) } }
+@keyframes nWingR { from { transform: rotate(-4deg) } to { transform: rotate(-78deg) } }
+@keyframes nGlideL { 0%,100% { transform: rotate(78deg) } 50% { transform: rotate(68deg) } }
+@keyframes nGlideR { 0%,100% { transform: rotate(-68deg) } 50% { transform: rotate(-80deg) } }
+@keyframes nWingFL { 0%,100% { transform: rotate(-8deg) } 50% { transform: rotate(10deg) } }
+@keyframes nWingFR { 0%,100% { transform: rotate(10deg) } 50% { transform: rotate(-8deg) } }
+@keyframes nDangleL { from { transform: rotate(-3deg) } to { transform: rotate(4deg) } }
+@keyframes nDangleR { from { transform: rotate(3deg) } to { transform: rotate(-4deg) } }
+@keyframes nSwingL { from { transform: rotate(14deg) } to { transform: rotate(-6deg) } }
+@keyframes nSwingR { from { transform: rotate(-14deg) } to { transform: rotate(6deg) } }
+@keyframes flutter { from { transform: scale(1.02,.99) } to { transform: scale(1.09,.95) } }
+
+/* Analyse: magnifier up to the face, tablet in the other hand, HUD scanning fast, foot tapping */
+.r-nubo[data-mood="think"] .arm-r { animation: nPeerR .55s var(--snap) both; }
+.r-nubo[data-mood="think"] .fore-r { animation: nPeerFR .55s var(--snap) .08s both, nPeerAdjust 2.2s var(--ease-in-out) .7s infinite; }
+.r-nubo[data-mood="think"] .arm-l { animation: nReadL .5s var(--snap) both; }
+.r-nubo[data-mood="think"] .fore-l { animation: nReadFL .5s var(--snap) .07s both; }
+.r-nubo[data-mood="think"] .head { animation: nPeerHead 2.2s var(--ease-in-out) infinite; }
+.r-nubo[data-mood="think"] .hud-scan { animation-duration: .45s; }
+.r-nubo[data-mood="think"] .bar { animation-duration: .35s; }
+.r-nubo[data-mood="think"] .dish { animation-duration: 1.2s; }
+@keyframes nPeerR { to { transform: rotate(-32deg) } }
+@keyframes nPeerFR { to { transform: rotate(189deg) } }
+@keyframes nPeerAdjust { 0%,100% { transform: rotate(189deg) } 50% { transform: rotate(184deg) } }
+@keyframes nReadL { to { transform: rotate(-10deg) } }
+@keyframes nReadFL { to { transform: rotate(-72deg) } }
+@keyframes nPeerHead { 0%,100% { transform: rotate(4deg) translateX(1px) } 50% { transform: rotate(7deg) translateX(2.5px) translateY(1px) } }
+
+/* Sad: hug the tablet tight, magnifier dangling, buns droop */
+.r-nubo[data-mood="sad"] .arm-l { animation: nHugL 1s var(--ease-out) both; }
+.r-nubo[data-mood="sad"] .fore-l { animation: nHugFL 1s var(--ease-out) .1s both; }
+.r-nubo[data-mood="sad"] .arm-r { animation: limpR 1s var(--ease-out) both; }
+.r-nubo[data-mood="sad"] .fore-r { animation: nDangle 3s var(--ease-in-out) .6s infinite; }
+.r-nubo[data-mood="sad"] .wobble { animation-duration: 5s; }
+.r-nubo[data-mood="sad"] .hud-scan, .r-nubo[data-mood="sleep"] .hud-scan { animation-play-state: paused; opacity: .25; }
+.r-nubo[data-mood="sad"] .bar { animation-duration: 3s; }
+@keyframes nDangle { 0%,100% { transform: rotate(4deg) } 50% { transform: rotate(10deg) } }
+
+/* Sleep: tablet hugged like a pillow, rotor off, mic dim */
+.r-nubo[data-mood="sleep"] .arm-l { animation: nHugL 1.2s var(--ease-out) both; }
+.r-nubo[data-mood="sleep"] .fore-l { animation: nHugFL 1.2s var(--ease-out) .1s both; }
+.r-nubo[data-mood="sleep"] .mic, .r-nubo[data-mood="sleep"] .cup-led { animation: none; opacity: .2; }
+.r-nubo[data-mood="sleep"] .bar { animation: none; transform: scaleY(.3); }
+
+.r-tula .lantern { transform-origin: 124px 160px; animation: swing 2.2s var(--ease-in-out) infinite; }
+@keyframes swing { 0%,100% { transform: rotate(-7deg) } 50% { transform: rotate(7deg) } }
+.r-tula .glass { fill: var(--butter-soft); stroke: var(--m3); stroke-width: 2; }
+.r-tula .lflame { fill: var(--butter); filter: drop-shadow(0 0 6px var(--butter)); transform-box: fill-box; transform-origin: 50% 100%; animation: flick .25s ease-in-out infinite alternate; }
+@keyframes flick { from { transform: scale(.85, .9) } to { transform: scale(1.05, 1.1) } }
+.r-tula .bead { fill: var(--butter); filter: drop-shadow(0 0 4px var(--butter)); }
+.r-tula .lens { fill: var(--lilac); stroke: var(--m1); stroke-width: 3; }
+.r-tula .freckle { fill: var(--peach-deep); }
+.r-tula .cheek { fill: var(--peach); opacity: .7; }
+.r-tula[data-mood="wave"] .arm-r { animation: relaxR .45s var(--snap) forwards; }
+.r-tula[data-mood="wave"] .fore-r { animation: relaxForeR .45s var(--snap) forwards; }
+.r-tula[data-mood="wave"] .arm-l { animation: waveArmL .45s var(--snap) forwards; }
+.r-tula[data-mood="wave"] .fore-l { animation: waveForeL .4s var(--ease-in-out) .25s infinite alternate; }
+.r-tula[data-mood="wave"] .head { animation: waveHeadL .8s var(--ease-in-out) infinite alternate; }
+.r-tula[data-mood="wave"] .leg-l { animation: popLegL .45s var(--snap) forwards; }
+.r-tula[data-mood="wave"] .shin-l { animation: popShinL .45s var(--snap) forwards; }
+.r-tula[data-mood="wave"] .leg-r { animation: plantLegR .45s var(--snap) forwards; }
+.r-tula[data-mood="wave"] .shin-r { animation: none; }
+@keyframes relaxR { to { transform: rotate(-6deg) } }
+@keyframes relaxForeR { to { transform: rotate(10deg) } }
+@keyframes waveArmL { from { transform: rotate(4deg) } 70% { transform: rotate(158deg) } to { transform: rotate(150deg) } }
+@keyframes waveForeL { from { transform: rotate(38deg) } to { transform: rotate(-26deg) } }
+@keyframes waveHeadL { from { transform: rotate(-3deg) } to { transform: rotate(-9deg) translateY(-1px) } }
+@keyframes popLegL { to { transform: rotate(5deg) } }
+@keyframes popShinL { to { transform: rotate(-12deg) } }
+@keyframes plantLegR { to { transform: rotate(-3deg) } }
+.r-tula[data-mood="party"] .lantern { animation-duration: .5s; }
+.r-tula[data-mood="sleep"] .lflame { opacity: .35; }
+
+.r-bruno .hand { transform-box: view-box; transform-origin: 100px 165px; animation: tick 4s steps(8) infinite; }
+@keyframes tick { to { transform: rotate(360deg) } }
+.r-bruno .check { fill: none; stroke: var(--butter); stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 2px var(--butter)); }
+.r-bruno .cord { fill: none; stroke: var(--lilac); stroke-width: 2.5; }
+.r-bruno .whistle { transform-box: view-box; transform-origin: 86px 92px; animation: whistle 3.4s var(--ease-in-out) infinite; }
+@keyframes whistle { 0%,100% { transform: rotate(-3deg) } 50% { transform: rotate(4deg) } }
+.r-bruno[data-mood="happy"] .whistle, .r-bruno[data-mood="party"] .whistle { animation: whistleFast .3s var(--ease-in-out) infinite alternate; }
+@keyframes whistleFast { from { transform: rotate(-14deg) } to { transform: rotate(12deg) } }
+.r-bruno .scan { fill: var(--butter); opacity: .9; animation: scan 1s ease-in-out infinite alternate; transform-box: view-box; }
+@keyframes scan { from { transform: translateX(0) } to { transform: translateX(36px) } }
+.r-bruno[data-mood="party"] .gled { animation: bulb .3s ease-in-out infinite; }
+.r-bruno[data-mood="idle"] .shoulders { animation: breathe 3.4s var(--ease-in-out) infinite; }
+
+.r-menti .orbit { transform-origin: 100px 160px; animation: orbit 9s linear infinite; }
+@keyframes orbit { to { transform: rotate(360deg) } }
+.r-menti .card-f { fill: var(--m4); stroke: var(--mint-deep); stroke-width: 2; }
+.r-menti .card-t { fill: var(--mint-deep); font-size: 12px; }
+.r-menti .beam { fill: var(--mint-soft); }
+.r-menti .ring { fill: var(--mint); filter: drop-shadow(0 0 5px var(--mint)); animation: bulb 1.2s ease-in-out infinite; }
+.r-menti .spin { fill: none; stroke: var(--mint); stroke-width: 2.5; stroke-dasharray: 10 8; transform-box: view-box; transform-origin: 100px 134px; animation: tick 1.2s linear infinite; }
+.r-menti[data-mood="party"] .orbit { animation-duration: 2s; }
+.r-menti[data-mood="sad"] .orbit { animation-duration: 22s; }
+.r-menti .noodle { fill: none; stroke: var(--c-deep); stroke-width: 6; stroke-linecap: round; }
+
+
+
+/* Lumi thinks by scratching the side of his head: elbow up, hand at the temple (2-joint IK for his short arms) */
+.r-lumi[data-mood="think"] .arm-r { animation: lThinkR .5s var(--snap) both; }
+.r-lumi[data-mood="think"] .fore-r { animation: lThinkFR .5s var(--snap) .07s both, lScratch .28s var(--ease-in-out) .6s infinite alternate; }
+@keyframes lThinkR { to { transform: rotate(-150deg) } }
+@keyframes lThinkFR { to { transform: rotate(215deg) } }
+@keyframes lScratch { from { transform: rotate(215deg) } to { transform: rotate(206deg) } }
+/* ── v5 detail styles ── */
+.r-lumi .orb-ring { fill: none; stroke: var(--sky); stroke-opacity: .4; stroke-width: 1; stroke-dasharray: 3 4; transform-box: fill-box; transform-origin: center; animation: tick 12s linear infinite; }
+.r-nubo .tie { fill: none; stroke: var(--butter); stroke-width: 2.4; stroke-linecap: round; }
+.r-nubo .stroke-knit { fill: none; stroke: #C9BEF2; stroke-width: 1; opacity: .7; }
+.r-nubo .tab-glow { fill: var(--lilac); opacity: .12; filter: blur(2px); }
+.r-nubo .lock-r { animation-delay: -.6s; }
+.r-tula .lash-i { stroke-width: 1.8; }
+.r-tula .brow-i { stroke-width: 2.1; }
+.r-tula .cheek.soft { opacity: .35; }
+.r-tula .lglow { fill: var(--butter); opacity: .18; filter: blur(3px); animation: bulb 1.6s ease-in-out infinite; }
+.r-tula .lcore { fill: #fff; opacity: .8; }
+.r-menti .lid { fill: var(--c); stroke: var(--c-deep); stroke-width: 1.2; }
+.r-menti .iris-ring { fill: none; stroke: var(--visor); stroke-opacity: .35; stroke-width: 1.4; }
+.r-menti .blade { fill: none; stroke: var(--m3); stroke-width: 1.2; stroke-linecap: round; opacity: .6; }
+.r-menti .seg { fill: none; stroke: var(--m3); stroke-width: 1.4; stroke-linecap: round; }
+.r-menti .card-l { fill: none; stroke: var(--mint-deep); stroke-width: 1.3; stroke-linecap: round; opacity: .6; }
+.r-menti .chip { animation: bulb 1.6s ease-in-out infinite; }
+.r-menti .ag { font-size: 8px; fill: var(--ink); display: none; }
+.r-menti[data-mood="happy"] .ag-happy, .r-menti[data-mood="party"] .ag-party, .r-menti[data-mood="think"] .ag-think, .r-menti[data-mood="sad"] .ag-sad, .r-menti[data-mood="sleep"] .ag-sleep { display: inline; }
+.r-menti[data-mood="sleep"] .ag-sleep { fill: var(--text-3); }
+
+.sparkle { position: absolute; left: var(--x); top: var(--y); width: 16px; height: 16px; background: var(--butter); clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); animation: twinkle 900ms var(--ease-out) forwards; pointer-events: none; z-index: 2; }
+@keyframes twinkle { 0% { transform: scale(0) rotate(0); opacity: 1 } 60% { transform: scale(1.2) rotate(90deg); opacity: 1 } 100% { transform: scale(0) rotate(180deg); opacity: 0 } }
+
+.c-mint   { --c: var(--mint);   --c-deep: var(--mint-deep);   --c-soft: var(--mint-soft); }
+.c-lilac  { --c: var(--lilac);  --c-deep: var(--lilac-deep);  --c-soft: var(--lilac-soft); }
+.c-sky    { --c: var(--sky);    --c-deep: var(--sky-deep);    --c-soft: var(--sky-soft); }
+.c-peach  { --c: var(--peach);  --c-deep: var(--peach-deep);  --c-soft: var(--peach-soft); }
+.c-butter { --c: var(--butter); --c-deep: var(--butter-deep); --c-soft: var(--butter-soft); }
+
+@media (max-width: 860px) { .stage { grid-template-columns: 1fr; } .squad { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 460px) { .squad { grid-template-columns: repeat(2, 1fr); } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; } }
+</style>
+
+<main>
+  <section>
+    <span class="eyebrow">Personalidad · personajes · versión 5</span>
+    <h1>El <span>escuadrón</span> de LanguagesAI</h1>
+    <p>Ahora con esqueleto completo: hombros, codos, caderas y rodillas. Cada estado mueve todo el cuerpo, con anticipación, rebote al caer y movimiento secundario en bufandas, coletas, antenas y capas.</p>
+  </section>
+
+  <section>
+    <div class="stage c-sky" id="stage">
+      <div class="hero-wrap" id="hero-wrap"><div class="floor"></div></div>
+      <div class="sheet">
+        <span class="eyebrow" id="role">Palabras</span>
+        <h2 id="name">Lumi</h2>
+        <div class="say" id="say">¡Hola!</div>
+        <p id="bio"></p>
+        <div class="traits" id="traits"></div>
+        <ul class="details" id="details"></ul>
+        <div class="btns" id="moods">
+          <button class="btn" data-mood="wave" id="mood-wave">Saludar</button>
+          <button class="btn" data-mood="happy" id="mood-happy">Acierto</button>
+          <button class="btn" data-mood="party" id="mood-party">¡A volar!</button>
+          <button class="btn" data-mood="think" id="mood-think">Pensando</button>
+          <button class="btn" data-mood="sad" id="mood-sad">Fallo</button>
+          <button class="btn" data-mood="sleep" id="mood-sleep">Dormido</button>
+        </div>
+        <div><button class="btn solid" id="sound-btn" aria-pressed="false">🔇 Activar sonido</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <span class="eyebrow">El escuadrón · toca uno</span>
+    <div class="squad" id="squad"></div>
+  </section>
+</main>
+
+<script>
+(() => {
+  const star = (cx, cy, r) => { const p = []; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * .45 : r; p.push((cx + Math.cos(a) * rr).toFixed(1) + ',' + (cy + Math.sin(a) * rr).toFixed(1)); } return p.join(' '); };
+  const O = (x, y) => `style="transform-origin:${x}px ${y}px"`;
+
+  const screw = (x, y, r = 2.2) => `<circle class="m3" cx="${x}" cy="${y}" r="${r}"/><path class="seam" d="M${(x - r * .6).toFixed(1)} ${y} h${(r * 1.2).toFixed(1)}"/>`;
+
+  // ═════════════ LUMI — the scholar ═════════════
+  const lumiLeg = (side) => {
+    const x = side === 'l' ? 84 : 104, cx = x + 6, sx = side === 'l' ? 74 : 100;
+    return `
+  <g class="leg-${side}" ${O(cx, 168)}>
+   <rect class="cd" x="${x}" y="166" width="12" height="38" rx="6"/>
+   <rect class="hl" x="${x + 2}" y="170" width="2.4" height="28" rx="1.2"/>
+   <g class="shin-${side}" ${O(cx, 200)}>
+    <rect class="cd" x="${x}" y="198" width="12" height="32" rx="6"/>
+    <rect class="hl" x="${x + 2}" y="206" width="2.4" height="18" rx="1.2"/>
+    <rect class="m3" x="${x - 1}" y="223" width="14" height="5" rx="2.5"/>
+    <rect class="m1" x="${sx}" y="227" width="26" height="16" rx="8"/>
+    <ellipse class="m2" cx="${sx + 13}" cy="235" rx="9" ry="3.4"/>
+    <path class="stroke-m4" stroke-width="1.3" d="M${sx + 9} 229.5 l4 2 l4 -2 M${sx + 9} 232.5 l4 2 l4 -2"/>
+    <rect class="m4" x="${sx}" y="238.5" width="26" height="5" rx="2.5"/>
+    <path class="seam" d="M${sx + 4} 241 h2 M${sx + 9} 241 h2 M${sx + 14} 241 h2 M${sx + 19} 241 h2"/>
+    <ellipse class="shine" cx="${sx + 7}" cy="230" rx="3" ry="1.4"/>
+   </g>
+   <circle class="m3" cx="${cx}" cy="200" r="6.5"/><circle class="stroke-m2" stroke-width="1.4" cx="${cx}" cy="200" r="4"/><circle class="m2" cx="${cx}" cy="200" r="1.8"/>
+  </g>`;
+  };
+  const lumiArm = (side) => {
+    const x = side === 'l' ? 66 : 122, cx = x + 6, s = side === 'l' ? 1 : -1;
+    return `
+  <g class="arm-${side}" ${O(cx, 100)}>
+   <rect class="c" x="${x}" y="96" width="12" height="34" rx="6"/>
+   <rect class="hl" x="${x + 2}" y="100" width="2.4" height="24" rx="1.2"/>
+   <g class="fore-${side}" ${O(cx, 130)}>
+    <rect class="c" x="${x}" y="130" width="12" height="28" rx="6"/>
+    <ellipse class="cd" cx="${cx}" cy="138.5" rx="4.4" ry="5.6"/><ellipse class="stitch" cx="${cx}" cy="138.5" rx="3.1" ry="4.3"/>
+    <rect class="a-butter" x="${x - 1}" y="147" width="14" height="6" rx="3"/>
+    <path class="seam" d="M${x + 2.5} 147.6 v5 M${x + 6} 147.6 v5 M${x + 9.5} 147.6 v5"/>
+    <circle class="m4" cx="${cx}" cy="162" r="7"/>
+    <circle class="m4" cx="${cx + s * 6}" cy="158.5" r="3"/>
+    <path class="seam" d="M${cx - 3} 165 v3 M${cx} 165.6 v3 M${cx + 3} 165 v3"/>
+   </g>
+   <circle class="m3" cx="${cx}" cy="130" r="5.5"/><circle class="m2" cx="${cx}" cy="130" r="2"/>
+  </g>`;
+  };
+  const lumi = () => `
+<svg class="robot r-lumi c-sky" viewBox="0 0 200 260" data-mood="idle" role="img" aria-label="Lumi, robot de Palabras">
+ <g class="body-all" ${O(100, 246)}>
+  <g class="torso" ${O(100, 160)}>
+   <g class="flight">
+    <path class="fl-o flame" d="M76 150 Q83 186 90 150Z"/><path class="fl-i flame" d="M79 150 Q83 172 87 150Z"/>
+    <path class="fl-o flame" d="M110 150 Q117 186 124 150Z"/><path class="fl-i flame" d="M113 150 Q117 172 121 150Z"/>
+   </g>
+   <g class="sway" ${O(118, 148)}><path class="ribbon" d="M114.5 146 v26 l3.5 -4 l3.5 4 v-26 z"/></g>
+   <rect class="a-butter-d" x="69" y="98" width="62" height="54" rx="8"/>
+   <rect class="m4" x="71" y="102" width="3.5" height="46" rx="1.5"/><rect class="m4" x="125.5" y="102" width="3.5" height="46" rx="1.5"/>
+   <path class="seam" d="M71 110 h3.5 M71 118 h3.5 M71 126 h3.5 M71 134 h3.5 M71 142 h3.5 M125.5 110 h3.5 M125.5 118 h3.5 M125.5 126 h3.5 M125.5 134 h3.5 M125.5 142 h3.5"/>
+   <rect class="m2" x="80" y="146" width="10" height="6" rx="2"/><rect class="m2" x="110" y="146" width="10" height="6" rx="2"/>
+   <g class="sway" ${O(88, 94)}>
+    <path class="a-butter" d="M92 88 C70 94 54 118 32 116 L30 132 C54 138 70 118 94 104 Z"/>
+    <path class="shade" d="M94 104 C70 118 54 138 30 132 L30.6 128 C54 133 70 114 93 99 Z"/>
+    <path class="stroke-cd" stroke-width="3" d="M50 118 L47 133 M41 117 L38 132"/>
+    <path class="stroke-cd" stroke-width="2" d="M30 132 l-3 6 M34 133 l-1 7 M38 133 l1 7"/>
+   </g>
+  </g>
+  ${lumiLeg('l')}${lumiLeg('r')}
+  <rect class="m2" x="78" y="150" width="44" height="24" rx="10"/>
+  <rect class="m1" x="78" y="168" width="44" height="4" rx="2" opacity=".55"/>
+  <path class="seam" d="M100 158 v14 M86 155.5 q4 5 9 5 M114 155.5 q-4 5 -9 5"/>
+  ${lumiArm('l')}
+  <g class="torso" ${O(100, 160)}>
+   <rect class="c" x="72" y="90" width="56" height="68" rx="22"/>
+   <path class="shade" d="M118 92 q10 4 10 22 v22 q0 22 -22 22 h-4 q20 -6 20 -40 z"/>
+   <path class="m4" d="M88 92 L100 120 L112 92 Z"/>
+   <path class="m4" d="M88 92 l-6 7 l9 1 z M112 92 l6 7 l-9 1 z"/>
+   <path class="stroke-cd" stroke-width="3" d="M88 93 L100 121 L112 93"/>
+   <path class="stitch" d="M86 98 L98 126 M114 98 L102 126"/>
+   <circle class="cd" cx="100" cy="130" r="2.8"/><circle class="hl" cx="99.2" cy="129.2" r="1"/>
+   <circle class="cd" cx="100" cy="141" r="2.8"/><circle class="hl" cx="99.2" cy="140.2" r="1"/>
+   <rect class="cd" x="107" y="128" width="14" height="11" rx="3"/><path class="stitch" d="M108.5 131 h11"/>
+   <rect class="a-butter" x="110" y="121" width="3.5" height="11" rx="1.75"/><rect class="m1" x="115.5" y="123" width="3" height="9" rx="1.5"/><rect class="m3" x="116" y="122" width="2" height="5" rx="1"/>
+   <ellipse class="shine" cx="82" cy="100" rx="6" ry="3" transform="rotate(-30 82 100)"/>
+   <rect class="m1" x="72" y="148" width="56" height="9"/>
+   <rect class="m4" x="82" y="146.5" width="10" height="12" rx="2"/><rect class="shade" x="82" y="155.5" width="10" height="3" rx="1"/><text class="glyph tile-t" x="87" y="152">A</text>
+   <rect class="m4" x="95" y="146.5" width="10" height="12" rx="2"/><rect class="shade" x="95" y="155.5" width="10" height="3" rx="1"/><text class="glyph tile-t" x="100" y="152">B</text>
+   <rect class="m4" x="108" y="146.5" width="10" height="12" rx="2"/><rect class="shade" x="108" y="155.5" width="10" height="3" rx="1"/><text class="glyph tile-t" x="113" y="152">C</text>
+   <rect class="a-butter" x="80" y="84" width="40" height="13" rx="6.5"/>
+   <path class="stroke-cd" stroke-width="3" d="M91 85 v11 M100 85 v11 M109 85 v11"/>
+   <rect class="shade" x="80" y="93" width="40" height="4" rx="2"/>
+   <g class="sway" ${O(92, 96)}>
+    <path class="a-butter" d="M89 95 l-5 20 l8 2 l4 -21 z"/>
+    <path class="stroke-cd" stroke-width="2.4" d="M88 102 l7 1.5 M86.5 109 l7 1.5"/>
+    <path class="stroke-cd" stroke-width="1.4" d="M84.5 115.5 l-1 4 M87.5 116.2 l0 4 M90.5 116.8 l1 4"/>
+   </g>
+   <circle class="a-butter-d" cx="93" cy="96" r="4.2"/><circle class="hl" cx="92" cy="95" r="1.4"/>
+  </g>
+  ${lumiArm('r')}
+  <g class="orb"><circle class="orb-ring" cx="158" cy="128" r="16.5"/><circle class="orb-c" cx="158" cy="128" r="12"/><text class="glyph orb-t" x="158" y="128.5">A</text><circle class="hl" cx="153" cy="123" r="2.4"/></g>
+  <g class="head" ${O(100, 86)}>
+   <rect class="m3" x="93" y="76" width="14" height="12" rx="3"/>
+   <rect class="m2" x="92" y="79" width="16" height="2.5" rx="1.25"/><rect class="m2" x="92" y="84" width="16" height="2.5" rx="1.25"/>
+   <g class="wobble" ${O(112, 24)}>
+    <path class="a-butter" d="M110 22 C118 6 134 -2 144 0 C140 12 126 20 112 26 Z"/>
+    <path class="stroke-m1" stroke-width="1.5" d="M112 24 L140 3"/>
+    <path class="stroke-cd" stroke-width="1.1" d="M118 19 l-3 -6 M123 15 l-2.5 -6 M128 12 l-2 -6 M133 8 l-1.5 -5 M118 19 l5 2 M124 15 l5 2 M130 11 l5 2"/>
+    <path class="m1" d="M109 27 l3.5 -5 l2.5 2.5 z"/>
+   </g>
+   <circle class="cd" cx="68" cy="52" r="7.5"/><circle class="stroke-m3" stroke-width="1.6" cx="68" cy="52" r="5"/>${screw(67, 52, 2)}
+   <circle class="cd" cx="132" cy="52" r="7.5"/><circle class="stroke-m3" stroke-width="1.6" cx="132" cy="52" r="5"/>${screw(133, 52, 2)}
+   <rect class="c" x="68" y="16" width="64" height="66" rx="30"/>
+   <path class="shade" d="M120 20 q12 8 12 30 v6 q0 22 -22 26 h-6 q24 -8 24 -40 q0 -14 -8 -22 z"/>
+   <path class="seam" d="M71 34 Q100 25 129 34"/>
+   <ellipse class="shine" cx="84" cy="25" rx="10" ry="3.5" transform="rotate(-20 84 25)"/>
+   <rect class="vis" x="75" y="34" width="50" height="38" rx="17"/>
+   <rect class="hl" x="84" y="36" width="32" height="2.2" rx="1.1" opacity=".08"/>
+   <g class="eyes" ${O(100, 52)}>
+    <g class="f-idle"><circle class="led blink" cx="89" cy="50" r="4.5"/><circle class="led blink" cx="111" cy="50" r="4.5"/><circle class="m4" cx="90.6" cy="48.3" r="1.4"/><circle class="m4" cx="112.6" cy="48.3" r="1.4"/><circle class="m4" cx="87.6" cy="51.8" r=".7"/><circle class="m4" cx="109.6" cy="51.8" r=".7"/><path class="led-s brow" d="M84 38 q5 -2 10 0 M106 38 q5 -2 10 0"/><path class="led-s" style="stroke-width:2.5" d="M94 64 q6 4 12 0"/><ellipse class="blushled" cx="80" cy="63" rx="3.2" ry="1.7"/><ellipse class="blushled" cx="120" cy="63" rx="3.2" ry="1.7"/></g>
+    <g class="f-happy"><path class="led-s" d="M83 53 q6 -8 12 0 M105 53 q6 -8 12 0"/><path class="led-s brow" d="M84 36.5 q5 -3 10 0 M106 36.5 q5 -3 10 0"/><path class="led" d="M93 60.5 q7 8 14 0 Z"/><path class="tongue" d="M97 64.2 q3 2.4 6 0 q-3 -1.6 -6 0z"/><ellipse class="blushled" cx="80" cy="62" rx="3.8" ry="2"/><ellipse class="blushled" cx="120" cy="62" rx="3.8" ry="2"/></g>
+    <g class="f-party"><polygon class="led" points="${star(89, 50, 7)}"/><polygon class="led" points="${star(111, 50, 7)}"/><path class="led-s brow" d="M83 35.5 q6 -4 12 0 M105 35.5 q6 -4 12 0"/><path class="led" d="M92 60 q8 11 16 0 Z"/><path class="tongue" d="M96.5 65 q3.5 2.8 7 0 q-3.5 -2 -7 0z"/><ellipse class="blushled" cx="80" cy="62" rx="3.8" ry="2"/><ellipse class="blushled" cx="120" cy="62" rx="3.8" ry="2"/></g>
+    <g class="f-think"><circle class="led" cx="92" cy="46.5" r="3.6"/><circle class="led" cx="114" cy="46.5" r="3.6"/><circle class="m4" cx="93.2" cy="45.3" r="1.1"/><circle class="m4" cx="115.2" cy="45.3" r="1.1"/><path class="led-s brow" d="M84 39.5 h10 M106 37 q5 -4 10 -1"/><path class="led-s" style="stroke-width:2.4" d="M95 65 q2.5 -2.2 5 0 q2.5 2.2 5 0"/></g>
+    <g class="f-sad"><circle class="led" cx="89" cy="53" r="3.6"/><circle class="led" cx="111" cy="53" r="3.6"/><circle class="m4" cx="90.2" cy="51.8" r="1.1"/><circle class="m4" cx="112.2" cy="51.8" r="1.1"/><path class="led-s brow" d="M84 40.5 L94 37.5 M116 40.5 L106 37.5"/><path class="led-s" style="stroke-width:2.5" d="M94 66 q6 -4 12 0"/><circle class="tear" cx="85" cy="59" r="1.8"/></g>
+    <g class="f-sleep"><path class="led-s" style="stroke-width:3" d="M84 51 q5 3 10 0 M106 51 q5 3 10 0"/><path class="led-s brow" d="M84 41 q5 1 10 0 M106 41 q5 1 10 0"/><circle class="led snore" cx="100" cy="64" r="2.2"/><ellipse class="blushled" cx="80" cy="62" rx="3.2" ry="1.7"/><ellipse class="blushled" cx="120" cy="62" rx="3.2" ry="1.7"/></g>
+   </g>
+   <circle class="stroke-m4" stroke-width="2.5" cx="89" cy="50" r="10"/><circle class="stroke-m4" stroke-width="2.5" cx="111" cy="50" r="10"/>
+   <path class="glare" d="M82.5 46 l4 -4.5 M104.5 46 l4 -4.5"/>
+   <path class="stroke-m4" stroke-width="2.5" d="M99 49 q1 -2 2 0 M79 47 l-4 -2 M121 47 l4 -2"/>
+   <text class="zz" x="134" y="26">z</text><text class="zz" x="142" y="14">z</text>
+  </g>
+ </g>
+</svg>`;
+
+  // ═════════════ NUBO — the field analyst ═════════════
+  const nuboLeg = (side) => {
+    const x = side === 'l' ? 87 : 103, cx = x + 5, bx = side === 'l' ? 80 : 100;
+    return `
+  <g class="leg-${side}" ${O(cx, 168)}>
+   <rect class="legging" x="${x}" y="166" width="10" height="36" rx="5"/>
+   <rect class="hl" x="${x + 2}" y="170" width="2" height="26" rx="1"/>
+   <g class="shin-${side}" ${O(cx, 200)}>
+    <g class="flight"><ellipse class="hover" cx="${bx + 10}" cy="248" rx="11" ry="3"/></g>
+    <rect class="legging" x="${x}" y="198" width="10" height="24" rx="5"/>
+    <rect class="hl" x="${x + 2}" y="203" width="2" height="14" rx="1"/>
+    <rect class="c" x="${bx}" y="214" width="20" height="26" rx="7"/>
+    <path class="shade" d="M${bx + 14} 215 h1 a5 5 0 0 1 5 5 v14 a6 6 0 0 1 -6 6 h-2 z"/>
+    <rect class="cd" x="${bx - 1}" y="212" width="22" height="6" rx="3"/><path class="stitch" d="M${bx} 215 h20"/>
+    <path class="lace" d="M${bx + 5} 221 l10 4 M${bx + 15} 221 l-10 4 M${bx + 5} 227 l10 4 M${bx + 15} 227 l-10 4"/>
+    <ellipse class="cd" cx="${bx + 10}" cy="235.5" rx="8" ry="3"/><ellipse class="hl" cx="${bx + 8}" cy="234.6" rx="3" ry="1"/>
+    <rect class="m1" x="${bx - 1}" y="237" width="22" height="6" rx="3"/>
+    <path class="stroke-m3" stroke-width="1" d="M${bx + 3} 241 h2 M${bx + 8} 241 h2 M${bx + 13} 241 h2"/>
+    <ellipse class="shine" cx="${bx + 5}" cy="219" rx="3" ry="1.5"/>
+   </g>
+   <circle class="m3" cx="${cx}" cy="200" r="4.5"/><circle class="m2" cx="${cx}" cy="200" r="1.6"/>
+  </g>`;
+  };
+  const nubo = () => `
+<svg class="robot r-nubo c-lilac" viewBox="0 0 200 260" data-mood="idle" role="img" aria-label="Nubo, robot de Expresiones">
+ <g class="body-all" ${O(100, 246)}>
+  <g class="torso" ${O(100, 150)}>
+   <g class="flight">
+    <path class="stroke-m3" stroke-width="3" d="M100 96 V8"/>
+    <ellipse class="m3 rotor" cx="100" cy="8" rx="30" ry="3.5"/>
+    <circle class="m1" cx="100" cy="8" r="4"/><circle class="led" cx="100" cy="8" r="1.6"/>
+   </g>
+   <rect class="m2" x="72" y="94" width="56" height="54" rx="14"/>
+   <path class="seam" d="M74 108 h52"/>
+   <rect class="m1" x="66" y="112" width="8" height="26" rx="4"/><rect class="m1" x="126" y="112" width="8" height="26" rx="4"/>
+   <rect class="m3" x="67" y="118" width="6" height="3" rx="1"/><rect class="m3" x="127" y="118" width="6" height="3" rx="1"/>
+   <g class="wobble" ${O(80, 98)}>
+    <path class="stroke-m3" stroke-width="2.5" d="M80 98 L66 72"/>
+    <circle class="m3" cx="73" cy="85" r="2"/>
+    <g transform="rotate(-28 62 66)"><g class="dish"><ellipse class="m4" cx="62" cy="66" rx="11" ry="5"/><ellipse class="m3" cx="62" cy="66" rx="6" ry="2.6"/><path class="stroke-m3" stroke-width="1.2" d="M62 66 v-7"/></g></g>
+    <circle class="led" cx="62" cy="58.5" r="2"/>
+   </g>
+  </g>
+  ${nuboLeg('l')}${nuboLeg('r')}
+  <g class="skirt" ${O(100, 146)}>
+   <path class="cd" d="M78 144 L122 144 L129 174 Q100 181 71 174 Z"/>
+   <path class="shade" d="M106 146 L122 146 L129 174 Q118 177 111 178 Z" opacity=".7"/>
+   <path class="stroke-c" stroke-width="1.6" d="M88 146 l-4 30 M100 146 v32 M112 146 l4 30"/>
+   <path class="shade" d="M71 174 Q100 181 129 174 L128.4 170.5 Q100 177 71.6 170.5 Z"/>
+   <path class="a-butter" d="M71 171 Q100 178 129 171 L129.6 174 Q100 181 70.4 174 Z"/>
+  </g>
+  <g class="torso" ${O(100, 150)}>
+   <rect class="knit" x="82" y="88" width="36" height="58" rx="12"/>
+   <path class="stroke-knit" d="M92 98 v44 M97 98 v44 M103 98 v44 M108 98 v44"/>
+   <path class="c" d="M74 96 Q78 88 91 88 L95 148 L76 148 Q71 122 74 96 Z"/>
+   <path class="c" d="M126 96 Q122 88 109 88 L105 148 L124 148 Q129 122 126 96 Z"/>
+   <path class="shade" d="M126 96 Q129 122 124 148 L117 148 Q123 122 120 91 Z"/>
+   <path class="stitch" d="M89 92 L92.6 146 M111 92 L107.4 146 M76.6 100 Q74 122 78 146 M123.4 100 Q126 122 122 146"/>
+   <path class="stroke-cd" stroke-width="1.6" d="M91 89 L95 147 M109 89 L105 147"/>
+   <rect class="a-butter" x="79.5" y="99" width="2.5" height="10" rx="1.25"/><rect class="m4" x="83.5" y="100" width="2.5" height="9" rx="1.25"/><rect class="m1" x="87" y="101" width="2" height="8" rx="1"/>
+   <rect class="m3" x="80" y="100" width="1.5" height="4" rx=".5"/>
+   <rect class="cd" x="77" y="108" width="13" height="11" rx="2"/><rect class="c" x="76.5" y="105.5" width="14" height="5" rx="2"/><rect class="shade" x="76.5" y="109" width="14" height="1.5"/><circle class="a-butter" cx="83.5" cy="108" r="1.3"/>
+   <rect class="cd" x="110" y="108" width="13" height="11" rx="2"/><rect class="c" x="109.5" y="105.5" width="14" height="5" rx="2"/><rect class="shade" x="109.5" y="109" width="14" height="1.5"/><circle class="a-butter" cx="116.5" cy="108" r="1.3"/>
+   <rect class="cd" x="77" y="127" width="14" height="13" rx="2.5"/><rect class="c" x="76.5" y="124.5" width="15" height="5" rx="2"/><circle class="a-butter" cx="84" cy="127" r="1.3"/>
+   <rect class="cd" x="109" y="127" width="14" height="13" rx="2.5"/><rect class="c" x="108.5" y="124.5" width="15" height="5" rx="2"/><circle class="a-butter" cx="116" cy="127" r="1.3"/>
+   <path class="a-butter" d="M111 94 h10 a2.5 2.5 0 0 1 2.5 2.5 v3 a2.5 2.5 0 0 1 -2.5 2.5 h-5 l-3 3 v-3 h-2 a2.5 2.5 0 0 1 -2.5 -2.5 v-3 a2.5 2.5 0 0 1 2.5 -2.5 z"/>
+   <circle class="m1" cx="113.5" cy="98" r=".9"/><circle class="m1" cx="116.5" cy="98" r=".9"/><circle class="m1" cx="119.5" cy="98" r=".9"/>
+   <path class="stroke-m2" stroke-width="4.5" d="M81 90 L83 140 M119 90 L117 140"/>
+   <rect class="m3" x="79" y="114" width="7" height="5" rx="1.5"/><rect class="m3" x="114" y="114" width="7" height="5" rx="1.5"/>
+   <rect class="m1" x="76" y="140" width="48" height="7" rx="3"/><rect class="a-butter" x="95.5" y="139" width="9" height="9" rx="2"/><rect class="m1" x="98" y="141.5" width="4" height="4" rx="1"/>
+   <rect class="knit" x="88" y="83" width="24" height="10" rx="5"/><path class="stroke-m3" stroke-width="1.2" d="M90 88 h20"/><path class="stroke-knit" d="M92 84 v8 M96 84 v8 M100 84 v8 M104 84 v8 M108 84 v8"/>
+   <ellipse class="shine" cx="80" cy="99" rx="4" ry="2" transform="rotate(-30 80 99)"/>
+  </g>
+  <g class="arm-l" ${O(76, 98)}>
+   <rect class="knit" x="69" y="94" width="14" height="32" rx="7"/>
+   <path class="stroke-knit" d="M73 98 v24 M79 98 v24"/>
+   <g class="fore-l" ${O(76, 126)}>
+    <rect class="knit" x="70" y="124" width="12" height="30" rx="6"/>
+    <g transform="rotate(-6 64 142)">
+     <rect class="tab-glow" x="50" y="122" width="26" height="38" rx="6"/>
+     <rect class="tab-frame" x="52" y="124" width="22" height="34" rx="4"/>
+     <rect class="tab-screen" x="55" y="128" width="16" height="24" rx="2"/>
+     <path class="led" d="M57 131 h8 a2 2 0 0 1 2 2 v3 a2 2 0 0 1 -2 2 h-4 l-2 2 v-2 h-2 a2 2 0 0 1 -2 -2 v-3 a2 2 0 0 1 2 -2 z"/>
+     <circle class="tab-screen" cx="59" cy="134.5" r=".7"/><circle class="tab-screen" cx="61" cy="134.5" r=".7"/><circle class="tab-screen" cx="63" cy="134.5" r=".7"/>
+     <rect class="led bar" x="57" y="144" width="2.5" height="6" rx="1"/><rect class="led bar" x="61" y="144" width="2.5" height="6" rx="1"/><rect class="led bar" x="65" y="144" width="2.5" height="6" rx="1"/><rect class="led bar" x="69" y="144" width="1.5" height="6" rx=".75"/>
+     <circle class="m2" cx="63" cy="155" r="1.4"/>
+    </g>
+    <rect class="cd" x="69" y="146" width="14" height="5" rx="2.5"/>
+    <circle class="c" cx="76" cy="157" r="7"/><circle class="c" cx="82" cy="153.5" r="3"/><path class="stroke-cd" stroke-width="1.4" d="M72 160 h8"/>
+   </g>
+   <circle class="m3" cx="76" cy="126" r="3.4"/>
+  </g>
+  <g class="head" ${O(100, 86)}>
+   <rect class="m3" x="94" y="76" width="12" height="12" rx="3"/><rect class="m2" x="93" y="80" width="14" height="2.4" rx="1.2"/>
+   <g class="wobble" ${O(80, 34)}><circle class="cd" cx="73" cy="25" r="12"/><path class="shade" d="M79 15 a12 12 0 0 1 -6 22 a12 12 0 0 0 6 -22 z"/><path class="stroke-c" stroke-width="2" d="M65 22 q8 -8 16 0"/><path class="tie" d="M63 31 q10 7 20 0"/><circle class="a-butter" cx="66" cy="17" r="2.6"/><circle class="a-butter" cx="80" cy="15" r="2"/></g>
+   <g class="wobble bun-r" ${O(120, 34)}><circle class="cd" cx="127" cy="25" r="12"/><path class="shade" d="M133 15 a12 12 0 0 1 -6 22 a12 12 0 0 0 6 -22 z"/><path class="stroke-c" stroke-width="2" d="M119 22 q8 -8 16 0"/><path class="tie" d="M117 31 q10 7 20 0"/><circle class="a-butter" cx="134" cy="17" r="2.6"/><circle class="a-butter" cx="120" cy="15" r="2"/></g>
+   <rect class="c" x="70" y="18" width="60" height="64" rx="28"/>
+   <path class="shade" d="M121 22 q9 8 9 28 v6 q0 22 -22 26 h-4 q22 -8 22 -40 q0 -12 -5 -20 z"/>
+   <path class="cd" d="M71 44 Q75 27 89 31 Q95 20 104 30 Q117 22 129 44 L130 34 Q100 6 70 34 Z"/>
+   <path class="hl-s" d="M80 31 q4 -4 9 -2 M99 25 q4 -3 8 0 M113 27 q5 -1 8 3"/>
+   <ellipse class="shine" cx="86" cy="23" rx="8" ry="2.5" transform="rotate(-12 86 23)"/>
+   <rect class="face" x="78" y="38" width="44" height="38" rx="17"/>
+   <rect class="hl" x="86" y="40" width="28" height="2" rx="1" opacity=".07"/>
+   <g class="eyes" ${O(100, 56)}>
+    <g class="f-idle"><ellipse class="led blink" cx="89" cy="55" rx="4.8" ry="6.5"/><ellipse class="led blink" cx="111" cy="55" rx="4.8" ry="6.5"/><circle class="m4" cx="90.6" cy="52.4" r="1.6"/><circle class="m4" cx="112.6" cy="52.4" r="1.6"/><circle class="m4" cx="87.8" cy="57.6" r=".8"/><circle class="m4" cx="109.8" cy="57.6" r=".8"/><path class="led-s lash" d="M84 50 l-3 -2 M85 47.5 l-1.5 -3 M116 50 l3 -2 M115 47.5 l1.5 -3"/><path class="led-s brow" d="M85 44.5 q4 -2.2 8 0 M107 44.5 q4 -2.2 8 0"/><path class="led-s" style="stroke-width:2.4" d="M96 68 q4 3 8 0"/><ellipse class="blushled" cx="84" cy="64" rx="3.6" ry="2"/><ellipse class="blushled" cx="116" cy="64" rx="3.6" ry="2"/></g>
+    <g class="f-happy"><path class="led-s" d="M84 57 q5 -7 10 0 M106 57 q5 -7 10 0"/><path class="led-s lash" d="M84 54 l-3 -2 M116 54 l3 -2"/><path class="led-s brow" d="M85 43 q4 -3 8 0 M107 43 q4 -3 8 0"/><path class="led" d="M94 65 q6 7 12 0 Z"/><path class="tongue" d="M97.5 68 q2.5 1.8 5 0 q-2.5 -1.4 -5 0z"/><ellipse class="blushled" cx="84" cy="63" rx="4" ry="2.2"/><ellipse class="blushled" cx="116" cy="63" rx="4" ry="2.2"/></g>
+    <g class="f-party"><polygon class="led" points="${star(89, 55, 7)}"/><polygon class="led" points="${star(111, 55, 7)}"/><path class="led-s brow" d="M84 42 q5 -3.5 10 0 M106 42 q5 -3.5 10 0"/><path class="led" d="M93 64 q7 9 14 0 Z"/><path class="tongue" d="M97 68.4 q3 2.2 6 0 q-3 -1.6 -6 0z"/><ellipse class="blushled" cx="83" cy="64" rx="4" ry="2.2"/><ellipse class="blushled" cx="117" cy="64" rx="4" ry="2.2"/></g>
+    <g class="f-think"><path class="led-s" style="stroke-width:3" d="M84 56 h10"/><path class="led-s lash" d="M84 55 l-3 -2"/><path class="led-s brow" d="M85 48.5 h8 M107 43 q4 -3.2 9 -1"/><ellipse class="led" cx="112" cy="54" rx="5.5" ry="7"/><circle class="m4" cx="113.6" cy="51.2" r="1.6"/><circle class="m4" cx="110.6" cy="57" r=".8"/><circle class="led" cx="102" cy="68" r="2"/></g>
+    <g class="f-sad"><ellipse class="led" cx="89" cy="58" rx="4" ry="4.5"/><ellipse class="led" cx="111" cy="58" rx="4" ry="4.5"/><circle class="m4" cx="90.2" cy="56.4" r="1.2"/><circle class="m4" cx="112.2" cy="56.4" r="1.2"/><path class="led-s brow" d="M83 50 L93 46 M117 50 L107 46"/><path class="led-s" style="stroke-width:2.4" d="M96 70 q4 -3 8 0"/><circle class="tear" cx="86" cy="64" r="1.8"/></g>
+    <g class="f-sleep"><path class="led-s" style="stroke-width:3" d="M84 56 q5 3 10 0 M106 56 q5 3 10 0"/><path class="led-s lash" d="M84 57 l-3 2 M116 57 l3 2"/><path class="led-s brow" d="M85 47.5 q4 1 8 0 M107 47.5 q4 1 8 0"/><circle class="led snore" cx="100" cy="68" r="2"/><ellipse class="blushled" cx="84" cy="63" rx="3.6" ry="2"/><ellipse class="blushled" cx="116" cy="63" rx="3.6" ry="2"/></g>
+   </g>
+   <g class="sway" ${O(72, 46)}><path class="cd" d="M73 44 q-8 14 -3 30 q5 -2 6 -7 q-3 -10 1 -21 z"/><path class="hl-s" d="M71 50 q-3 8 -1 16"/></g>
+   <g class="sway lock-r" ${O(128, 46)}><path class="cd" d="M127 44 q8 14 3 30 q-5 -2 -6 -7 q3 -10 -1 -21 z"/></g>
+   <circle class="hud" cx="111" cy="55" r="10.5"/>
+   <path class="hud-grid" d="M102 55 h18 M111 46 v18 M101.5 47.5 v-3 h3 M120.5 47.5 v-3 h-3 M101.5 62.5 v3 h3 M120.5 62.5 v3 h-3"/>
+   <rect class="hud-scan" x="102" y="49" width="18" height="1.6" rx=".8"/>
+   <path class="stroke-m3" stroke-width="2.2" d="M121 52 Q129 50 131 56"/>
+   <path class="stroke-m2" stroke-width="3" d="M71 50 Q70 13 100 11 Q130 13 129 50"/>
+   <path class="hl-s" d="M78 24 Q86 15 98 13.5"/>
+   <circle class="m2" cx="70" cy="56" r="9"/><circle class="stroke-m3" stroke-width="1.2" cx="70" cy="56" r="6.5"/><circle class="cup-led" cx="70" cy="56" r="3.6"/>
+   <circle class="m2" cx="130" cy="56" r="8"/><circle class="m3" cx="130" cy="56" r="3"/><path class="seam" d="M128 56 h4"/>
+   <path class="stroke-m2" stroke-width="2.5" d="M70 63 Q73 76 85 75"/><circle class="m2" cx="86.5" cy="75" r="3.4"/><circle class="led mic" cx="86.5" cy="75" r="2"/>
+   <text class="zz" x="140" y="34">z</text><text class="zz" x="148" y="22">z</text>
+  </g>
+  <g class="arm-r" ${O(124, 98)}>
+   <rect class="knit" x="117" y="94" width="14" height="32" rx="7"/>
+   <path class="stroke-knit" d="M121 98 v24 M127 98 v24"/>
+   <g class="fore-r" ${O(124, 126)}>
+    <rect class="knit" x="118" y="124" width="12" height="30" rx="6"/>
+    <rect class="cd" x="117" y="146" width="14" height="5" rx="2.5"/>
+    <rect class="m1" x="121.5" y="160" width="5" height="18" rx="2.5"/>
+    <path class="stroke-m3" stroke-width="1.1" d="M121.5 165 h5 M121.5 168.5 h5 M121.5 172 h5"/>
+    <rect class="a-butter-d" x="120.5" y="175.5" width="7" height="3" rx="1"/>
+    <circle class="mag-glass" cx="124" cy="188" r="10"/>
+    <circle class="mag-ring" cx="124" cy="188" r="11"/>
+    <path class="glint" d="M118 183 q3 -4 7 -4"/><circle class="glint" cx="129.5" cy="193" r=".6"/>
+    <circle class="c" cx="124" cy="157" r="7"/><circle class="c" cx="118" cy="153.5" r="3"/><path class="stroke-cd" stroke-width="1.4" d="M120 160 h8"/>
+   </g>
+   <circle class="m3" cx="124" cy="126" r="3.4"/>
+  </g>
+ </g>
+</svg>`;
+
+  // ═════════════ TULA — the explorer ═════════════
+  const tulaLeg = (side) => {
+    const x = side === 'l' ? 80 : 103, cx = x + 8.5, bx = side === 'l' ? 77 : 101, toe = side === 'l' ? 82 : 118, fx = side === 'l' ? 74 : 114, px = side === 'l' ? 82 : 110;
+    return `
+  <g class="leg-${side}" ${O(cx, 162)}>
+   <rect class="m2" x="${x}" y="160" width="17" height="38" rx="8"/>
+   <rect class="hl" x="${x + 3}" y="164" width="2.4" height="26" rx="1.2"/>
+   <path class="seam" d="M${cx} 162 v24"/>
+   <rect class="m1" x="${px}" y="168" width="8" height="10" rx="2"/><rect class="m2" x="${px - .5}" y="167" width="9" height="3.5" rx="1.2"/><circle class="m3" cx="${px + 4}" cy="169" r="1"/>
+   <g class="shin-${side}" ${O(cx, 194)}>
+    <g class="flight"><path class="fl-o flame" d="M${fx} 244 Q${fx + 6} 272 ${fx + 12} 244Z"/><path class="fl-i flame" d="M${fx + 3} 244 Q${fx + 6} 262 ${fx + 9} 244Z"/></g>
+    <rect class="m2" x="${x}" y="192" width="17" height="24" rx="8"/>
+    <rect class="m1" x="${bx}" y="212" width="22" height="30" rx="7"/>
+    <rect class="hl" x="${bx + 3}" y="217" width="2.4" height="18" rx="1.2"/>
+    <ellipse class="m1" cx="${toe}" cy="240" rx="11" ry="6"/>
+    <rect class="cd" x="${bx - 1}" y="211" width="24" height="6" rx="3"/><path class="stitch" d="M${bx} 214 h22"/>
+    <path class="stroke-m3" stroke-width="1.3" d="M${bx + 7} 220 l8 4 M${bx + 15} 220 l-8 4 M${bx + 7} 226 l8 4 M${bx + 15} 226 l-8 4 M${bx + 7} 232 l8 3 M${bx + 15} 232 l-8 3"/>
+    <rect class="m2" x="${bx - 1}" y="241" width="24" height="4" rx="2"/>
+    <path class="stroke-m3" stroke-width="1" d="M${bx + 2} 243 h2 M${bx + 7} 243 h2 M${bx + 12} 243 h2 M${bx + 17} 243 h2"/>
+    <rect class="m3" x="${toe - 2}" y="241" width="6" height="4" rx="1"/>
+   </g>
+   <rect class="cd" x="${x - 1}" y="188" width="19" height="12" rx="6"/><rect class="shade" x="${x - 1}" y="196" width="19" height="4" rx="2"/>
+   <path class="stroke-m1" stroke-width="1.5" d="M${x - 1} 193.5 h19"/><rect class="m3" x="${cx - 2}" y="191.5" width="4" height="4" rx="1"/>
+  </g>`;
+  };
+  const tulaArm = (side) => {
+    const l = side === 'l', x = l ? 68 : 116, cx = x + 8, fx = l ? 70.5 : 118.5, s = l ? 1 : -1;
+    return { open: `
+  <g class="arm-${side}" ${O(cx, 98)}>
+   <rect class="c" x="${x}" y="94" width="16" height="30" rx="8"/>
+   <rect class="hl" x="${x + 3}" y="98" width="2.4" height="18" rx="1.2"/>
+   <path class="seam" d="M${x + 3} 108 q5 3 10 0 M${x + 3} 114 q5 3 10 0"/>
+   ${l ? `<path class="m4" d="M${cx} 101 l4.5 7 h-9 z"/><path class="cd" d="M${cx - 2.5} 104.5 l2.5 -3.5 l2.5 3.5 z"/>` : ''}
+   <g class="fore-${side}" ${O(cx, 124)}>
+    <rect class="m4" x="${fx}" y="124" width="11" height="28" rx="5.5"/>
+    <rect class="hl" x="${fx + 2.5}" y="128" width="2" height="18" rx="1"/>
+    <path class="seam" d="M${fx} 138 h11"/>`, close: `
+    <circle class="m4" cx="${cx}" cy="157.5" r="7.5"/>
+    <rect class="m1" x="${cx - 7}" y="151" width="14" height="7" rx="3"/>
+    <circle class="m4" cx="${cx + s * 6.5}" cy="154" r="3"/>
+    <path class="seam" d="M${cx - 3} 163 v2.5 M${cx} 163.6 v2.5 M${cx + 3} 163 v2.5"/>
+   </g>
+   <rect class="cd" x="${x - 1}" y="119" width="18" height="8" rx="4"/><path class="seam" d="M${x} 123 h16"/>
+   <rect class="cd" x="${x + 1}" y="93" width="14" height="5" rx="2.5"/><circle class="m3" cx="${cx}" cy="95.5" r="1.3"/>
+  </g>` };
+  };
+  const tula = () => {
+    const L = tulaArm('l'), R = tulaArm('r');
+    return `
+<svg class="robot r-tula c-peach" viewBox="0 0 200 260" data-mood="idle" role="img" aria-label="Tula, robot de Historias">
+ <g class="body-all" ${O(100, 246)}>
+  <g class="head" ${O(100, 88)}>
+   <g class="sway" ${O(122, 42)}>
+    <path class="stroke-cd" stroke-width="8" d="M120 38 C152 40 156 78 142 104"/>
+    <path class="hl-s" d="M126 38 C146 42 150 70 142 92"/>
+    <path class="stroke-m1" stroke-width="2" d="M134 44 l4 4 M144 56 l5 2 M148 70 l5 0 M146 86 l5 -2"/>
+    <rect class="m3" x="117" y="34" width="7" height="9" rx="2"/>
+    <circle class="bead" cx="141" cy="110" r="7"/><circle class="hl" cx="139" cy="108" r="2"/><circle class="m1" cx="141" cy="102" r="3"/>
+   </g>
+  </g>
+  ${tulaLeg('l')}${tulaLeg('r')}
+  <g class="torso" ${O(100, 164)}>
+   <rect class="m4" x="64" y="130" width="9" height="16" rx="3"/><path class="stroke-m3" stroke-width="1" d="M66 134 h5 M66 137 h5"/>
+   <path class="ribbon" d="M67.5 131 h3 v6 h-3 z"/>
+   <rect class="a-butter-d" x="60" y="140" width="30" height="26" rx="6"/>
+   <path class="stitch" d="M62.5 156 v7 h25 v-7"/>
+   <path class="a-peach-d" d="M60 146 h30 v6 q-15 8 -30 0 z"/>
+   <rect class="m4" x="72" y="150" width="6" height="7" rx="1.5"/><rect class="m1" x="74" y="152" width="2" height="3"/>
+  </g>
+  <g class="torso" ${O(100, 164)}>
+   <rect class="cd" x="86" y="84" width="28" height="9" rx="4"/>
+   <path class="c" d="M75 92 Q100 85 125 92 L129 162 Q100 168 71 162 Z"/>
+   <path class="shade" d="M116 90 Q125 92 125 92 L129 162 Q122 164 116 165 Q123 130 116 90 Z"/>
+   <path class="m4" d="M92 90 L100 110 L108 90 Z"/>
+   <path class="cd" d="M92 90 L100 110 L89 122 L80 94 Z"/><path class="cd" d="M108 90 L100 110 L111 122 L120 94 Z"/>
+   <path class="stitch" d="M82 96 L89 119 M118 96 L111 119"/>
+   <path class="stroke-m1" stroke-width="2" d="M100 112 V160"/><path class="stroke-m3" stroke-width="1" d="M98.5 116 h3 M98.5 122 h3 M98.5 128 h3 M98.5 134 h3 M98.5 140 h3 M98.5 146 h3"/>
+   <rect class="cd" x="81" y="128" width="13" height="10" rx="2"/><path class="stitch" d="M82.5 131 h10"/><circle class="m3" cx="87.5" cy="130.5" r="1.1"/>
+   <rect class="cd" x="106" y="128" width="13" height="10" rx="2"/><path class="stitch" d="M107.5 131 h10"/><circle class="m3" cx="112.5" cy="130.5" r="1.1"/>
+   <circle class="a-butter" cx="112.5" cy="145" r="6"/><circle class="stroke-m1" stroke-width="1" cx="112.5" cy="145" r="4.6"/><path class="m1" d="M112.5 140.5 l1.8 4.5 l-1.8 4.5 l-1.8 -4.5 z"/>
+   <ellipse class="shine" cx="84" cy="100" rx="5" ry="2.5" transform="rotate(-30 84 100)"/>
+   <path class="shade" d="M71 158 Q100 164 129 158 L129 162 Q100 168 71 162 Z"/>
+   <rect class="m1" x="71" y="152" width="58" height="8"/><rect class="m2" x="78" y="151.5" width="3" height="9" rx="1"/><rect class="m2" x="119" y="151.5" width="3" height="9" rx="1"/>
+   <rect class="a-butter" x="95" y="150.5" width="11" height="11" rx="2.5"/><rect class="m1" x="98" y="153.5" width="5" height="5" rx="1"/>
+   <path class="stroke-m1" stroke-width="5" d="M116 92 L80 148"/>
+   <circle class="stroke-m3" stroke-width="1.6" cx="104" cy="111" r="3"/><circle class="stroke-m3" stroke-width="1.6" cx="91" cy="131" r="2.6"/>
+   <rect class="a-peach-d" x="105" y="96" width="9" height="8" rx="2" transform="rotate(-33 109.5 100)"/>
+  </g>
+  ${L.open}${L.close}
+  ${R.open}
+    <g class="lantern">
+     <path class="stroke-m3" stroke-width="2.5" d="M116 168 q8 -12 16 0"/>
+     <circle class="m3" cx="124" cy="160" r="2"/>
+     <rect class="m1" x="113" y="166" width="22" height="6" rx="2"/><path class="hl-s" d="M115 167.5 h8"/>
+     <rect class="glass" x="116" y="172" width="16" height="22" rx="5"/>
+     <ellipse class="lglow" cx="124" cy="184" rx="9" ry="11"/>
+     <ellipse class="lflame" cx="124" cy="185" rx="4" ry="6.5"/><ellipse class="lcore" cx="124" cy="187" rx="1.8" ry="3"/>
+     <path class="stroke-m3" stroke-width="1.5" d="M120 172 v22 M128 172 v22"/>
+     <rect class="m1" x="113" y="193" width="22" height="6" rx="2"/><rect class="m3" x="121" y="199" width="6" height="2.5" rx="1"/>
+    </g>${R.close}
+  <g class="head" ${O(100, 88)}>
+   <rect class="m3" x="94" y="76" width="12" height="14" rx="3"/><rect class="m2" x="93" y="81" width="14" height="2.4" rx="1.2"/>
+   <g class="wobble" ${O(64, 46)}><path class="stroke-m3" stroke-width="2.5" d="M64 46 L56 26"/><circle class="m3" cx="60.5" cy="36" r="1.6"/><circle class="bulb" cx="55" cy="23" r="4.5"/></g>
+   <circle class="cd" cx="69" cy="54" r="10"/><circle class="m1" cx="69" cy="54" r="6"/><path class="stroke-m3" stroke-width="1" d="M65.5 52 h7 M65 54.5 h8 M65.5 57 h7"/>
+   <circle class="cd" cx="131" cy="54" r="10"/><circle class="m1" cx="131" cy="54" r="6"/><circle class="m3" cx="131" cy="54" r="2.2"/>
+   <rect class="c" x="70" y="18" width="60" height="66" rx="28"/>
+   <path class="shade" d="M121 22 q9 8 9 28 v6 q0 22 -22 28 h-4 q22 -8 22 -42 q0 -12 -5 -20 z"/>
+   <path class="seam" d="M72 42 Q76 36 78 36 M128 42 Q124 36 122 36"/>
+   <ellipse class="shine" cx="86" cy="22" rx="9" ry="3" transform="rotate(-15 86 22)"/>
+   <rect class="m4" x="76" y="36" width="48" height="42" rx="20"/>
+   <path class="shade" d="M116 38 q8 4 8 18 v2 q0 18 -18 20 h-2 q16 -4 16 -24 q0 -10 -4 -16 z" opacity=".5"/>
+   <g class="eyes" ${O(100, 56)}>
+    <g class="f-idle"><ellipse class="inkf blink" cx="89" cy="55" rx="4.5" ry="6"/><ellipse class="inkf blink" cx="111" cy="55" rx="4.5" ry="6"/><circle class="m4" cx="90.6" cy="52.6" r="1.6"/><circle class="m4" cx="112.6" cy="52.6" r="1.6"/><circle class="m4" cx="87.8" cy="57.6" r=".7"/><circle class="m4" cx="109.8" cy="57.6" r=".7"/><path class="ink-s lash-i" d="M84.2 50.5 l-3 -2 M115.8 50.5 l3 -2"/><path class="ink-s brow-i" d="M84 45 q5 -2.4 10 0 M106 45 q5 -2.4 10 0"/><path class="ink-s" style="stroke-width:2.4" d="M95 69 q5 4 10 0"/><ellipse class="cheek soft" cx="83" cy="65" rx="4" ry="2.4"/><ellipse class="cheek soft" cx="117" cy="65" rx="4" ry="2.4"/></g>
+    <g class="f-happy"><path class="ink-s" d="M83 57 q6 -8 12 0 M105 57 q6 -8 12 0"/><path class="ink-s lash-i" d="M83.6 54.5 l-3 -2 M116.4 54.5 l3 -2"/><path class="ink-s brow-i" d="M84 43 q5 -3 10 0 M106 43 q5 -3 10 0"/><path class="inkf" d="M93 66 q7 8 14 0 Z"/><path class="tongue" d="M97 69.5 q3 2.4 6 0 q-3 -1.6 -6 0z"/><ellipse class="cheek" cx="83" cy="64" rx="4.4" ry="2.6"/><ellipse class="cheek" cx="117" cy="64" rx="4.4" ry="2.6"/></g>
+    <g class="f-party"><polygon class="a-butter" stroke="var(--ink)" stroke-width="1.5" points="${star(89, 55, 7)}"/><polygon class="a-butter" stroke="var(--ink)" stroke-width="1.5" points="${star(111, 55, 7)}"/><path class="ink-s brow-i" d="M83 42 q6 -4 12 0 M105 42 q6 -4 12 0"/><path class="inkf" d="M92 65 q8 11 16 0 Z"/><path class="tongue" d="M96.5 70 q3.5 2.6 7 0 q-3.5 -2 -7 0z"/><ellipse class="cheek" cx="82" cy="64" rx="4.4" ry="2.6"/><ellipse class="cheek" cx="118" cy="64" rx="4.4" ry="2.6"/></g>
+    <g class="f-think"><ellipse class="inkf" cx="86" cy="51" rx="4" ry="5.5"/><ellipse class="inkf" cx="108" cy="51" rx="4" ry="5.5"/><circle class="m4" cx="87.2" cy="49" r="1.3"/><circle class="m4" cx="109.2" cy="49" r="1.3"/><path class="ink-s brow-i" d="M80 42.5 l10 -2.5 M103 44 h10"/><path class="ink-s" style="stroke-width:2.4" d="M99 69.5 q3 -1.6 6 0"/><ellipse class="cheek soft" cx="117" cy="65" rx="4" ry="2.4"/></g>
+    <g class="f-sad"><ellipse class="inkf" cx="89" cy="58" rx="4" ry="4.5"/><ellipse class="inkf" cx="111" cy="58" rx="4" ry="4.5"/><circle class="m4" cx="90.2" cy="56.5" r="1.2"/><circle class="m4" cx="112.2" cy="56.5" r="1.2"/><path class="ink-s brow-i" d="M83 50 l10 -3.5 M117 50 l-10 -3.5"/><path class="ink-s" style="stroke-width:2.4" d="M95 72 q5 -4 10 0"/><circle class="tear" cx="86" cy="64" r="1.8"/></g>
+    <g class="f-sleep"><path class="ink-s" d="M83 56 q6 4 12 0 M105 56 q6 4 12 0"/><path class="ink-s lash-i" d="M83.4 57.5 l-3 2 M116.6 57.5 l3 2"/><path class="ink-s brow-i" d="M84 47.5 q5 1 10 0 M106 47.5 q5 1 10 0"/><ellipse class="inkf snore" cx="100" cy="70" rx="2" ry="2"/><ellipse class="cheek soft" cx="83" cy="65" rx="4" ry="2.4"/><ellipse class="cheek soft" cx="117" cy="65" rx="4" ry="2.4"/></g>
+   </g>
+   <circle class="freckle" cx="82" cy="62" r="1.1"/><circle class="freckle" cx="85.5" cy="64" r="1.1"/><circle class="freckle" cx="81.5" cy="66" r=".9"/><circle class="freckle" cx="114.5" cy="64" r="1.1"/><circle class="freckle" cx="118" cy="62" r="1.1"/><circle class="freckle" cx="118.5" cy="66" r=".9"/>
+   <rect class="m1" x="68" y="25" width="64" height="7" rx="3.5"/><rect class="m3" x="66" y="25" width="6" height="7" rx="1.5"/><rect class="m3" x="128" y="25" width="6" height="7" rx="1.5"/>
+   <circle class="m3" cx="88" cy="28" r="10.5"/><circle class="m3" cx="112" cy="28" r="10.5"/>
+   <circle class="lens" cx="88" cy="28" r="8.5"/><circle class="lens" cx="112" cy="28" r="8.5"/>
+   <path class="glare" d="M83 25 q3 -3 6 -3 M107 25 q3 -3 6 -3"/><circle class="hl" cx="92" cy="31" r="1.2"/><circle class="hl" cx="116" cy="31" r="1.2"/>
+   <rect class="m1" x="98" y="26" width="4" height="4" rx="1"/>
+   <text class="zz" x="134" y="26">z</text><text class="zz" x="142" y="14">z</text>
+  </g>
+ </g>
+</svg>`;
+  };
+
+  // ═════════════ BRUNO — the guardian coach ═════════════
+  const hex = (x, y, r = 3) => { const p = []; for (let i = 0; i < 6; i++) { const a = Math.PI / 6 + i * Math.PI / 3; p.push((x + Math.cos(a) * r).toFixed(1) + ',' + (y + Math.sin(a) * r).toFixed(1)); } return `<polygon class="m2" points="${p.join(' ')}"/><circle class="m3" cx="${x}" cy="${y}" r="${(r * .4).toFixed(1)}"/>`; };
+  const brunoLeg = (side) => {
+    const x = side === 'l' ? 70 : 104, cx = x + 13, bx = side === 'l' ? 62 : 102, cap = side === 'l' ? 62 : 122;
+    return `
+  <g class="leg-${side}" ${O(cx, 168)}>
+   <rect class="cd" x="${x}" y="166" width="26" height="32" rx="12"/>
+   <rect class="hl" x="${x + 4}" y="170" width="3" height="20" rx="1.5"/>
+   <path class="shade" d="M${x + 18} 167 h2 a6 6 0 0 1 6 6 v18 a6 6 0 0 1 -6 6 h-2 z"/>
+   <g class="shin-${side}" ${O(cx, 196)}>
+    <rect class="cd" x="${x}" y="192" width="26" height="32" rx="12"/>
+    <rect class="a-butter" x="${x + 9}" y="203" width="8" height="14" rx="3"/><rect class="shade" x="${x + 9}" y="213" width="8" height="4" rx="2"/>
+    <path class="m1" d="M${bx} 220 h36 v16 a9 9 0 0 1 -9 9 h-18 a9 9 0 0 1 -9 -9 z"/>
+    <rect class="m3" x="${bx + 2}" y="223" width="32" height="4" rx="2"/><rect class="m4" x="${bx + 16}" y="221.5" width="5" height="7" rx="1.2"/>
+    <rect class="c" x="${cap}" y="232" width="16" height="13" rx="6"/><rect class="hl" x="${cap + 3}" y="234" width="6" height="2" rx="1"/>
+    <path class="stroke-m3" stroke-width="1.2" d="M${bx + 4} 244 h3 M${bx + 11} 244 h3 M${bx + 18} 244 h3 M${bx + 25} 244 h3"/>
+   </g>
+   <rect class="m3" x="${x + 2}" y="186" width="22" height="15" rx="7"/>
+   <rect class="hl" x="${x + 5}" y="188" width="10" height="2.4" rx="1.2"/>
+   ${hex(cx, 193.5, 3.2)}
+  </g>`;
+  };
+  const brunoArm = (side) => {
+    const x = side === 'l' ? 46 : 130, cx = x + 12, s = side === 'l' ? 1 : -1;
+    return `
+  <g class="arm-${side}" ${O(cx, 104)}>
+   <rect class="c" x="${x}" y="100" width="24" height="34" rx="12"/>
+   <rect class="hl" x="${x + 4}" y="104" width="3" height="22" rx="1.5"/>
+   <rect class="cd" x="${x}" y="115" width="24" height="5" rx="2"/>
+   <g class="fore-${side}" ${O(cx, 132)}>
+    <rect class="m2" x="${x - 3}" y="130" width="30" height="26" rx="11"/>
+    <rect class="hl" x="${x + 1}" y="132" width="10" height="2.4" rx="1.2"/>
+    <path class="seam" d="M${x - 2} 148.5 h28"/>
+    <rect class="led gled" x="${x + 2}" y="139" width="20" height="4" rx="2"/>
+    <circle class="m3" cx="${cx}" cy="162" r="14"/>
+    <path class="shade" d="M${cx + 3} 148.5 a14 14 0 0 1 0 27 a10 13.5 0 0 0 0 -27 z"/>
+    <rect class="m2" x="${cx - 10}" y="151" width="20" height="7" rx="3"/>
+    ${screw(cx - 5, 154.5, 1.6)}${screw(cx + 5, 154.5, 1.6)}
+    <path class="stroke-m2" stroke-width="2" d="M${cx - 8} 163 h16 M${cx - 8} 168 h16"/>
+    <circle class="m3" cx="${cx + s * 11}" cy="160" r="5"/><path class="seam" d="M${cx + s * 9} 158 l${s * 3} 3"/>
+   </g>
+   <circle class="m2" cx="${cx}" cy="132" r="5"/><circle class="m3" cx="${cx}" cy="132" r="2"/>
+  </g>`;
+  };
+  const bruno = () => `
+<svg class="robot r-bruno c-butter" viewBox="0 0 200 260" data-mood="idle" role="img" aria-label="Bruno, robot de Exámenes">
+ <g class="body-all" ${O(100, 246)}>
+  <g class="torso" ${O(100, 170)}>
+   <rect class="m2" x="50" y="76" width="22" height="60" rx="11"/><rect class="m2" x="128" y="76" width="22" height="60" rx="11"/>
+   <rect class="hl" x="54" y="80" width="3" height="48" rx="1.5"/><rect class="hl" x="132" y="80" width="3" height="48" rx="1.5"/>
+   <rect class="a-butter" x="50" y="96" width="22" height="5"/><rect class="a-butter" x="128" y="96" width="22" height="5"/>
+   <circle class="m4" cx="61" cy="86" r="5"/><path class="stroke-m1" stroke-width="1.2" d="M61 86 l2.5 -2.5"/>
+   <circle class="m4" cx="139" cy="86" r="5"/><path class="stroke-m1" stroke-width="1.2" d="M139 86 l-2.5 -2.5"/>
+   <rect class="m1" x="54" y="132" width="14" height="10" rx="3"/><rect class="m1" x="132" y="132" width="14" height="10" rx="3"/>
+   <g class="flight">
+    <path class="fl-o flame" d="M54 142 Q61 190 68 142Z"/><path class="fl-i flame" d="M57 142 Q61 174 65 142Z"/>
+    <path class="fl-o flame" d="M132 142 Q139 190 146 142Z"/><path class="fl-i flame" d="M135 142 Q139 174 143 142Z"/>
+   </g>
+   <g class="sway" ${O(100, 92)}>
+    <path class="cd" d="M64 92 Q100 84 136 92 L146 178 L130 170 L116 182 L100 172 L84 182 L70 170 L54 178 Z"/>
+    <path class="shade" d="M64 92 Q100 84 136 92 L138 108 Q100 98 62 108 Z"/>
+   </g>
+  </g>
+  ${brunoLeg('l')}${brunoLeg('r')}
+  ${brunoArm('l')}
+  <g class="torso" ${O(100, 170)}>
+   <path class="c" d="M60 92 Q100 82 140 92 L134 170 Q100 178 66 170 Z"/>
+   <path class="shade" d="M124 88 Q134 90 140 92 L134 170 Q126 173 118 174 Q130 130 124 88 Z"/>
+   <path class="seam" d="M70 140 Q100 146 130 140 M100 146 V174"/>
+   <ellipse class="shine" cx="74" cy="102" rx="8" ry="3.5" transform="rotate(-25 74 102)"/>
+   <path class="cd" d="M84 146 h32 v14 a6 6 0 0 1 -6 6 h-20 a6 6 0 0 1 -6 -6 z" opacity=".55"/>
+   <path class="stroke-cd" stroke-width="2" d="M100 146 v20 M84 156 h32"/>
+   <path class="stroke-cd" stroke-width="3" d="M100 100 L123 106.5 L121 126.5 Q114.5 139.5 100 147 Q85.5 139.5 79 126.5 L77 106.5 Z"/>
+   <path class="inkf" d="M100 102 L121 108 L119 126 Q113 138 100 145 Q87 138 81 126 L79 108 Z"/>
+   <path class="hl-s" d="M84 110 L98 106"/>
+   <path class="check" d="M90 122 L97 129 L111 113"/>
+   <path class="cord" d="M114 92 Q112 100 106 104"/>
+   <g class="whistle">
+    <path class="cord" d="M86 92 Q84 112 72 124"/>
+    <rect class="m4" x="60" y="121" width="16" height="9" rx="4.5"/><rect class="m3" x="73" y="122.5" width="5" height="6" rx="1.5"/><circle class="m4" cx="62" cy="125.5" r="5.5"/><circle class="m2" cx="62" cy="125.5" r="2"/><path class="hl-s" d="M63 122.5 h8"/>
+   </g>
+   <rect class="m1" x="66" y="158" width="68" height="11"/>
+   <rect class="m2" x="72" y="156" width="12" height="13" rx="2.5"/><rect class="m3" x="72" y="156" width="12" height="4" rx="1.5"/>
+   <rect class="m2" x="116" y="156" width="12" height="13" rx="2.5"/><rect class="m3" x="116" y="156" width="12" height="4" rx="1.5"/>
+   <circle class="m4" cx="100" cy="165" r="9"/><circle class="stroke-m3" stroke-width="1" cx="100" cy="165" r="7.4"/>
+   <path class="stroke-m1" stroke-width="1" d="M100 158.2 v1.6 M100 170.2 v1.6 M93.2 165 h1.6 M105.2 165 h1.6"/>
+   <circle class="m1" cx="100" cy="165" r="1.5"/>
+   <path class="stroke-m1 hand" stroke-width="1.6" d="M100 165 V159.5"/>
+   <rect class="m3" x="98" y="153.5" width="4" height="3" rx="1"/>
+   <g class="shoulders" ${O(100, 98)}>
+    <ellipse class="cd" cx="60" cy="98" rx="23" ry="16"/><ellipse class="cd" cx="140" cy="98" rx="23" ry="16"/>
+    <path class="stroke-m2" stroke-width="2.2" d="M40 102 Q60 92 80 102 M120 102 Q140 92 160 102"/>
+    <ellipse class="shine" cx="52" cy="90" rx="7" ry="2.6"/><ellipse class="shine" cx="132" cy="90" rx="7" ry="2.6"/>
+    <path class="shade" d="M38 100 Q60 116 82 100 Q80 114 60 114 Q42 114 38 100 Z M118 100 Q140 116 162 100 Q160 114 140 114 Q122 114 118 100 Z"/>
+    ${screw(48, 98, 2)}${screw(60, 87, 2)}${screw(72, 98, 2)}${screw(128, 98, 2)}${screw(140, 87, 2)}${screw(152, 98, 2)}
+   </g>
+  </g>
+  ${brunoArm('r')}
+  <g class="head" ${O(100, 86)}>
+   <rect class="m2" x="86" y="70" width="28" height="16" rx="5"/>
+   <path class="stroke-m1" stroke-width="2" d="M92 74 v8 M100 74 v8 M108 74 v8"/>
+   <path class="stroke-m1" stroke-width="2.4" d="M86 80 q-6 2 -8 8 M114 80 q6 2 8 8"/>
+   <g class="wobble" ${O(100, 26)}><path class="cd" d="M90 26 Q100 0 110 26 Z"/><path class="seam" d="M95 22 l2 -8 M100 20 v-10 M105 22 l-2 -8"/><path class="hl-s" d="M96 18 q2 -6 4 -9"/></g>
+   <rect class="m3" x="69" y="40" width="7" height="16" rx="3.5"/><rect class="m3" x="124" y="40" width="7" height="16" rx="3.5"/>
+   ${hex(72.5, 48, 2.6)}${hex(127.5, 48, 2.6)}
+   <rect class="c" x="73" y="20" width="54" height="56" rx="22"/>
+   <rect class="cd" x="96" y="20" width="8" height="18" rx="3"/>
+   <path class="shade" d="M118 22 q9 6 9 22 v8 q0 18 -16 24 h-3 q16 -8 16 -30 q0 -16 -6 -24 z"/>
+   <ellipse class="shine" cx="85" cy="27" rx="7" ry="3" transform="rotate(-15 85 27)"/>
+   <path class="m3" d="M78 60 h44 v4 a12 12 0 0 1 -12 12 h-20 a12 12 0 0 1 -12 -12 z"/>
+   <path class="shade" d="M78 66 h44 a12 12 0 0 1 -12 10 h-20 a12 12 0 0 1 -12 -10 z" opacity=".6"/>
+   <path class="stroke-m2" stroke-width="2" d="M82 63.5 v6 M86 64 v7 M114 64 v7 M118 63.5 v6"/>
+   <rect class="vis" x="90" y="63" width="20" height="9" rx="3.5"/>
+   <rect class="vis" x="75" y="37" width="50" height="21" rx="10.5"/>
+   <path class="glare" style="stroke-opacity:.18" d="M80 55 L92 39"/>
+   <g class="eyes" ${O(100, 48)}>
+    <g class="f-idle"><path class="cd" d="M78.5 35.5 L97 40 L97 44 L78.5 40 Z"/><path class="cd" d="M121.5 35.5 L103 40 L103 44 L121.5 40 Z"/><rect class="led blink" x="83" y="44.5" width="13" height="8" rx="4"/><rect class="led blink" x="104" y="44.5" width="13" height="8" rx="4"/><circle class="m4" cx="86.5" cy="46.8" r="1.1"/><circle class="m4" cx="107.5" cy="46.8" r="1.1"/><path class="led-s" style="stroke-width:2" d="M94 67.5 q6 2.5 12 0"/></g>
+    <g class="f-happy"><path class="cd" d="M78.5 34 q9.5 -4 18.5 0 v3.6 q-9 -4 -18.5 0 z"/><path class="cd" d="M103 34 q9.5 -4 18.5 0 v3.6 q-9.5 -4 -18.5 0 z"/><path class="led-s" d="M83 51.5 q6.5 -9 13 0 M104 51.5 q6.5 -9 13 0"/><path class="led" d="M93 65.5 q7 5.5 14 0 Z"/></g>
+    <g class="f-party"><path class="cd" d="M78.5 32 q9.5 -5 18.5 0 v3.6 q-9 -5 -18.5 0 z"/><path class="cd" d="M103 32 q9.5 -5 18.5 0 v3.6 q-9.5 -5 -18.5 0 z"/><polygon class="led" points="${star(89.5, 47.5, 7)}"/><polygon class="led" points="${star(110.5, 47.5, 7)}"/><path class="led" d="M93 64.5 q7 7 14 0 Z"/></g>
+    <g class="f-think"><path class="cd" d="M78.5 40 h18.5 v3.6 h-18.5 z"/><path class="cd" d="M103 36 L121.5 32.5 L121.5 36.2 L103 39.6 Z"/><rect class="led" x="83" y="46" width="13" height="4" rx="2"/><rect class="led" x="104" y="43" width="13" height="9" rx="4.5"/><circle class="m4" cx="107.5" cy="45.4" r="1.1"/><rect class="scan" x="78" y="54" width="8" height="2" rx="1"/><path class="led-s" style="stroke-width:1.8" d="M93.5 68 l3.2 -2 l3.3 2 l3.3 -2 l3.2 2"/></g>
+    <g class="f-sad"><path class="cd" d="M78.5 42 L97 37 L97 41 L78.5 45.6 Z"/><path class="cd" d="M121.5 42 L103 37 L103 41 L121.5 45.6 Z"/><path class="led" d="M83 47 L96 49.5 L96 53 Q89.5 54 83 52 Z"/><path class="led" d="M117 47 L104 49.5 L104 53 Q110.5 54 117 52 Z"/><path class="led-s" style="stroke-width:2" d="M94 70 q6 -3 12 0"/><circle class="tear" cx="88" cy="56" r="1.6"/></g>
+    <g class="f-sleep"><path class="cd" d="M78.5 41 h18.5 v4.4 h-18.5 z"/><path class="cd" d="M103 41 h18.5 v4.4 h-18.5 z"/><path class="led-s" style="stroke-width:3" d="M83 49.5 h13 M104 49.5 h13"/><path class="led-s snoreline" style="stroke-width:2" d="M96 67.5 h8"/></g>
+   </g>
+   <text class="zz" x="130" y="28">z</text><text class="zz" x="138" y="16">z</text>
+  </g>
+ </g>
+</svg>`;
+
+  // ═════════════ MENTI — the memory ninja ═════════════
+  const mentiArm = (side) => {
+    const s = side === 'l' ? -1 : 1, sx = 100 + s * 22, ex = 100 + s * 33, hx = 100 + s * 40;
+    return `
+  <g class="arm-${side}" ${O(sx, 182)}>
+   <path class="noodle" d="M${sx} 182 q${s * 7} 2 ${s * 11} 9"/>
+   <path class="seg" d="M${sx + s * 4} 180.6 l${s * -.8} 3.4 M${sx + s * 8} 182.6 l${s * -1.8} 3"/>
+   <g class="fore-${side}" ${O(ex, 191)}>
+    <path class="noodle" d="M${ex} 191 q${s * 5} 6 ${s * 7} 12"/>
+    <path class="seg" d="M${ex + s * 2} 195.5 l${s * 3} -1.4 M${ex + s * 4} 199.5 l${s * 3} -.6"/>
+    <circle class="m4" cx="${hx}" cy="205" r="7"/>
+    <circle class="m4" cx="${hx - s * 6}" cy="201.5" r="3"/>
+    <path class="seam" d="M${hx - 4} 206.5 h8"/><path class="shade" d="M${hx + s * 2} 199 a7 7 0 0 1 0 13 a5 6.5 0 0 0 0 -13 z"/>
+   </g>
+   <circle class="m3" cx="${ex}" cy="191" r="2.8"/><circle class="m2" cx="${ex}" cy="191" r="1"/>
+  </g>`;
+  };
+  const card = (x, y, r, g) => `<g transform="translate(${x} ${y}) rotate(${r})"><rect class="card-f" x="-10" y="-13" width="20" height="26" rx="4"/><text class="glyph card-t" x="0" y="-2">${g}</text><path class="card-l" d="M-6 6 h12 M-6 9.5 h8"/></g>`;
+  const menti = () => `
+<svg class="robot r-menti c-mint" viewBox="0 0 200 260" data-mood="idle" role="img" aria-label="Menti, robot de Anki">
+ <g class="body-all" ${O(100, 216)}>
+  <g class="orbit">${card(28, 160, -12, 'A')}${card(172, 160, 12, '?')}${card(100, 232, 6, '✓')}</g>
+  <path class="beam" d="M86 216 L114 216 L126 254 L74 254 Z"/>
+  <g class="flight"><path class="beam" d="M80 216 L120 216 L140 262 L60 262 Z"/><path class="fl-o flame" d="M90 216 Q100 252 110 216Z"/><path class="fl-i flame" d="M94 216 Q100 238 106 216Z"/></g>
+  <path class="m2" d="M76 204 A24 14 0 0 0 124 204 Z"/>
+  <path class="shade" d="M108 204 h16 A24 14 0 0 1 104 217.6 Q112 212 108 204 Z"/>
+  <path class="stroke-m1" stroke-width="1.6" d="M84 208 v4 M92 209 v5 M100 209.5 v5 M108 209 v5 M116 208 v4"/>
+  <ellipse class="ring" cx="100" cy="214.5" rx="15" ry="3.5"/>
+  <rect class="m3" x="76" y="202.5" width="48" height="3.5" rx="1.75"/>
+  ${mentiArm('l')}
+  <g class="torso" ${O(100, 208)}>
+   <ellipse class="c" cx="100" cy="188" rx="27" ry="22"/>
+   <path class="shade" d="M112 168 a27 22 0 0 1 0 40 a20 21 0 0 0 0 -40 z"/>
+   <path class="seam" d="M74 192 q26 9 52 0"/>
+   <ellipse class="shine" cx="86" cy="177" rx="6" ry="2.5" transform="rotate(-25 86 177)"/>
+   <rect class="inkf" x="90" y="179" width="20" height="16" rx="3"/>
+   <path class="stroke-m3" stroke-width="1.5" d="M93 179 v-3 M98 179 v-3 M103 179 v-3 M108 179 v-3 M93 195 v3 M98 195 v3 M103 195 v3 M108 195 v3 M90 183 h-3 M90 191 h-3 M110 183 h3 M110 191 h3"/>
+   <rect class="led chip" x="95.5" y="184" width="9" height="6" rx="1.5"/><path class="stroke-c" stroke-width=".8" d="M92 181.5 h3 M105 192.5 h3"/>
+   <circle class="m1" cx="94" cy="202" r="1.2"/><circle class="m1" cx="100" cy="203" r="1.2"/><circle class="m1" cx="106" cy="202" r="1.2"/>
+  </g>
+  ${mentiArm('r')}
+  <g class="head" ${O(100, 166)}>
+   <g class="wobble" ${O(100, 80)}>
+    <path class="stroke-m3" stroke-width="3" d="M100 80 q7 -4 0 -8 q-7 -4 0 -8 q7 -4 0 -8 q-7 -4 0 -8"/>
+    <circle class="bulb" cx="100" cy="46" r="6.5"/><circle class="hl" cx="98" cy="44" r="1.8"/>
+    <g class="ant"><text class="glyph ag ag-happy" x="100" y="46.6">♥</text><text class="glyph ag ag-party" x="100" y="46.6">★</text><text class="glyph ag ag-think" x="100" y="46.8">?</text><text class="glyph ag ag-sad" x="100" y="45.6">…</text><text class="glyph ag ag-sleep" x="100" y="46.6">z</text></g>
+   </g>
+   <rect class="cd" x="51" y="110" width="11" height="26" rx="5.5"/><rect class="cd" x="138" y="110" width="11" height="26" rx="5.5"/>
+   <rect class="led" x="54.6" y="114" width="3.8" height="12" rx="1.9"/><rect class="led" x="141.6" y="114" width="3.8" height="12" rx="1.9"/>
+   <circle class="m3" cx="56.5" cy="131" r="1.6"/><circle class="m3" cx="143.5" cy="131" r="1.6"/>
+   <circle class="c" cx="100" cy="122" r="44"/>
+   <path class="shade" d="M122 84 a44 44 0 0 1 0 76 a36 40 0 0 0 0 -76 z"/>
+   <ellipse class="shine" cx="78" cy="96" rx="12" ry="5" transform="rotate(-30 78 96)"/><circle class="shine" cx="70" cy="106" r="2"/>
+   <path class="cd" d="M57 104 Q100 92 143 104 L144 116 Q100 104 56 116 Z"/>
+   <path class="stitch" d="M58 107 Q100 96 142 107 M57.4 113 Q100 102 142.6 113"/>
+   <g class="sway" ${O(142, 110)}>
+    <path class="cd" d="M144 106 q22 -6 34 4 l-5 7 q-12 -8 -29 -4 z"/>
+    <path class="cd" d="M144 112 q20 4 26 20 l-7 2 q-6 -12 -19 -16 z"/>
+    <path class="stitch" d="M146 108 q18 -4 28 3 M147 115 q15 4 20 15"/>
+    <circle class="cd" cx="143" cy="110" r="6"/><path class="seam" d="M140 107 q3 3 6 6"/>
+   </g>
+   <circle class="m1" cx="100" cy="134" r="25"/>
+   ${screw(100, 111, 1.8)}${screw(123, 134, 1.8)}${screw(100, 157, 1.8)}${screw(77, 134, 1.8)}
+   <circle class="stroke-m3" stroke-width="2" cx="100" cy="134" r="21.5"/>
+   <circle class="vis" cx="100" cy="134" r="19"/>
+   <path class="blade" d="M100 115.5 l3 5 M118.1 128.3 l-5 1.8 M111.4 149.1 l-2.4 -4.7 M88.6 149.1 l2.4 -4.7 M81.9 128.3 l5 1.8"/>
+   <g class="eyes" ${O(100, 134)}>
+    <g class="f-idle"><circle class="led blink" cx="100" cy="134" r="9"/><circle class="iris-ring blink" cx="100" cy="134" r="6.4"/><circle class="vis blink" cx="100" cy="134" r="4"/><circle class="m4" cx="104" cy="129.5" r="2.5"/><circle class="m4" cx="96.4" cy="138.2" r="1.1"/></g>
+    <g class="f-happy"><path class="led-s" style="stroke-width:5" d="M88 136 q12 -16 24 0"/><path class="lid" d="M82 140 Q100 128 118 140 A19 19 0 0 1 82 140 Z"/><ellipse class="blushled" cx="68" cy="142" rx="5" ry="2.6"/><ellipse class="blushled" cx="132" cy="142" rx="5" ry="2.6"/></g>
+    <g class="f-party"><polygon class="led" points="${star(100, 134, 13)}"/><circle class="led" cx="86" cy="122" r="1.4"/><circle class="led" cx="115" cy="146" r="1.4"/><circle class="led" cx="114" cy="121" r="1"/><ellipse class="blushled" cx="68" cy="142" rx="5" ry="2.6"/><ellipse class="blushled" cx="132" cy="142" rx="5" ry="2.6"/></g>
+    <g class="f-think"><circle class="led" cx="106" cy="129" r="7"/><circle class="iris-ring" cx="106" cy="129" r="5"/><circle class="vis" cx="107" cy="128" r="3"/><circle class="m4" cx="109" cy="125.6" r="1.6"/><path class="lid" d="M81.7 129 A19 19 0 0 1 114.7 122 Z"/><circle class="spin" cx="100" cy="134" r="15"/></g>
+    <g class="f-sad"><circle class="led" cx="100" cy="140" r="7"/><circle class="iris-ring" cx="100" cy="140" r="5"/><circle class="vis" cx="100" cy="141" r="3"/><circle class="m4" cx="102.6" cy="137" r="1.5"/><path class="lid" d="M81.4 130 Q100 121 118.6 130 A19 19 0 0 0 81.4 130 Z"/><circle class="tear" cx="90" cy="150" r="2"/></g>
+    <g class="f-sleep"><circle class="lid" cx="100" cy="134" r="19.5"/><path class="led-s" style="stroke-width:4" d="M88 134 q12 7 24 0"/><ellipse class="blushled" cx="68" cy="142" rx="5" ry="2.6"/><ellipse class="blushled" cx="132" cy="142" rx="5" ry="2.6"/></g>
+   </g>
+   <path class="glare" style="stroke-opacity:.25" d="M88 122 q4 -5 10 -6"/>
+   <text class="zz" x="140" y="80">z</text><text class="zz" x="148" y="68">z</text>
+  </g>
+ </g>
+</svg>`;
+
+
+  const HEROES = [
+    { id: 'lumi', name: 'Lumi', tone: 'sky', role: 'Palabras', svg: lumi, voice: 1.18, hello: '¡Hola! Cada palabra cuenta.',
+      bio: 'El erudito del escuadrón. Alto, delgado y curioso: lleva siempre una letra flotando cerca de la mano y escribe con la pluma de su cabeza.',
+      traits: ['curioso', 'paciente', 'detallista'],
+      details: ['Visor con gafas redondas con reflejos y cejas LED', 'Chaqueta de punto con coderas, puños acanalados y bolígrafos', 'Bufanda a rayas con un extremo al frente', 'Cinturón con fichas A · B · C', 'Mochila-libro con páginas, cinta marcapáginas y propulsores', 'Pluma con barbas, guantes con pulgar y zapatillas con suela'] },
+    { id: 'nubo', name: 'Nubo', tone: 'lilac', role: 'Expresiones', svg: nubo, voice: 1.32, hello: '¡Hola! Hoy recolecté 12 expresiones.',
+      bio: 'La analista de campo. Recorre el mundo recolectando expresiones: las escucha con sus auriculares, las examina con su lupa, las mide con el monóculo holográfico y las anota en su tablet.',
+      traits: ['analítica', 'curiosa', 'meticulosa'],
+      details: ['Moños con gomas y pasadores, mechones que se balancean', 'Auriculares con micrófono y monóculo HUD con mira', 'Cejas, pestañas, rubor y lágrima', 'Chaleco con pespuntes, botones y pin de bocadillo', 'Lupa con empuñadura y tablet con datos vivos', 'Falda tableada, botas con cordones cruzados y mochila con rotor'] },
+    { id: 'tula', name: 'Tula', tone: 'peach', role: 'Historias', svg: tula, voice: 1.06, hello: 'Te tengo una historia…',
+      bio: 'La exploradora. Cara de porcelana con pecas, gafas de aviador en la frente y un farol para leer historias en la oscuridad. Saluda con la izquierda para no soltarlo.',
+      traits: ['aventurera', 'cálida', 'soñadora'],
+      details: ['Cara de porcelana con cejas, pestañas y pecas', 'Gafas de aviador con hebillas y reflejos', 'Coleta de cable con pinza y luz en la punta', 'Chaqueta con charreteras, parche de montaña y brújula', 'Bandolera con anillas, bolsita y mapa con cinta', 'Botas con cordones cruzados, suela y cohetes'] },
+    { id: 'bruno', name: 'Bruno', tone: 'butter', role: 'Exámenes', svg: bruno, voice: 0.62, hello: '¡A entrenar, recluta!',
+      bio: 'El guardián y entrenador. Grande, fuerte y justo: vigila tus exámenes con su visor y celebra cada acierto como un gol.',
+      traits: ['fuerte', 'justo', 'motivador'],
+      details: ['Cejas blindadas que se inclinan con cada emoción', 'Boca LED en el protector de mandíbula', 'Escudo con ✓ y cronómetro con marcas', 'Silbato de entrenador que se balancea', 'Hombreras remachadas, nudillos blindados y guanteletes LED', 'Tanques con manómetro, correas en tobillos y tornillos hexagonales'] },
+    { id: 'menti', name: 'Menti', tone: 'mint', role: 'Anki', svg: menti, voice: 1.6, hello: '¡Bip! No olvido nada.',
+      bio: 'El ninja de la memoria. Pequeño y rápido, con un solo ojo de cámara que lo graba todo y tarjetas que giran a su alrededor.',
+      traits: ['rápido', 'travieso', 'memorioso'],
+      details: ['Ojo de cámara con diafragma y párpados expresivos', 'La antena muestra su humor: ♥ ★ ? … z', 'Bandana ninja cosida con cintas al viento', 'Chip de memoria con pines y luz', 'Brazos segmentados con manoplas y pulgar', 'Flota sobre un propulsor con rejillas'] },
+  ];
+  const LINES = { happy: '¡Eso es! +10 XP', party: '¡Lección completa!', think: 'Pensando…', sad: 'Casi. ¡Otra vez!', sleep: 'Zzz…' };
+
+  let ctx = null, master = null, on = false, voice = 1;
+  const ensure = () => { if (!ctx) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null; ctx = new AC(); master = ctx.createGain(); master.gain.value = .5; master.connect(ctx.destination); } if (ctx.state === 'suspended') ctx.resume(); return ctx; };
+  const tone = (f, s, d, { type = 'sine', gain = .22, glide = 0 } = {}) => { f *= voice; const t = ctx.currentTime + s, o = ctx.createOscillator(), g = ctx.createGain(); o.type = type; o.frequency.setValueAtTime(f, t); if (glide) o.frequency.exponentialRampToValueAtTime(f * glide, t + d); g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(gain, t + .012); g.gain.exponentialRampToValueAtTime(.0001, t + d); o.connect(g).connect(master); o.start(t); o.stop(t + d + .02); };
+  const thud = (s) => { const t = ctx.currentTime + s, o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(140 * voice, t); o.frequency.exponentialRampToValueAtTime(50, t + .12); g.gain.setValueAtTime(.25, t); g.gain.exponentialRampToValueAtTime(.0001, t + .14); o.connect(g).connect(master); o.start(t); o.stop(t + .16); };
+  const S = {
+    tap: () => tone(880, 0, .06, { gain: .14, glide: .7 }),
+    wave: () => { tone(660, 0, .09, { type: 'square', gain: .05 }); tone(990, .1, .12, { type: 'square', gain: .05 }); tone(1320, .2, .1, { type: 'square', gain: .04 }); },
+    happy: () => { tone(300, 0, .14, { type: 'sine', gain: .12, glide: 2.4 }); tone(784, .3, .14, { type: 'triangle' }); tone(1175, .39, .22, { type: 'triangle' }); thud(.62); },
+    party: () => { [523, 659, 784, 1047].forEach((f, i) => tone(f, i * .09, .3, { type: 'triangle', gain: .18 })); tone(220, 0, .9, { type: 'sawtooth', gain: .025, glide: 2 }); },
+    think: () => [0, .12, .24].forEach((s, i) => tone(1200 + i * 200, s, .05, { type: 'square', gain: .035 })),
+    sad: () => { tone(330, 0, .16); tone(262, .13, .26, { glide: .96 }); },
+    sleep: () => tone(392, 0, .6, { gain: .1, glide: .7 }),
+  };
+  const play = k => { if (on && ensure() && S[k]) S[k](); };
+  const sb = document.getElementById('sound-btn');
+  sb.addEventListener('click', () => { on = !on; sb.setAttribute('aria-pressed', String(on)); sb.textContent = on ? '🔊 Sonido activado' : '🔇 Activar sonido'; play('tap'); });
+
+  const stage = document.getElementById('stage'), wrap = document.getElementById('hero-wrap'), say = document.getElementById('say');
+  let current = HEROES[0], hero = null, timer = null;
+  const bump = el => { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); };
+  const sparkle = () => { const r = wrap.getBoundingClientRect(); for (let i = 0; i < 9; i++) { const s = document.createElement('span'); s.className = 'sparkle'; s.style.cssText = `--x:${r.width / 2 + (Math.random() * 220 - 110)}px;--y:${30 + Math.random() * 220}px;animation-delay:${i * 70}ms`; wrap.appendChild(s); setTimeout(() => s.remove(), 1700); } };
+  const dust = () => { const r = wrap.getBoundingClientRect(); [-1, 1].forEach(dir => { for (let i = 0; i < 3; i++) { const d = document.createElement('span'); d.className = 'dust'; d.style.cssText = `left:${r.width / 2 + dir * (30 + i * 8)}px;--dx:${dir * (14 + i * 10)}px;animation-delay:${i * 40}ms`; wrap.appendChild(d); setTimeout(() => d.remove(), 800); } }); };
+  const setMood = m => {
+    hero.dataset.mood = 'idle'; void hero.getBoundingClientRect(); hero.dataset.mood = m;
+    stage.dataset.flying = m === 'party' ? '1' : '0';
+    stage.dataset.hop = '0'; void stage.offsetWidth; if (m === 'happy') { stage.dataset.hop = '1'; setTimeout(dust, 600); }
+    document.querySelectorAll('#moods .btn').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mood === m)));
+    say.textContent = LINES[m] || current.hello; bump(say);
+    play(m); if (m === 'party') sparkle();
+    clearTimeout(timer);
+    if (m === 'happy' || m === 'wave') timer = setTimeout(() => { hero.dataset.mood = 'idle'; document.querySelectorAll('#moods .btn').forEach(b => b.setAttribute('aria-pressed', 'false')); }, m === 'wave' ? 2200 : 1700);
+  };
+  const mount = h => {
+    current = h; voice = h.voice;
+    stage.className = 'stage c-' + h.tone;
+    wrap.querySelector('.robot')?.remove();
+    wrap.insertAdjacentHTML('afterbegin', h.svg());
+    hero = wrap.querySelector('.robot');
+    document.getElementById('role').textContent = h.role;
+    document.getElementById('name').textContent = h.name;
+    document.getElementById('bio').textContent = h.bio;
+    const tr = document.getElementById('traits'); tr.innerHTML = ''; h.traits.forEach(t => { const s = document.createElement('span'); s.className = 'trait'; s.textContent = t; tr.appendChild(s); });
+    const dl = document.getElementById('details'); dl.innerHTML = ''; h.details.forEach(t => { const li = document.createElement('li'); li.textContent = t; dl.appendChild(li); });
+    document.getElementById('moods').className = 'btns c-' + h.tone;
+    document.querySelectorAll('.member').forEach(m => m.setAttribute('aria-pressed', String(m.dataset.id === h.id)));
+    setTimeout(() => setMood('wave'), 60);
+  };
+  document.querySelectorAll('#moods .btn').forEach(b => b.addEventListener('click', () => setMood(b.dataset.mood)));
+
+  const squad = document.getElementById('squad');
+  HEROES.forEach(h => {
+    const b = document.createElement('button'); b.className = 'member c-' + h.tone; b.dataset.id = h.id; b.id = 'member-' + h.id;
+    b.innerHTML = h.svg() + `<b>${h.name}</b><small>${h.role}</small>`;
+    b.addEventListener('click', () => { voice = h.voice; play('tap'); mount(h); const r = b.querySelector('.robot'); r.dataset.mood = 'happy'; setTimeout(() => { r.dataset.mood = 'idle'; }, 1000); });
+    squad.appendChild(b);
+  });
+  mount(HEROES[0]);
+})();
+</script>

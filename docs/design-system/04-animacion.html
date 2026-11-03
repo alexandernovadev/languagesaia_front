@@ -1,0 +1,383 @@
+<title>Movimiento LanguagesAI</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Lexend:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: sticky intensity picker, then a grid of playable demo tiles — each tile is one moment of the app. */
+:root {
+  color-scheme: dark;
+  /* Palette (closed) */
+  --bg-0: #202024; --bg-1: #29292E; --bg-2: #333338; --bg-3: #3E3E44; --line: #4A4A51;
+  --text-1: #F7F7F9; --text-2: #D4D4DA; --text-3: #B0B0B9; --ink: #1A1A1E;
+  --lilac: #CBBDF9;  --lilac-deep: #8E7CC2;  --lilac-soft: rgba(203,189,249,.14);
+  --sky: #9BD2FA;    --sky-deep: #4E94C3;    --sky-soft: rgba(155,210,250,.14);
+  --mint: #91DEBC;   --mint-deep: #3CA17B;   --mint-soft: rgba(145,222,188,.14);
+  --butter: #ECDC92; --butter-deep: #AF9B3E; --butter-soft: rgba(236,220,146,.14);
+  --peach: #F9BB92;  --peach-deep: #BF7946;  --peach-soft: rgba(249,187,146,.14);
+  --rose: #F6B2B9;   --rose-deep: #BD6F79;   --rose-soft: rgba(246,178,185,.14);
+  /* Type + shape (closed) */
+  --font-display: "Baloo 2", ui-rounded, system-ui, sans-serif;
+  --font-body: "Lexend", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --r-sm: 14px; --r-md: 22px; --r-lg: 30px; --r-full: 999px;
+  --depth: 2px; --border: 2px;
+
+  /* Motion tokens — durations */
+  --t-instant: 80ms;   /* press down */
+  --t-fast: 150ms;     /* hover, colour changes */
+  --t-base: 250ms;     /* most UI movement */
+  --t-slow: 400ms;     /* screen changes, card flip */
+  --t-party: 700ms;    /* celebrations */
+  /* Easings */
+  --ease-out: cubic-bezier(.2, .8, .2, 1);
+  --ease-in-out: cubic-bezier(.65, 0, .35, 1);
+  /* Intensity — default "juguetona" */
+  --spring: cubic-bezier(.34, 1.56, .64, 1);
+  --press-scale: .95;
+  --pop-scale: 1.08;
+  --shake: 7px;
+}
+:root[data-int="tranquila"] { --spring: cubic-bezier(.25, 1.1, .5, 1); --press-scale: .98; --pop-scale: 1.03; --shake: 3px; }
+:root[data-int="fiesta"]    { --spring: cubic-bezier(.3, 1.9, .5, 1);  --press-scale: .92; --pop-scale: 1.15; --shake: 11px; }
+
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg-0); color: var(--text-1);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 80px;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg-0); }
+main { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 700; margin: 0; line-height: 1.15; text-wrap: balance; }
+h1 { font-size: clamp(2.2rem, 6vw, 3rem); line-height: 1.05; }
+h1 span { color: var(--lilac); }
+h2 { font-size: 1.75rem; }
+h3 { font-size: 1.375rem; }
+p { margin: 0; max-width: 65ch; color: var(--text-2); }
+.eyebrow { font-size: .75rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); }
+.mono { font-family: var(--font-mono); font-size: .75rem; color: var(--text-3); }
+section { display: flex; flex-direction: column; gap: 20px; }
+
+/* Picker */
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg-0); padding-block: 12px; margin-block: -12px; display: flex; flex-direction: column; gap: 8px; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 560px; }
+.seg button { font: inherit; font-weight: 600; color: var(--text-1); cursor: pointer; min-height: 44px; background: var(--bg-1); border: var(--border) solid var(--line); border-radius: var(--r-sm); box-shadow: 0 var(--depth) 0 var(--bg-3); transition: transform var(--t-instant) ease, box-shadow var(--t-instant) ease; }
+.seg button[aria-pressed="true"] { border-color: var(--lilac); color: var(--lilac); box-shadow: 0 var(--depth) 0 var(--lilac-deep); }
+button:focus-visible { outline: 3px solid var(--sky); outline-offset: 3px; }
+
+/* Tiles */
+.tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+.tile { background: var(--bg-1); border: var(--border) solid var(--line); border-radius: var(--r-lg); padding: 22px; display: flex; flex-direction: column; gap: 14px; min-width: 0; position: relative; overflow: hidden; }
+.tile header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.tile header h3 { font-size: 1.25rem; }
+.tile .stage { min-height: 150px; display: grid; place-items: center; gap: 12px; position: relative; }
+.tile p { font-size: .9rem; color: var(--text-3); }
+.tile.wide { grid-column: 1 / -1; }
+
+/* Button with squish */
+.btn {
+  font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; letter-spacing: .02em;
+  min-height: 48px; padding: 0 24px; border: 0; border-radius: var(--r-md); cursor: pointer;
+  background: var(--c); color: var(--ink); box-shadow: 0 var(--depth) 0 var(--c-deep);
+  transition: transform var(--t-base) var(--spring), box-shadow var(--t-instant) ease, filter var(--t-fast) ease;
+}
+.btn:hover { filter: brightness(1.05); }
+.btn:active { transform: translateY(var(--depth)) scale(var(--press-scale)); box-shadow: 0 0 0 var(--c-deep); transition-duration: var(--t-instant); }
+.btn.ghost { background: var(--bg-2); color: var(--text-1); box-shadow: 0 var(--depth) 0 var(--bg-3); border: var(--border) solid var(--line); }
+.btns { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+
+/* Answer */
+.opts { display: grid; gap: 10px; width: 100%; }
+.opt { font: inherit; font-weight: 600; text-align: left; color: var(--text-1); background: var(--bg-2); border: var(--border) solid var(--line); border-radius: var(--r-md); padding: 12px 16px; min-height: 48px; cursor: pointer; box-shadow: 0 var(--depth) 0 var(--bg-3); transition: transform var(--t-base) var(--spring), background var(--t-fast) ease, border-color var(--t-fast) ease, color var(--t-fast) ease; }
+.opt:active { transform: scale(var(--press-scale)); transition-duration: var(--t-instant); }
+.opt.right { background: var(--mint-soft); border-color: var(--mint-deep); color: var(--mint); box-shadow: 0 var(--depth) 0 var(--mint-deep); animation: pop var(--t-party) var(--spring); }
+.opt.wrong { background: var(--rose-soft); border-color: var(--rose-deep); color: var(--rose); box-shadow: 0 var(--depth) 0 var(--rose-deep); animation: shake 420ms var(--ease-in-out); }
+@keyframes pop { 0% { transform: scale(1) } 35% { transform: scale(var(--pop-scale)) } 100% { transform: scale(1) } }
+@keyframes shake { 0%,100% { transform: translateX(0) } 20% { transform: translateX(calc(var(--shake) * -1)) } 40% { transform: translateX(var(--shake)) } 60% { transform: translateX(calc(var(--shake) * -.6)) } 80% { transform: translateX(calc(var(--shake) * .6)) } }
+
+.banner { width: 100%; border-radius: var(--r-md); padding: 12px 16px; font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; display: flex; justify-content: space-between; align-items: center; transform: translateY(12px); opacity: 0; transition: transform var(--t-base) var(--spring), opacity var(--t-fast) ease; }
+.banner.show { transform: translateY(0); opacity: 1; }
+.banner.right { background: var(--mint-soft); color: var(--mint); }
+.banner.wrong { background: var(--rose-soft); color: var(--rose); }
+.xp { display: inline-block; }
+.xp.bump { animation: pop var(--t-party) var(--spring); }
+
+/* Confetti */
+.confetti { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.confetti i { position: absolute; width: 10px; height: 10px; border-radius: 4px; background: var(--c); left: var(--x); top: var(--y); animation: burst var(--t-party) var(--ease-out) forwards; }
+@keyframes burst { 0% { transform: translate(0,0) rotate(0) scale(1); opacity: 1 } 100% { transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(.6); opacity: 0 } }
+
+/* AI loading */
+.thinking { display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%; }
+.blob { width: 72px; height: 72px; border-radius: 40% 60% 55% 45% / 50% 45% 55% 50%; background: var(--peach); box-shadow: 0 var(--depth) 0 var(--peach-deep); animation: morph 3s var(--ease-in-out) infinite, bob 1.6s var(--ease-in-out) infinite; }
+@keyframes morph { 0%,100% { border-radius: 40% 60% 55% 45% / 50% 45% 55% 50% } 33% { border-radius: 60% 40% 45% 55% / 45% 60% 40% 55% } 66% { border-radius: 50% 50% 60% 40% / 60% 40% 55% 45% } }
+@keyframes bob { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-6px) } }
+.dots { display: flex; gap: 6px; }
+.dots span { width: 8px; height: 8px; border-radius: 50%; background: var(--peach); animation: dot 1.2s var(--ease-in-out) infinite; }
+.dots span:nth-child(2) { animation-delay: .15s; } .dots span:nth-child(3) { animation-delay: .3s; }
+@keyframes dot { 0%,80%,100% { transform: translateY(0); opacity: .4 } 40% { transform: translateY(-6px); opacity: 1 } }
+.tip { font-size: .9rem; color: var(--text-2); text-align: center; min-height: 2.8em; transition: opacity var(--t-base) ease; }
+.skeleton { width: 100%; display: grid; gap: 8px; }
+.skeleton div { height: 12px; border-radius: var(--r-full); background: linear-gradient(90deg, var(--bg-2) 0%, var(--bg-3) 50%, var(--bg-2) 100%); background-size: 200% 100%; animation: shimmer 1.6s linear infinite; }
+.skeleton div:nth-child(2) { width: 85%; } .skeleton div:nth-child(3) { width: 60%; }
+@keyframes shimmer { 0% { background-position: 200% 0 } 100% { background-position: -200% 0 } }
+.elapsed { font-family: var(--font-mono); font-size: .75rem; color: var(--text-3); }
+
+/* Streaming */
+.stream { width: 100%; min-height: 120px; font-size: 1.05rem; line-height: 1.75; color: var(--text-2); }
+.stream .wd { opacity: 0; display: inline; animation: fadein var(--t-base) var(--ease-out) forwards; }
+@keyframes fadein { from { opacity: 0; filter: blur(3px) } to { opacity: 1; filter: blur(0) } }
+.caret { display: inline-block; width: 2px; height: 1.1em; background: var(--peach); vertical-align: -0.15em; margin-left: 2px; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0 } }
+
+/* Flip card */
+.flip { width: min(280px, 100%); aspect-ratio: 4 / 3; perspective: 900px; cursor: pointer; background: none; border: 0; padding: 0; }
+.flip-inner { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform var(--t-slow) var(--spring); }
+.flip.on .flip-inner { transform: rotateY(180deg); }
+.face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: var(--r-lg); display: grid; place-items: center; text-align: center; padding: 16px; border: var(--border) solid var(--line); }
+.face.front { background: var(--bg-2); box-shadow: 0 var(--depth) 0 var(--bg-3); }
+.face.front b { font-family: var(--font-display); font-size: 2rem; color: var(--mint); }
+.face.back { background: var(--mint-soft); border-color: var(--mint-deep); transform: rotateY(180deg); color: var(--text-1); font-size: .95rem; }
+
+/* Progress */
+.prog { width: 100%; height: 16px; background: var(--bg-2); border-radius: var(--r-full); overflow: hidden; }
+.prog div { height: 100%; width: 20%; background: var(--mint); border-radius: var(--r-full); box-shadow: inset 0 -3px 0 rgba(0,0,0,.15), inset 0 3px 0 rgba(255,255,255,.25); transition: width var(--t-slow) var(--spring); }
+.streak { font-family: var(--font-display); font-weight: 800; font-size: 2.5rem; color: var(--butter); line-height: 1; }
+.streak.bump { animation: pop var(--t-party) var(--spring); }
+
+/* Screen transition */
+.phone { width: min(260px, 100%); height: 170px; background: var(--bg-0); border: var(--border) solid var(--line); border-radius: var(--r-lg); position: relative; overflow: hidden; }
+.screen { position: absolute; inset: 0; padding: 16px; display: flex; flex-direction: column; gap: 8px; transition: transform var(--t-slow) var(--ease-out), opacity var(--t-slow) var(--ease-out); }
+.screen h4 { margin: 0; font-family: var(--font-display); font-size: 1.15rem; }
+.screen .line { height: 10px; border-radius: var(--r-full); background: var(--bg-2); }
+.screen.s1 h4 { color: var(--sky); } .screen.s2 h4 { color: var(--peach); }
+.screen.s2 { transform: translateX(40%); opacity: 0; }
+.phone.next .s1 { transform: translateX(-25%); opacity: 0; }
+.phone.next .s2 { transform: translateX(0); opacity: 1; }
+
+/* Tokens table */
+.tokens { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.tok { background: var(--bg-1); border: var(--border) solid var(--line); border-radius: var(--r-md); padding: 14px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.tok b { font-family: var(--font-display); font-size: 1.5rem; color: var(--lilac); line-height: 1; }
+.tok span { font-size: .85rem; color: var(--text-2); }
+
+.c-mint   { --c: var(--mint);   --c-deep: var(--mint-deep); }
+.c-lilac  { --c: var(--lilac);  --c-deep: var(--lilac-deep); }
+.c-sky    { --c: var(--sky);    --c-deep: var(--sky-deep); }
+.c-peach  { --c: var(--peach);  --c-deep: var(--peach-deep); }
+.c-butter { --c: var(--butter); --c-deep: var(--butter-deep); }
+.c-rose   { --c: var(--rose);   --c-deep: var(--rose-deep); }
+
+@media (max-width: 760px) {
+  .tiles { grid-template-columns: 1fr; }
+  .tokens { grid-template-columns: repeat(2, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }
+  .flip-inner { transition: none; }
+}
+</style>
+
+<main>
+  <section>
+    <span class="eyebrow">Sistema de diseño · paso 4 · Movimiento</span>
+    <h1>Que se sienta <span>vivo</span></h1>
+    <p>Cada animación tiene un trabajo: confirmar que pulsaste, celebrar un acierto, avisar de un error o acompañarte mientras la IA piensa. Toca todo. Arriba eliges cuánta energía tiene la app.</p>
+  </section>
+
+  <div class="bar">
+    <span class="eyebrow">Intensidad</span>
+    <div class="seg" role="group" aria-label="Intensidad">
+      <button id="int-tranquila" data-v="tranquila" aria-pressed="false">Tranquila</button>
+      <button id="int-juguetona" data-v="juguetona" aria-pressed="true">Juguetona</button>
+      <button id="int-fiesta" data-v="fiesta" aria-pressed="false">Fiesta</button>
+    </div>
+  </div>
+
+  <section class="tiles">
+    <article class="tile">
+      <header><h3>1 · Pulsar</h3><span class="mono">80 ms baja · 250 ms rebota</span></header>
+      <div class="stage">
+        <div class="btns">
+          <button class="btn c-lilac" id="press-1">Mantén pulsado</button>
+          <button class="btn c-sky" id="press-2">Otro</button>
+          <button class="btn ghost" id="press-3">Neutro</button>
+        </div>
+      </div>
+      <p>Como la profundidad es sutil (2 px), el botón además se encoge un poco y vuelve con rebote. Así el clic se siente aunque baje poco.</p>
+    </article>
+
+    <article class="tile">
+      <header><h3>2 · Acertar y fallar</h3><span class="mono">pop 700 ms · temblor 420 ms</span></header>
+      <div class="stage" id="answer-stage">
+        <div class="opts">
+          <button class="opt" id="ans-1" data-ok="0">She have visited London.</button>
+          <button class="opt" id="ans-2" data-ok="1">She has visited London.</button>
+        </div>
+        <div class="banner" id="banner"><span id="banner-text"></span><span class="xp" id="xp"></span></div>
+        <div class="confetti" id="confetti" aria-hidden="true"></div>
+      </div>
+      <p>Acierto: la opción crece, sale confeti pastel y sube el XP. Fallo: tiembla, sin confeti y sin castigo exagerado.</p>
+    </article>
+
+    <article class="tile wide">
+      <header><h3>3 · La IA está pensando</h3><span class="mono">generar una palabra tarda ~40 s</span></header>
+      <div class="stage">
+        <div class="thinking">
+          <div class="blob" aria-hidden="true"></div>
+          <div class="dots" aria-hidden="true"><span></span><span></span><span></span></div>
+          <div class="tip" id="tip" role="status">Buscando ejemplos que suenen naturales…</div>
+          <div class="skeleton" aria-hidden="true"><div></div><div></div><div></div></div>
+          <span class="elapsed" id="elapsed">0 s</span>
+        </div>
+      </div>
+      <p>Es el momento más importante: la IA tarda entre 40 y 70 segundos. En lugar de un spinner aburrido, una forma que respira, mensajes que cambian cada pocos segundos, un esqueleto de lo que va a aparecer y el tiempo transcurrido, para que nunca parezca colgada.</p>
+    </article>
+
+    <article class="tile">
+      <header><h3>4 · Texto en streaming</h3><span class="mono">cada palabra 250 ms</span></header>
+      <div class="stage"><div class="stream" id="stream" aria-live="polite"></div></div>
+      <div class="btns"><button class="btn c-peach" id="stream-btn">Generar capítulo</button></div>
+      <p>Para capítulos y chat: cada palabra aparece con un fundido suave, con un cursor que parpadea mientras escribe.</p>
+    </article>
+
+    <article class="tile">
+      <header><h3>5 · Girar tarjeta Anki</h3><span class="mono">400 ms con rebote</span></header>
+      <div class="stage">
+        <button class="flip" id="flip" aria-label="Girar tarjeta">
+          <div class="flip-inner">
+            <div class="face front"><b>whimsical</b></div>
+            <div class="face back">Juguetón y caprichoso de forma encantadora.<br>«A whimsical little café.»</div>
+          </div>
+        </button>
+      </div>
+      <p>Toca la tarjeta. Gira en 3D y se asienta con un pequeño rebote.</p>
+    </article>
+
+    <article class="tile">
+      <header><h3>6 · Progreso y racha</h3><span class="mono">400 ms con muelle</span></header>
+      <div class="stage">
+        <div class="streak" id="streak">🔥 6</div>
+        <div class="prog" aria-label="Progreso"><div id="prog"></div></div>
+        <div class="btns"><button class="btn c-mint" id="prog-btn">Completar lección</button></div>
+      </div>
+      <p>La barra avanza con efecto muelle y la racha salta al subir.</p>
+    </article>
+
+    <article class="tile">
+      <header><h3>7 · Cambiar de pantalla</h3><span class="mono">400 ms, sin rebote</span></header>
+      <div class="stage">
+        <div class="phone" id="phone">
+          <div class="screen s1"><h4>Palabras</h4><div class="line"></div><div class="line" style="width:70%"></div><div class="line" style="width:85%"></div></div>
+          <div class="screen s2"><h4>Historias</h4><div class="line"></div><div class="line" style="width:60%"></div><div class="line" style="width:90%"></div></div>
+        </div>
+        <button class="btn ghost" id="nav-btn">Ir a Historias</button>
+      </div>
+      <p>Al navegar no hay rebote: la pantalla se desliza y funde. El rebote se reserva para cosas que tocas.</p>
+    </article>
+  </section>
+
+  <section>
+    <span class="eyebrow">Tokens fijos</span>
+    <h2>Cinco duraciones para todo</h2>
+    <div class="tokens">
+      <div class="tok"><b>80</b><span>Pulsar (bajar)</span></div>
+      <div class="tok"><b>150</b><span>Hover y color</span></div>
+      <div class="tok"><b>250</b><span>Movimiento normal</span></div>
+      <div class="tok"><b>400</b><span>Pantallas, girar</span></div>
+      <div class="tok"><b>700</b><span>Celebrar</span></div>
+    </div>
+    <p>Regla: el rebote solo para lo que tocas y para celebrar. La navegación y los textos, suaves y sin rebote. Si el sistema tiene activado "reducir movimiento", todo se vuelve instantáneo.</p>
+  </section>
+</main>
+
+<script>
+(() => {
+  const root = document.documentElement;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let intensity = 'juguetona';
+  const setInt = v => {
+    intensity = v;
+    if (v === 'juguetona') root.removeAttribute('data-int'); else root.setAttribute('data-int', v);
+    document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === v)));
+    try { localStorage.setItem('mov-int', v); } catch (e) {}
+  };
+  document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => setInt(b.dataset.v)));
+  try { const s = localStorage.getItem('mov-int'); if (s) setInt(s); } catch (e) {}
+
+  // 2 · answers
+  const banner = document.getElementById('banner'), bText = document.getElementById('banner-text'), xp = document.getElementById('xp'), conf = document.getElementById('confetti');
+  let total = 120;
+  const colors = ['mint', 'lilac', 'sky', 'peach', 'butter', 'rose'];
+  const burst = (x, y) => {
+    if (reduce) return;
+    const n = { tranquila: 0, juguetona: 18, fiesta: 40 }[intensity];
+    for (let i = 0; i < n; i++) {
+      const el = document.createElement('i');
+      const ang = Math.random() * Math.PI * 2, dist = 60 + Math.random() * (intensity === 'fiesta' ? 140 : 90);
+      el.style.setProperty('--x', x + 'px'); el.style.setProperty('--y', y + 'px');
+      el.style.setProperty('--dx', Math.cos(ang) * dist + 'px'); el.style.setProperty('--dy', Math.sin(ang) * dist - 30 + 'px');
+      el.style.setProperty('--rot', (Math.random() * 540 - 270) + 'deg');
+      el.className = 'c-' + colors[i % colors.length];
+      el.style.background = 'var(--c)';
+      conf.appendChild(el);
+      setTimeout(() => el.remove(), 900);
+    }
+  };
+  document.querySelectorAll('.opt').forEach(o => o.addEventListener('click', () => {
+    document.querySelectorAll('.opt').forEach(x => x.classList.remove('right', 'wrong'));
+    void o.offsetWidth;
+    const ok = o.dataset.ok === '1';
+    o.classList.add(ok ? 'right' : 'wrong');
+    banner.className = 'banner ' + (ok ? 'right' : 'wrong');
+    void banner.offsetWidth; banner.classList.add('show');
+    if (ok) {
+      total += 10; bText.textContent = '¡Correcto!'; xp.textContent = '+10 XP · ' + total;
+      xp.classList.remove('bump'); void xp.offsetWidth; xp.classList.add('bump');
+      const r = o.getBoundingClientRect(), s = document.getElementById('answer-stage').getBoundingClientRect();
+      burst(r.left - s.left + r.width / 2, r.top - s.top + r.height / 2);
+    } else { bText.textContent = 'Casi: es «has visited»'; xp.textContent = ''; }
+  }));
+
+  // 3 · thinking
+  const tips = ['Buscando ejemplos que suenen naturales…', 'Revisando la pronunciación…', 'Eligiendo sinónimos de tu nivel…', 'Traduciendo al español y al portugués…', 'Casi listo, dando el último repaso…'];
+  let ti = 0, secs = 0; const tip = document.getElementById('tip'), el = document.getElementById('elapsed');
+  setInterval(() => { secs = (secs + 1) % 60; el.textContent = secs + ' s'; }, 1000);
+  setInterval(() => { tip.style.opacity = 0; setTimeout(() => { ti = (ti + 1) % tips.length; tip.textContent = tips[ti]; tip.style.opacity = 1; }, 250); }, 3500);
+
+  // 4 · streaming
+  const text = 'Every night, Marta climbed the spiral staircase of the old lighthouse. The wind howled against the windows, but she was never afraid.';
+  const stream = document.getElementById('stream'); let timer = null;
+  const runStream = () => {
+    clearInterval(timer); stream.innerHTML = '';
+    const caret = document.createElement('span'); caret.className = 'caret';
+    const words = text.split(' '); let i = 0;
+    stream.appendChild(caret);
+    timer = setInterval(() => {
+      if (i >= words.length) { clearInterval(timer); caret.remove(); return; }
+      const w = document.createElement('span'); w.className = 'wd'; w.textContent = words[i] + ' ';
+      stream.insertBefore(w, caret); i++;
+    }, 90);
+  };
+  document.getElementById('stream-btn').addEventListener('click', runStream);
+  runStream();
+
+  // 5 · flip
+  const flip = document.getElementById('flip');
+  flip.addEventListener('click', () => flip.classList.toggle('on'));
+
+  // 6 · progress
+  let p = 20, streak = 6; const prog = document.getElementById('prog'), st = document.getElementById('streak');
+  document.getElementById('prog-btn').addEventListener('click', () => {
+    p = p >= 100 ? 20 : p + 20; prog.style.width = p + '%';
+    if (p === 100) { streak++; st.textContent = '🔥 ' + streak; st.classList.remove('bump'); void st.offsetWidth; st.classList.add('bump'); }
+  });
+
+  // 7 · screens
+  const phone = document.getElementById('phone'), navBtn = document.getElementById('nav-btn');
+  navBtn.addEventListener('click', () => { phone.classList.toggle('next'); navBtn.textContent = phone.classList.contains('next') ? 'Volver a Palabras' : 'Ir a Historias'; });
+})();
+</script>
