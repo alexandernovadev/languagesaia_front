@@ -1,0 +1,40 @@
+.block {
+  display: block;
+  height: 14px;
+  border-radius: var(--r-full);
+  background: linear-gradient(90deg, var(--bg-2) 0%, var(--bg-3) 50%, var(--bg-2) 100%);
+  background-size: 200% 100%;
+  animation: lai-shimmer 1.6s linear infinite;
+}
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  border: var(--border) solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--bg-1);
+  animation: lai-reveal var(--t-slow) var(--ease-out) both;
+}
+.thumb {
+  width: 56px;
+  height: 56px;
+  flex: none;
+  border-radius: var(--r-sm);
+}
+.texts {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.lines {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}

@@ -70,3 +70,37 @@ async function raw<T>(path: string, { method = "GET", body, auth = true, signal 
 
 export const api = <T = unknown>(path: string, options: Options = {}) => raw<T>(path, options);
 export const API_BASE = BASE;
+
+/**
+ * Streams a plain-text response chunk by chunk (AI chats).
+ * Calls `onChunk` with each new piece and resolves with the full text.
+ */
+export async function apiStream(path: string, body: unknown, onChunk: (piece: string, full: string) => void, signal?: AbortSignal): Promise<string> {
+  const doFetch = () =>
+    fetch(`${BASE}${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.get()?.token ?? ""}` },
+      body: JSON.stringify(body),
+      signal,
+    });
+  let res: Response;
+  try {
+    res = await doFetch();
+    if (res.status === 401 && (await session.refresh())) res = await doFetch();
+  } catch (e) {
+    if ((e as Error).name === "AbortError") throw e;
+    throw new ApiError(FRIENDLY[0], 0, e);
+  }
+  if (!res.ok || !res.body) throw new ApiError(FRIENDLY[res.status] ?? FRIENDLY[500], res.status);
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let full = "";
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    const piece = decoder.decode(value, { stream: true });
+    full += piece;
+    onChunk(piece, full);
+  }
+  return full;
+}

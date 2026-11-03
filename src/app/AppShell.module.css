@@ -230,11 +230,9 @@
     display: none;
   }
   .top {
-    background: transparent;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
     border-bottom: 0;
-    padding-top: var(--sp-5);
+    padding-top: var(--sp-4);
+    padding-bottom: var(--sp-4);
   }
   .content {
     padding-bottom: var(--sp-16);

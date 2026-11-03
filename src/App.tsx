@@ -8,13 +8,16 @@ import { Home } from "./pages/Home/Home";
 import { Login } from "./pages/Login/Login";
 import { Profile } from "./pages/Profile/Profile";
 import { Soon } from "./pages/Soon/Soon";
+import { WordDetail } from "./features/words/WordDetail";
+import { WordsList } from "./features/words/WordsList";
 
 const router = createBrowserRouter([
   {
     element: <AppShell />,
     children: [
       { path: "/", element: <Home /> },
-      { path: MODULES.words.path, element: <Soon module={MODULES.words} /> },
+      { path: MODULES.words.path, element: <WordsList /> },
+      { path: `${MODULES.words.path}/:id`, element: <WordDetail /> },
       { path: MODULES.expressions.path, element: <Soon module={MODULES.expressions} /> },
       { path: MODULES.review.path, element: <Soon module={MODULES.review} /> },
       { path: MODULES.stories.path, element: <Soon module={MODULES.stories} /> },
