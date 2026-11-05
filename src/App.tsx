@@ -17,6 +17,11 @@ const ExpressionDetail = lazy(() => import("./features/expressions/ExpressionDet
 const ExpressionsList = lazy(() => import("./features/expressions/ExpressionsList").then((m) => ({ default: m.ExpressionsList })));
 const Exams = lazy(() => import("./features/exams/Exams").then((m) => ({ default: m.Exams })));
 
+const AdminLayout = lazy(() => import("./features/admin/AdminLayout").then((m) => ({ default: m.AdminLayout })));
+const AdminSystem = lazy(() => import("./features/admin/AdminSystem").then((m) => ({ default: m.AdminSystem })));
+const AdminBackups = lazy(() => import("./features/admin/AdminBackups").then((m) => ({ default: m.AdminBackups })));
+const AdminData = lazy(() => import("./features/admin/AdminData").then((m) => ({ default: m.AdminData })));
+
 /* Design system showcase: development only, it never ships to production. */
 const Catalog = import.meta.env.DEV ? lazy(() => import("./pages/Catalog/Catalog").then((m) => ({ default: m.Catalog }))) : null;
 
@@ -33,6 +38,16 @@ const router = createBrowserRouter([
       { path: MODULES.stories.path, element: <Soon module={MODULES.stories} /> },
       { path: MODULES.exams.path, element: <Exams /> },
       { path: MODULES.profile.path, element: <Profile /> },
+    ],
+  },
+  {
+    path: "/admin",
+    element: <Suspense fallback={null}><AdminLayout /></Suspense>,
+    children: [
+      { index: true, element: <Navigate to="sistema" replace /> },
+      { path: "sistema", element: <AdminSystem /> },
+      { path: "backups", element: <AdminBackups /> },
+      { path: "datos", element: <AdminData /> },
     ],
   },
   ...(Catalog ? [{ path: "/catalogo", element: <Suspense fallback={null}><Catalog /></Suspense> }] : []),

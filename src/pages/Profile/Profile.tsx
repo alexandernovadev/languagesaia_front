@@ -20,6 +20,7 @@ export function Profile() {
   if (!s || !user) return null;
 
   const name = [user.firstName, user.lastName].filter((n) => n && n !== "System").join(" ") || user.username;
+  const isAdmin = user.role === "admin";
   const dirty = language !== user.language || explains !== user.explainsLanguage;
 
   const save = async () => {
@@ -35,18 +36,29 @@ export function Profile() {
     }
   };
 
+  const who = (
+    <Card tint="lilac" padding="lg" className={styles.who}>
+      <Avatar name={name} src={user.image} size={72} />
+      <div>
+        <h1>{name}</h1>
+        <p className={styles.handle}>
+          @{user.username}
+          {isAdmin && <span className={styles.admin}>Admin</span>}
+        </p>
+      </div>
+      {isAdmin && <Icon name="next" className={styles.whoGo} />}
+    </Card>
+  );
+
   return (
     <div className={styles.page}>
-      <Card tint="lilac" padding="lg" className={styles.who}>
-        <Avatar name={name} src={user.image} size={72} />
-        <div>
-          <h1>{name}</h1>
-          <p className={styles.handle}>
-            @{user.username}
-            {user.role === "admin" && <span className={styles.admin}>Admin</span>}
-          </p>
-        </div>
-      </Card>
+      {isAdmin ? (
+        <Link to="/admin" className={styles.whoLink} aria-label={`${name}, abrir el panel de administración`}>
+          {who}
+        </Link>
+      ) : (
+        who
+      )}
 
       <Card>
         <h2 className={styles.title}>
@@ -84,7 +96,7 @@ export function Profile() {
           <Icon name="settings" /> Ajustes
         </h2>
         <SoundToggle />
-        {import.meta.env.DEV && user.role === "admin" && (
+        {import.meta.env.DEV && isAdmin && (
           <Link to="/catalogo" className={styles.link}>
             <Icon name="sparkle" /> Catálogo del sistema de diseño
             <Icon name="next" size={18} />
@@ -95,6 +107,8 @@ export function Profile() {
       <Button tone="danger" variant="soft" block icon={<Icon name="logout" size={20} />} onClick={logout}>
         Cerrar sesión
       </Button>
+
+      <p className={styles.version}>Glota v{__APP_VERSION__}</p>
     </div>
   );
 }

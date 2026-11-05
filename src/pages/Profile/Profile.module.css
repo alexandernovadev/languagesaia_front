@@ -10,6 +10,20 @@
   align-items: center;
   gap: var(--sp-5);
 }
+.whoLink {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--r-lg);
+  transition: transform var(--t-fast) var(--ease-out);
+}
+.whoLink:hover {
+  transform: translateY(-2px);
+}
+.whoGo {
+  margin-left: auto;
+  color: var(--text-3);
+}
 .who h1 {
   font-size: var(--fs-h2);
 }
@@ -39,6 +53,11 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--sp-4);
+}
+.version {
+  color: var(--text-3);
+  font-size: var(--fs-caption);
+  text-align: center;
 }
 .link {
   display: flex;
