@@ -1,7 +1,4 @@
 .page {
-  --c: var(--sky);
-  --c-deep: var(--sky-deep);
-  --c-soft: var(--sky-soft);
   display: flex;
   flex-direction: column;
   gap: var(--sp-4);
@@ -25,10 +22,10 @@
   font-family: var(--font-display);
   font-weight: var(--fw-display);
   font-size: 1.1rem;
-  color: var(--sky);
+  color: var(--c);
   padding: 2px 10px;
   border-radius: var(--r-full);
-  background: var(--sky-soft);
+  background: var(--c-soft);
   animation: lai-bump var(--t-slow) var(--spring);
 }
 .tools {
@@ -69,12 +66,12 @@
 }
 @media (hover: hover) {
   .row:hover {
-    border-color: var(--sky);
-    background: color-mix(in srgb, var(--bg-1), var(--sky) 5%);
+    border-color: var(--c);
+    background: color-mix(in srgb, var(--bg-1), var(--c) 5%);
   }
   .row:hover .chev {
     translate: 3px 0;
-    color: var(--sky);
+    color: var(--c);
   }
   .row:hover .thumb img {
     scale: 1.08;
@@ -89,7 +86,7 @@
   height: 60px;
   overflow: hidden;
   border-radius: var(--r-sm);
-  background: var(--sky-soft);
+  background: var(--c-soft);
 }
 .thumb img {
   width: 100%;
@@ -105,7 +102,7 @@
   font-family: var(--font-display);
   font-weight: var(--fw-heavy);
   font-size: 1.8rem;
-  color: var(--sky);
+  color: var(--c);
 }
 .rowText {
   flex: 1;
@@ -155,8 +152,8 @@
   font-weight: var(--fw-semibold);
   padding: 1px 8px;
   border-radius: var(--r-full);
-  color: var(--sky);
-  background: var(--sky-soft);
+  color: var(--c);
+  background: var(--c-soft);
 }
 /* difficulty: small gummy dot */
 .diff {
@@ -194,7 +191,7 @@
 .addBusy b {
   font-family: var(--font-display);
   font-size: var(--fs-h3);
-  color: var(--sky);
+  color: var(--c);
 }
 .addBusy p {
   color: var(--text-2);

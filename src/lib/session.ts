@@ -3,7 +3,6 @@
  * shared with React through `useSession()`.
  *
  * @example
- *   await login("novask88", "•••");     // throws ApiError on bad credentials
  *   const user = useSession()?.user;
  *   logout();
  */
@@ -30,7 +29,7 @@ export interface Session {
 }
 
 const KEY = "glota.session";
-const BASE = (import.meta.env.VITE_BACK_URL as string | undefined)?.replace(/\/$/, "") ?? "";
+export const API_BASE = (import.meta.env.VITE_BACK_URL as string | undefined)?.replace(/\/$/, "") ?? "";
 const listeners = new Set<() => void>();
 
 let current: Session | null = (() => {
@@ -68,7 +67,7 @@ export const session = {
     if (refreshing) return refreshing;
     const rt = current?.refreshToken;
     if (!rt) return Promise.resolve(false);
-    refreshing = fetch(`${BASE}/api/auth/refresh`, {
+    refreshing = fetch(`${API_BASE}/api/auth/refresh`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refreshToken: rt }),
@@ -84,13 +83,6 @@ export const session = {
     return refreshing;
   },
 };
-
-export async function login(identifier: string, password: string): Promise<Session> {
-  const { api } = await import("./api");
-  const data = await api<Session>("/api/auth/login", { method: "POST", body: { username: identifier.trim(), password }, auth: false });
-  // don't switch screens yet: the login page celebrates first, then calls session.set(data)
-  return data;
-}
 
 export const logout = () => session.clear();
 

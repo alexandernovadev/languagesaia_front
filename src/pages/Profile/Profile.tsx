@@ -84,7 +84,7 @@ export function Profile() {
           <Icon name="settings" /> Ajustes
         </h2>
         <SoundToggle />
-        {user.role === "admin" && (
+        {import.meta.env.DEV && user.role === "admin" && (
           <Link to="/catalogo" className={styles.link}>
             <Icon name="sparkle" /> Catálogo del sistema de diseño
             <Icon name="next" size={18} />

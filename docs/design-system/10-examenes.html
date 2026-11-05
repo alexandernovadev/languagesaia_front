@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Exámenes de Glota</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600..800&family=Lexend:wght@400..600&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: dark;
+  --bg-0: #202024; --bg-1: #29292e; --bg-2: #333338; --bg-3: #3e3e44; --line: #4a4a51;
+  --text-1: #f7f7f9; --text-2: #d4d4da; --text-3: #b0b0b9; --ink: #1a1a1e;
+  --lilac: #cbbdf9; --lilac-deep: #8e7cc2; --lilac-soft: rgb(203 189 249 / .14);
+  --sky: #9bd2fa; --sky-deep: #4e94c3; --sky-soft: rgb(155 210 250 / .14);
+  --mint: #91debc; --mint-deep: #3ca17b; --mint-soft: rgb(145 222 188 / .14);
+  --butter: #ecdc92; --butter-deep: #af9b3e; --butter-soft: rgb(236 220 146 / .14);
+  --peach: #f9bb92; --peach-deep: #bf7946; --peach-soft: rgb(249 187 146 / .14);
+  --rose: #f6b2b9; --rose-deep: #bd6f79; --rose-soft: rgb(246 178 185 / .14);
+  --font-display: "Baloo 2", ui-rounded, system-ui, sans-serif;
+  --font-body: "Lexend", system-ui, sans-serif;
+}
+html, body { background: var(--bg-0); color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; color: var(--text-1); font-family: var(--font-body); line-height: 1.55; -webkit-font-smoothing: antialiased; }
+main { max-width: 1100px; margin: 0 auto; padding: 40px 16px 80px; display: flex; flex-direction: column; gap: 52px; }
+h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 800; margin: 0; line-height: 1.15; }
+h1 { font-size: clamp(2.2rem, 6vw, 3rem); } h1 span { color: var(--butter); }
+h2 { font-size: 1.75rem; }
+p { margin: 0; color: var(--text-2); max-width: 66ch; }
+ul { margin: 0; padding: 0; list-style: none; }
+.eyebrow { font-size: .75rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); }
+section { display: flex; flex-direction: column; gap: 18px; }
+.note { font-size: .875rem; color: var(--text-3); }
+.c-sky { --c: var(--sky); --cd: var(--sky-deep); --cs: var(--sky-soft); }
+.c-lilac { --c: var(--lilac); --cd: var(--lilac-deep); --cs: var(--lilac-soft); }
+.c-mint { --c: var(--mint); --cd: var(--mint-deep); --cs: var(--mint-soft); }
+.c-butter { --c: var(--butter); --cd: var(--butter-deep); --cs: var(--butter-soft); }
+.c-peach { --c: var(--peach); --cd: var(--peach-deep); --cs: var(--peach-soft); }
+.c-rose { --c: var(--rose); --cd: var(--rose-deep); --cs: var(--rose-soft); }
+
+.lead { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; }
+.box { background: var(--bg-1); border: 2px solid var(--line); border-radius: 26px; padding: 20px; display: grid; gap: 10px; align-content: start; }
+.box h3 { font-size: 1.2rem; color: var(--c, var(--text-1)); }
+.box li { position: relative; padding-left: 18px; color: var(--text-2); font-size: .95rem; }
+.box li::before { content: "●"; position: absolute; left: 0; top: .2em; color: var(--c, var(--butter)); font-size: .7rem; }
+
+/* exercise grid */
+.ex { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.card { background: var(--bg-1); border: 2px solid var(--line); border-radius: 26px; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.card header { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.card h3 { font-size: 1.1rem; }
+.tag { font-size: .68rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; letter-spacing: .02em; }
+.tag.have { background: var(--mint-soft); color: var(--mint); }
+.tag.new { background: var(--butter-soft); color: var(--butter); }
+.tag.tplus { background: var(--lilac-soft); color: var(--lilac); }
+.card p { font-size: .85rem; }
+/* mini mockup */
+.mock { background: var(--bg-0); border: 2px solid var(--line); border-radius: 18px; padding: 12px; display: grid; gap: 8px; font-size: .8rem; }
+.mock .q { font-family: var(--font-display); font-weight: 700; font-size: .95rem; color: var(--text-1); }
+.mock .q i { font-style: normal; color: var(--butter); border-bottom: 2px dashed var(--butter); padding: 0 6px; }
+.opt { border: 2px solid var(--line); border-radius: 12px; padding: 6px 10px; background: var(--bg-2); color: var(--text-1); box-shadow: 0 2px 0 var(--bg-3); }
+.opt.ok { border-color: var(--mint-deep); background: var(--mint-soft); color: var(--mint); }
+.opt.sel { border-color: var(--lilac); background: var(--lilac-soft); color: var(--lilac); }
+.opt.bad { border-color: var(--rose-deep); background: var(--rose-soft); color: var(--rose); }
+.bank { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { border: 2px solid var(--line); border-radius: 10px; padding: 3px 9px; background: var(--bg-2); box-shadow: 0 2px 0 var(--bg-3); color: var(--text-1); }
+.chip.used { opacity: .25; }
+.line { min-height: 32px; border-bottom: 2px solid var(--line); display: flex; flex-wrap: wrap; gap: 6px; align-items: end; padding-bottom: 4px; }
+.pairs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.speak { display: flex; gap: 8px; align-items: center; }
+.speak b { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--sky); color: var(--ink); box-shadow: 0 2px 0 var(--sky-deep); font-size: 1.1rem; }
+.speak b.slow { background: var(--bg-2); color: var(--text-1); box-shadow: 0 2px 0 var(--bg-3); }
+.input { border: 2px solid var(--line); border-radius: 12px; padding: 6px 10px; background: var(--bg-2); color: var(--text-3); }
+.mic { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; margin: 4px auto; background: var(--rose); color: var(--ink); box-shadow: 0 3px 0 var(--rose-deep); font-size: 1.4rem; }
+.strike { text-decoration: line-through; text-decoration-color: var(--rose); color: var(--rose); }
+
+/* flow */
+.flow { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+.step { background: var(--bg-1); border: 2px solid var(--line); border-top: 4px solid var(--c); border-radius: 20px; padding: 14px; display: grid; gap: 6px; align-content: start; }
+.step b { font-family: var(--font-display); font-size: 1.05rem; color: var(--c); }
+.step span { font-size: .82rem; color: var(--text-2); }
+.step .n { width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; background: var(--c); color: var(--ink); font-family: var(--font-display); font-weight: 800; box-shadow: 0 2px 0 var(--cd); }
+
+/* modes */
+.modes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.mode { background: radial-gradient(100% 80% at 0 0, var(--cs), transparent 70%), var(--bg-1); border: 2px solid var(--line); border-radius: 24px; padding: 16px; display: grid; gap: 8px; align-content: start; }
+.mode .ic { font-size: 1.6rem; }
+.mode b { font-family: var(--font-display); font-size: 1.15rem; color: var(--c); }
+.mode span { font-size: .85rem; color: var(--text-2); }
+.mode em { font-style: normal; font-size: .75rem; color: var(--text-3); }
+
+/* plus */
+.plus { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.plus div { background: var(--bg-1); border: 2px solid var(--lilac-deep); border-radius: 22px; padding: 16px; display: grid; gap: 6px; }
+.plus b { font-family: var(--font-display); font-size: 1.05rem; color: var(--lilac); }
+.plus span { font-size: .85rem; color: var(--text-2); }
+.plus small { font-size: .72rem; color: var(--mint); font-weight: 600; }
+
+.back { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.qs { display: grid; gap: 10px; }
+.qs div { background: var(--bg-1); border: 2px dashed var(--butter-deep); border-radius: 18px; padding: 14px 16px; display: grid; gap: 4px; }
+.qs b { font-family: var(--font-display); color: var(--butter); font-size: 1.05rem; }
+.qs span { font-size: .88rem; color: var(--text-2); }
+
+@media (max-width: 900px) {
+  .lead, .ex, .flow, .modes, .plus, .back { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<main>
+  <header style="display:grid;gap:12px">
+    <span class="eyebrow">Exámenes · Bruno, el entrenador</span>
+    <h1>Exámenes de <span>Glota</span></h1>
+    <p>La forma de jugar de Duolingo (ejercicios cortos, variados, con respuesta al instante) + lo que tu back ya hace y Duolingo no: la IA valida cada pregunta, corrige traducciones libres con nota parcial y Bruno te explica el porqué de cada error.</p>
+  </header>
+
+  <section>
+    <span class="eyebrow">1 · Lo que ya tienes en el back (y es mucho)</span>
+    <div class="lead">
+      <div class="box c-mint">
+        <h3>✅ Ya funciona</h3>
+        <ul>
+          <li>Generar exámenes por <b>temas gramaticales</b>, <b>nivel MCER</b> (A1–C2), tema general y nº de preguntas.</li>
+          <li>4 tipos: elegir una, elegir varias, completar el hueco, traducir.</li>
+          <li><b>Control de calidad con IA</b>: generar → validar → corregir antes de usar el examen.</li>
+          <li>Intentos guardados, nota final.</li>
+          <li>Traducciones libres corregidas por IA con <b>nota parcial</b> y comentario.</li>
+          <li><b>Chat con la IA en cada pregunta</b> ("¿por qué está mal?").</li>
+          <li>Cada pregunta trae su <b>tema gramatical</b> y su <b>explicación</b>.</li>
+        </ul>
+      </div>
+      <div class="box c-butter">
+        <h3>🔁 Lo que cambia</h3>
+        <ul>
+          <li>Hoy la corrección llega <b>al final</b> → pasa a ser <b>pregunta a pregunta</b>, como Duolingo.</li>
+          <li>Exámenes largos y genéricos → <b>prácticas cortas</b> (5–10) y exámenes cuando quieras.</li>
+          <li>4 tipos → <b>10 tipos</b> de ejercicio, más variados y más divertidos.</li>
+          <li>Preguntas inventadas → también con <b>tus palabras y expresiones</b>.</li>
+          <li>Nota y ya → Glota <b>recuerda tus puntos débiles</b> y tus errores pasan a Repasar.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <span class="eyebrow">2 · Tipos de ejercicio</span>
+    <p class="note"><span class="tag have">YA EXISTE</span> en el back · <span class="tag new">NUEVO</span> estilo Duolingo · <span class="tag tplus">PLUS GLOTA</span> lo que Duolingo no tiene</p>
+    <div class="ex">
+      <article class="card">
+        <header><h3>1 · Elegir la correcta</h3><span class="tag have">YA EXISTE</span></header>
+        <div class="mock"><div class="q">She ___ visited London.</div><div class="opt">have</div><div class="opt ok">has ✓</div><div class="opt">having</div></div>
+        <p>Una sola opción correcta. Las incorrectas son errores típicos de quien aprende.</p>
+      </article>
+      <article class="card">
+        <header><h3>2 · Elegir todas las correctas</h3><span class="tag have">YA EXISTE</span></header>
+        <div class="mock"><div class="q">¿Cuáles son correctas?</div><div class="opt sel">I've been here ✓</div><div class="opt">I am here since</div><div class="opt sel">I've lived here ✓</div></div>
+        <p>Varias correctas. Entrena a distinguir matices.</p>
+      </article>
+      <article class="card">
+        <header><h3>3 · Completar el hueco</h3><span class="tag have">YA EXISTE</span></header>
+        <div class="mock"><div class="q">If I <i>had</i> time, I would go.</div><div class="bank"><span class="chip used">had</span><span class="chip">have</span><span class="chip">will have</span><span class="chip">having</span></div></div>
+        <p>Ahora con <b>fichas que tocas</b> y saltan al hueco, en vez de una lista.</p>
+      </article>
+      <article class="card">
+        <header><h3>4 · Ordenar las palabras</h3><span class="tag new">NUEVO</span></header>
+        <div class="mock"><div class="q">"Nunca he estado en Brasil"</div><div class="line"><span class="chip">I</span><span class="chip">have</span><span class="chip">never</span></div><div class="bank"><span class="chip used">I</span><span class="chip">been</span><span class="chip used">have</span><span class="chip">to</span><span class="chip">Brazil</span><span class="chip used">never</span><span class="chip">went</span></div></div>
+        <p>El clásico de Duolingo: construir la frase tocando fichas (con alguna trampa).</p>
+      </article>
+      <article class="card">
+        <header><h3>5 · Traducir (libre)</h3><span class="tag have">YA EXISTE</span><span class="tag tplus">PLUS</span></header>
+        <div class="mock"><div class="q">"Me encanta leer por la noche"</div><div class="input">I love reading at night_</div><div class="opt ok">Casi perfecto · 90% — "at night" ✓</div></div>
+        <p>Escribes lo que quieras y <b>la IA corrige con nota parcial</b>: acepta varias formas correctas, no solo una.</p>
+      </article>
+      <article class="card">
+        <header><h3>6 · Unir parejas</h3><span class="tag new">NUEVO</span><span class="tag tplus">TUS PALABRAS</span></header>
+        <div class="mock"><div class="pairs"><span class="opt ok">saudade</span><span class="opt ok">añoranza</span><span class="opt sel">jejum</span><span class="opt">agujero</span><span class="opt">buraco</span><span class="opt sel">ayuno</span></div></div>
+        <p>5 parejas palabra ↔ traducción, <b>sacadas de tus Palabras y Expresiones</b>.</p>
+      </article>
+      <article class="card">
+        <header><h3>7 · Escuchar y escribir</h3><span class="tag new">NUEVO</span></header>
+        <div class="mock"><div class="speak"><b>🔊</b><b class="slow">🐢</b><span class="note">Escribe lo que oyes</span></div><div class="input">She has never been…_</div></div>
+        <p>Dictado con la voz del navegador (normal y lenta). Entrena el oído.</p>
+      </article>
+      <article class="card">
+        <header><h3>8 · Escuchar y elegir</h3><span class="tag new">NUEVO</span></header>
+        <div class="mock"><div class="speak"><b>🔊</b><span class="note">¿Qué oíste?</span></div><div class="opt">I'm leaving</div><div class="opt ok">I'm living ✓</div></div>
+        <p>Distinguir sonidos parecidos (live/leave, ship/sheep…).</p>
+      </article>
+      <article class="card">
+        <header><h3>9 · Encuentra el error</h3><span class="tag new">NUEVO</span><span class="tag tplus">PLUS GRAMÁTICA</span></header>
+        <div class="mock"><div class="q">Toca la palabra incorrecta:</div><div class="bank"><span class="chip">He</span><span class="chip">don't</span><span class="chip">like</span><span class="chip">coffee</span></div><div class="opt bad"><span class="strike">don't</span> → doesn't</div></div>
+        <p>Muy útil para gramática, y Duolingo casi no lo usa.</p>
+      </article>
+      <article class="card">
+        <header><h3>10 · Hablar</h3><span class="tag new">NUEVO</span></header>
+        <div class="mock"><div class="q">Di en voz alta: "I'd like a coffee"</div><div class="mic">🎙</div></div>
+        <p>Reconocimiento de voz del navegador (Chrome/Android). Opcional: se puede saltar.</p>
+      </article>
+      <article class="card c-lilac" style="border-color:var(--lilac-deep)">
+        <header><h3>+ En todas: "¿Por qué?"</h3><span class="tag tplus">PLUS GLOTA</span></header>
+        <div class="mock"><div class="opt bad">✕ Casi — es "has visited"</div><div class="opt sel">💬 ¿Por qué? → Bruno explica</div></div>
+        <p>Tras cada respuesta, Bruno explica en tu idioma y puedes <b>preguntarle</b> (el chat por pregunta que ya tienes).</p>
+      </article>
+    </div>
+  </section>
+
+  <section>
+    <span class="eyebrow">3 · Cómo se juega una práctica</span>
+    <div class="flow">
+      <div class="step c-butter"><span class="n">1</span><b>Elegir</b><span>Práctica rápida, examen por tema o test de nivel.</span></div>
+      <div class="step c-peach"><span class="n">2</span><b>Bruno prepara</b><span>La IA genera y <b>valida</b> las preguntas (10–20 s, con Bruno calentando).</span></div>
+      <div class="step c-sky"><span class="n">3</span><b>Pregunta a pregunta</b><span>Pantalla completa, barra de progreso. "Comprobar" → acierto con confeti / fallo con explicación al instante.</span></div>
+      <div class="step c-lilac"><span class="n">4</span><b>"¿Por qué?"</b><span>En cualquier pregunta abres el chat con Bruno sin perder el sitio.</span></div>
+      <div class="step c-mint"><span class="n">5</span><b>Resultado</b><span>Nota, XP, racha, <b>temas a reforzar</b> y "pasar errores a Repasar".</span></div>
+    </div>
+  </section>
+
+  <section>
+    <span class="eyebrow">4 · Modos</span>
+    <div class="modes">
+      <div class="mode c-butter"><span class="ic">⚡</span><b>Práctica rápida</b><span>5–8 ejercicios mezclados con <b>tus palabras</b> y <b>tus puntos débiles</b>. Para cada día.</span><em>3–5 min</em></div>
+      <div class="mode c-sky"><span class="ic">🎯</span><b>Examen por tema</b><span>Eliges temas gramaticales y nivel (lo que ya tienes), 10–20 preguntas.</span><em>10–15 min</em></div>
+      <div class="mode c-peach"><span class="ic">🏆</span><b>Test de nivel</b><span>Empieza fácil y sube o baja según aciertas. Al final: "Eres B1".</span><em>15 min · de vez en cuando</em></div>
+      <div class="mode c-rose"><span class="ic">🔁</span><b>Repetir errores</b><span>Solo las preguntas que fallaste antes, hasta dominarlas.</span><em>lo que haga falta</em></div>
+    </div>
+  </section>
+
+  <section>
+    <span class="eyebrow">5 · El plus de Glota (lo que Duolingo no tiene)</span>
+    <div class="plus">
+      <div><b>IA que revisa sus propias preguntas</b><span>Generar → validar → corregir. Menos preguntas ambiguas o con dos respuestas.</span><small>✓ ya existe</small></div>
+      <div><b>Traducción libre con nota parcial</b><span>No te obliga a escribir exactamente "su" frase: entiende sinónimos y te dice qué mejorar.</span><small>✓ ya existe</small></div>
+      <div><b>Pregúntale a Bruno</b><span>Chat en cada pregunta para entender el error, en tu idioma.</span><small>✓ ya existe</small></div>
+      <div><b>Con tu vocabulario</b><span>Los ejercicios usan las palabras y expresiones que estás aprendiendo.</span><small>nuevo</small></div>
+      <div><b>Mapa de puntos débiles</b><span>Por tema gramatical: "Present perfect 60% · Condicionales 85%". La práctica rápida ataca lo más flojo.</span><small>nuevo</small></div>
+      <div><b>Errores → Repasar</b><span>Cada fallo puede convertirse en tarjeta para Menti.</span><small>nuevo</small></div>
+    </div>
+  </section>
+
+  <section>
+    <span class="eyebrow">6 · Para discutir</span>
+    <div class="back">
+      <div class="qs">
+        <div><b>¿Vidas (corazones)?</b><span>Duolingo te quita una por error y te para. ¿Lo queremos o mejor sin castigo?</span></div>
+        <div><b>¿Qué tipos primero?</b><span>Propuesta: 1, 3, 4, 5, 6 y 9 primero (sin voz); escuchar y hablar después.</span></div>
+        <div><b>¿Tiempo límite?</b><span>Normalmente no; quizá solo en el test de nivel.</span></div>
+      </div>
+      <div class="qs">
+        <div><b>¿Test de nivel ahora o después?</b><span>Es el más complejo (adaptativo). Podría ir en una segunda fase.</span></div>
+        <div><b>¿Los exámenes viejos?</b><span>Como dijiste que esos datos no importan, el modelo de Examen se puede rehacer limpio.</span></div>
+        <div><b>¿Algo de los exámenes de antes que quieras sí o sí?</b><span>Ej.: exportar/importar JSON, ver historial de intentos…</span></div>
+      </div>
+    </div>
+  </section>
+</main>
+</body>
+</html>

@@ -15,7 +15,8 @@ import { Button, Chip, Field, HEROES, Logo, PasswordInput, Robot, SpeechBubble, 
 import { ApiError } from "../../lib/api";
 import { fx } from "../../lib/fx";
 import { haptics } from "../../lib/haptics";
-import { login, session, type Session } from "../../lib/session";
+import { login } from "../../lib/api";
+import { session, type Session } from "../../lib/session";
 import { sound } from "../../lib/sound";
 import styles from "./Login.module.css";
 

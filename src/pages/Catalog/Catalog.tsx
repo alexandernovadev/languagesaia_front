@@ -1,7 +1,7 @@
 /**
  * Catalog — living showcase of the Glota design system.
  * Every component, every state and every effect, working together.
- * Route: /catalogo (until we have a router, App renders it directly).
+ * Route: /catalogo, in development only.
  */
 import { useState } from "react";
 import {

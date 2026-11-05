@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { Button, Chip, EmptyState, Icon, Segmented, Skeleton } from "../../components";
 import { MODULES } from "../../app/modules";
+import { tint } from "../../components/types";
 import { useSession } from "../../lib/session";
 import { AddWordSheet } from "./AddWordSheet";
 import { DIFFICULTY, WORD_TYPES, wordsApi, type Difficulty, type Word } from "./api";
@@ -104,7 +105,7 @@ export function WordsList() {
   const filtering = !!(q || difficulty || type);
 
   return (
-    <div className={styles.page}>
+    <div className={styles.page} style={tint("sky")}>
       <header className={styles.head}>
         <div className={styles.titleRow}>
           <h1>Palabras</h1>

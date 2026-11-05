@@ -1,16 +1,24 @@
+import { lazy, Suspense } from "react";
 import { createBrowserRouter, Navigate, RouterProvider } from "react-router";
 import { AppShell } from "./app/AppShell";
 import { MODULES } from "./app/modules";
 import { Toaster } from "./components";
 import { useSession } from "./lib/session";
-import { Catalog } from "./pages/Catalog/Catalog";
 import { Home } from "./pages/Home/Home";
 import { Login } from "./pages/Login/Login";
-import { Profile } from "./pages/Profile/Profile";
-import { Soon } from "./pages/Soon/Soon";
-import { WordDetail } from "./features/words/WordDetail";
-import { WordsList } from "./features/words/WordsList";
-import { Review } from "./features/review/Review";
+
+/* Each section is its own download, fetched the first time you open it. */
+const Profile = lazy(() => import("./pages/Profile/Profile").then((m) => ({ default: m.Profile })));
+const Soon = lazy(() => import("./pages/Soon/Soon").then((m) => ({ default: m.Soon })));
+const WordDetail = lazy(() => import("./features/words/WordDetail").then((m) => ({ default: m.WordDetail })));
+const WordsList = lazy(() => import("./features/words/WordsList").then((m) => ({ default: m.WordsList })));
+const Review = lazy(() => import("./features/review/Review").then((m) => ({ default: m.Review })));
+const ExpressionDetail = lazy(() => import("./features/expressions/ExpressionDetail").then((m) => ({ default: m.ExpressionDetail })));
+const ExpressionsList = lazy(() => import("./features/expressions/ExpressionsList").then((m) => ({ default: m.ExpressionsList })));
+const Exams = lazy(() => import("./features/exams/Exams").then((m) => ({ default: m.Exams })));
+
+/* Design system showcase: development only, it never ships to production. */
+const Catalog = import.meta.env.DEV ? lazy(() => import("./pages/Catalog/Catalog").then((m) => ({ default: m.Catalog }))) : null;
 
 const router = createBrowserRouter([
   {
@@ -19,14 +27,15 @@ const router = createBrowserRouter([
       { path: "/", element: <Home /> },
       { path: MODULES.words.path, element: <WordsList /> },
       { path: `${MODULES.words.path}/:id`, element: <WordDetail /> },
-      { path: MODULES.expressions.path, element: <Soon module={MODULES.expressions} /> },
+      { path: MODULES.expressions.path, element: <ExpressionsList /> },
+      { path: `${MODULES.expressions.path}/:id`, element: <ExpressionDetail /> },
       { path: MODULES.review.path, element: <Review /> },
       { path: MODULES.stories.path, element: <Soon module={MODULES.stories} /> },
-      { path: MODULES.exams.path, element: <Soon module={MODULES.exams} /> },
+      { path: MODULES.exams.path, element: <Exams /> },
       { path: MODULES.profile.path, element: <Profile /> },
     ],
   },
-  { path: "/catalogo", element: <Catalog /> },
+  ...(Catalog ? [{ path: "/catalogo", element: <Suspense fallback={null}><Catalog /></Suspense> }] : []),
   { path: "*", element: <Navigate to="/" replace /> },
 ]);
 

@@ -8,6 +8,7 @@
  * Each tab lights up with its module color: the icon fills with the pastel,
  * a small pill appears under it and it springs in.
  */
+import { Suspense } from "react";
 import { NavLink, Outlet, useLocation } from "react-router";
 import { Avatar, Icon, Logo, PageTransition, StreakCounter, XPCounter } from "../components";
 import { tint } from "../components/types";
@@ -77,7 +78,9 @@ export function AppShell() {
 
         <main className={styles.content}>
           <PageTransition screen={pathname}>
-            <Outlet />
+            <Suspense fallback={null}>
+              <Outlet />
+            </Suspense>
           </PageTransition>
         </main>
       </div>

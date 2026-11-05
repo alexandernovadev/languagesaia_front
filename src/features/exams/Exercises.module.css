@@ -1,0 +1,272 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+/* The sentence / prompt */
+.sentence {
+  font-family: var(--font-display);
+  font-weight: var(--fw-display);
+  font-size: clamp(1.35rem, 4vw, 1.75rem);
+  line-height: 1.5;
+  color: var(--text-1);
+}
+.source {
+  position: relative;
+  padding: var(--sp-4) var(--sp-5);
+  font-size: var(--fs-read);
+  line-height: 1.5;
+  color: var(--text-1);
+  background: var(--bg-1);
+  border: var(--border) solid var(--line);
+  border-radius: var(--r-md);
+}
+.hint {
+  font-size: var(--fs-small);
+  font-weight: var(--fw-semibold);
+  color: var(--text-3);
+}
+
+/* The gap in fill-in-the-blank */
+.gap {
+  display: inline-block;
+  min-width: 3.5em;
+  margin: 0 0.15em;
+  padding: 0 0.4em;
+  text-align: center;
+  color: var(--butter);
+  border-bottom: 3px dashed var(--butter-deep);
+  border-radius: 6px 6px 0 0;
+}
+.gap[data-filled] {
+  border-bottom-style: solid;
+  background: var(--butter-soft);
+  animation: lai-bump var(--t-slow) var(--spring);
+}
+.gap[data-state="right"] {
+  color: var(--success);
+  background: var(--success-soft);
+  border-color: var(--success-deep);
+}
+.gap[data-state="wrong"] {
+  color: var(--danger);
+  background: var(--danger-soft);
+  border-color: var(--danger-deep);
+}
+
+/* Word chips (bank + placed) */
+.bank {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  justify-content: center;
+}
+.chip {
+  /* reset native button pill */
+  min-height: 44px;
+  padding: 0 var(--sp-4);
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0;
+  color: var(--text-1);
+  background: var(--bg-2);
+  border: var(--border) solid var(--line);
+  border-radius: var(--r-sm);
+  box-shadow: 0 var(--depth) 0 var(--bg-3);
+  filter: none;
+  transition:
+    transform var(--t-base) var(--spring),
+    opacity var(--t-fast) ease,
+    background-color var(--t-fast) ease;
+}
+.chip:hover:not(:disabled) {
+  border-color: var(--line-hover);
+}
+.chip[data-used] {
+  opacity: 0.25;
+  box-shadow: none;
+}
+.chip:disabled {
+  opacity: 0.25;
+}
+.placed,
+.placed:disabled {
+  opacity: 1;
+  animation: lai-bump var(--t-slow) var(--spring);
+}
+.line {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: var(--sp-2);
+  min-height: 112px;
+  padding: var(--sp-3) 0;
+  border-bottom: var(--border) solid var(--line);
+  background-image: linear-gradient(to bottom, transparent 55px, var(--line) 55px, var(--line) 57px, transparent 57px);
+  background-size: 100% 58px;
+}
+.line[data-state="right"] .placed {
+  color: var(--success);
+  border-color: var(--success-deep);
+  background: var(--success-soft);
+}
+.line[data-state="wrong"] .placed {
+  color: var(--danger);
+  border-color: var(--danger-deep);
+  background: var(--danger-soft);
+}
+.placeholder {
+  align-self: center;
+  color: var(--text-3);
+  font-size: var(--fs-small);
+}
+.reveal {
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-sm);
+  background: var(--success-soft);
+  color: var(--text-1);
+  animation: lai-reveal var(--t-base) var(--ease-out);
+}
+.reveal b {
+  color: var(--success);
+}
+.reveal s {
+  color: var(--danger);
+  text-decoration-thickness: 2px;
+}
+
+/* Translate */
+.textarea {
+  min-height: calc(3lh + var(--sp-6));
+  font-size: var(--fs-read) !important;
+}
+.grade {
+  display: flex;
+  gap: var(--sp-4);
+  align-items: flex-start;
+  padding: var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--success-soft);
+  border: var(--border) solid var(--success-deep);
+  animation: lai-reveal var(--t-base) var(--ease-out);
+}
+.grade[data-state="wrong"] {
+  background: var(--danger-soft);
+  border-color: var(--danger-deep);
+}
+.score {
+  flex: none;
+  font-family: var(--font-display);
+  font-weight: var(--fw-heavy);
+  font-size: 1.8rem;
+  line-height: 1;
+  color: var(--success);
+  animation: lai-pop var(--t-party) var(--spring);
+}
+.grade[data-state="wrong"] .score {
+  color: var(--danger);
+}
+
+/* Match pairs */
+.pairs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-3);
+}
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.pair {
+  min-height: 56px;
+  padding: var(--sp-2) var(--sp-3);
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0;
+  color: var(--text-1);
+  background: var(--bg-2);
+  border: var(--border) solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow: 0 var(--depth) 0 var(--bg-3);
+  filter: none;
+  transition:
+    background-color var(--t-fast) ease,
+    border-color var(--t-fast) ease,
+    color var(--t-fast) ease,
+    opacity var(--t-slow) ease;
+}
+.pair[data-state="selected"] {
+  color: var(--brand);
+  border-color: var(--brand);
+  background: var(--brand-soft);
+  box-shadow: 0 var(--depth) 0 var(--brand-deep);
+}
+.pair[data-state="matched"],
+.pair[data-state="matched"]:disabled {
+  color: var(--success);
+  border-color: var(--success-deep);
+  background: var(--success-soft);
+  box-shadow: none;
+  opacity: 0.55;
+  animation: lai-pop var(--t-party) var(--spring);
+}
+.pair[data-state="wrong"] {
+  color: var(--danger);
+  border-color: var(--danger-deep);
+  background: var(--danger-soft);
+  animation: lai-shake 420ms var(--ease-in-out);
+}
+
+/* Find the error */
+.tokens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+.token {
+  min-height: 52px;
+  padding: 0 var(--sp-4);
+  font-family: var(--font-display);
+  font-weight: var(--fw-display);
+  font-size: 1.35rem;
+  letter-spacing: 0;
+  color: var(--text-1);
+  background: var(--bg-2);
+  border: var(--border) solid var(--line);
+  border-radius: var(--r-sm);
+  box-shadow: 0 var(--depth) 0 var(--bg-3);
+  filter: none;
+}
+.token[data-state="selected"] {
+  color: var(--brand);
+  border-color: var(--brand);
+  background: var(--brand-soft);
+}
+.token[data-state="right"],
+.token[data-state="right"]:disabled {
+  opacity: 1;
+  color: var(--success);
+  border-color: var(--success-deep);
+  background: var(--success-soft);
+  animation: lai-pop var(--t-party) var(--spring);
+}
+.token[data-state="wrong"],
+.token[data-state="wrong"]:disabled {
+  opacity: 1;
+  color: var(--danger);
+  border-color: var(--danger-deep);
+  background: var(--danger-soft);
+  animation: lai-shake 420ms var(--ease-in-out);
+}
+.token:disabled {
+  opacity: 0.6;
+}

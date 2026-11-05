@@ -43,7 +43,7 @@
 }
 .definitionEs {
   padding-left: var(--sp-3);
-  border-left: 3px solid var(--sky-deep);
+  border-left: 3px solid var(--c-deep);
   color: var(--text-2);
   animation: lai-reveal var(--t-base) var(--ease-out);
 }
@@ -91,7 +91,7 @@
   font-weight: var(--fw-heavy);
   font-size: 0.85rem;
   color: var(--ink);
-  background: var(--sky);
+  background: var(--c);
 }
 ul.examples li::before {
   content: "↔";

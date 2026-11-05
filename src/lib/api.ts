@@ -10,9 +10,7 @@
  *   const words = await api<Word[]>("/api/words");
  *   await api("/api/words", { method: "POST", body: { word: "serendipity" } });
  */
-import { session } from "./session";
-
-const BASE = (import.meta.env.VITE_BACK_URL as string | undefined)?.replace(/\/$/, "") ?? "";
+import { API_BASE as BASE, session, type Session } from "./session";
 
 export class ApiError extends Error {
   constructor(
@@ -69,7 +67,10 @@ async function raw<T>(path: string, { method = "GET", body, auth = true, signal 
 }
 
 export const api = <T = unknown>(path: string, options: Options = {}) => raw<T>(path, options);
-export const API_BASE = BASE;
+
+/** Throws ApiError on bad credentials. Doesn't start the session: the login page celebrates first, then calls session.set(). */
+export const login = (identifier: string, password: string) =>
+  api<Session>("/api/auth/login", { method: "POST", body: { username: identifier.trim(), password }, auth: false });
 
 /**
  * Streams a plain-text response chunk by chunk (AI chats).
@@ -86,7 +87,10 @@ export async function apiStream(path: string, body: unknown, onChunk: (piece: st
   let res: Response;
   try {
     res = await doFetch();
-    if (res.status === 401 && (await session.refresh())) res = await doFetch();
+    if (res.status === 401) {
+      if (await session.refresh()) res = await doFetch();
+      else session.clear();
+    }
   } catch (e) {
     if ((e as Error).name === "AbortError") throw e;
     throw new ApiError(FRIENDLY[0], 0, e);

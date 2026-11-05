@@ -112,7 +112,7 @@ export function ChatPanel({ hero, load, streamPath, suggestions = [], placeholde
               <Robot hero={hero} {...bot.props} voice={false} />
             </div>
             <p>
-              Soy <b>{h.name}</b>. Pregúntame lo que quieras: ejemplos, cuándo se usa, diferencias con otras palabras…
+              Soy <b>{h.name}</b>. Pregúntame lo que quieras: ejemplos, cuándo se usa, matices, diferencias…
             </p>
           </div>
         )}
