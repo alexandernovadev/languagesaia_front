@@ -1,5 +1,5 @@
 /**
- * ChatPanel — talk with a hero about something (a word, an expression, an exam
+ * ChatPanel — talk with a hero about something (a word, an expression, an lesson
  * question). Loads the history, streams the answer word by word and shows the
  * hero's face next to its messages: it thinks while waiting and smiles when done.
  *

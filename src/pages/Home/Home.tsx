@@ -11,7 +11,7 @@ import { useSession } from "../../lib/session";
 import { sound } from "../../lib/sound";
 import styles from "./Home.module.css";
 
-const CARDS: ModuleDef[] = [MODULES.words, MODULES.expressions, MODULES.stories, MODULES.exams];
+const CARDS: ModuleDef[] = [MODULES.words, MODULES.expressions, MODULES.stories, MODULES.lessons];
 
 const greeting = () => {
   const h = new Date().getHours();

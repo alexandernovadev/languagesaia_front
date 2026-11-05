@@ -10,7 +10,7 @@
  * | lumi  | Words       | sky    | 1.18  |
  * | nubo  | Expressions | lilac  | 1.32  |
  * | tula  | Stories     | peach  | 1.06  |
- * | bruno | Exams       | butter | 0.62  |
+ * | bruno | Lessons       | butter | 0.62  |
  * | menti | Anki        | mint   | 1.6   |
  *
  * - `<Robot>` is just the character. Changing `mood` replays the pose and plays the
@@ -42,7 +42,7 @@ export const HEROES: Record<Hero, { name: string; module: string; tint: Pastel; 
   lumi: { name: "Lumi", module: "Palabras", tint: "sky", voice: 1.18, hello: "¡Hola! Cada palabra cuenta." },
   nubo: { name: "Nubo", module: "Expresiones", tint: "lilac", voice: 1.32, hello: "¡Hola! Hoy recolecté 12 expresiones." },
   tula: { name: "Tula", module: "Historias", tint: "peach", voice: 1.06, hello: "Te tengo una historia…" },
-  bruno: { name: "Bruno", module: "Exámenes", tint: "butter", voice: 0.62, hello: "¡A entrenar, recluta!" },
+  bruno: { name: "Bruno", module: "Lecciones", tint: "butter", voice: 0.62, hello: "¡A entrenar, recluta!" },
   menti: { name: "Menti", module: "Anki", tint: "mint", voice: 1.6, hello: "¡Bip! No olvido nada." },
 };
 

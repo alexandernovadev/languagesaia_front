@@ -15,7 +15,7 @@ const WordsList = lazy(() => import("./features/words/WordsList").then((m) => ({
 const Review = lazy(() => import("./features/review/Review").then((m) => ({ default: m.Review })));
 const ExpressionDetail = lazy(() => import("./features/expressions/ExpressionDetail").then((m) => ({ default: m.ExpressionDetail })));
 const ExpressionsList = lazy(() => import("./features/expressions/ExpressionsList").then((m) => ({ default: m.ExpressionsList })));
-const Exams = lazy(() => import("./features/exams/Exams").then((m) => ({ default: m.Exams })));
+const Lessons = lazy(() => import("./features/lessons/Lessons").then((m) => ({ default: m.Lessons })));
 
 const AdminLayout = lazy(() => import("./features/admin/AdminLayout").then((m) => ({ default: m.AdminLayout })));
 const AdminSystem = lazy(() => import("./features/admin/AdminSystem").then((m) => ({ default: m.AdminSystem })));
@@ -36,7 +36,7 @@ const router = createBrowserRouter([
       { path: `${MODULES.expressions.path}/:id`, element: <ExpressionDetail /> },
       { path: MODULES.review.path, element: <Review /> },
       { path: MODULES.stories.path, element: <Soon module={MODULES.stories} /> },
-      { path: MODULES.exams.path, element: <Exams /> },
+      { path: MODULES.lessons.path, element: <Lessons /> },
       { path: MODULES.profile.path, element: <Profile /> },
     ],
   },

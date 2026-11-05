@@ -9,6 +9,7 @@ export { Chip } from "./Chip/Chip";
 export { EmptyState } from "./EmptyState/EmptyState";
 export { FeedbackBanner } from "./FeedbackBanner/FeedbackBanner";
 export { Field } from "./Field/Field";
+export { Flag } from "./Flag/Flag";
 export { FlashCard } from "./FlashCard/FlashCard";
 export { Icon, ICON_NAMES, type IconName } from "./Icon/Icon";
 export { LevelBadge } from "./LevelBadge/LevelBadge";

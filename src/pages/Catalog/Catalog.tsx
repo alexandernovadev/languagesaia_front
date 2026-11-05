@@ -205,7 +205,7 @@ export function Catalog() {
               <Button tone="success">¡Correcto!</Button>
               <Button tone="danger">Reintentar</Button>
               <Button tone="info">Escuchar</Button>
-              <Button tone="warning">Examen</Button>
+              <Button tone="warning">Lección</Button>
               <Button tone="ai">Generar</Button>
               <Button tone="neutral">Neutro</Button>
             </div>

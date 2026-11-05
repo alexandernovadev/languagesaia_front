@@ -1,12 +1,12 @@
 /**
- * Exams (Bruno) — types and backend calls.
- * A practice = an exam (its exercises, with answers) + an attempt where each
+ * Lessons (Bruno) — types and backend calls.
+ * A lesson = a lesson (its exercises, with answers) + an attempt where each
  * answer is checked one by one.
  */
 import { api } from "../../lib/api";
 
 export type QuestionType = "choice" | "fillBlank" | "order" | "translate" | "match" | "findError";
-export type ExamMode = "quick" | "topic" | "mistakes";
+export type LessonMode = "quick" | "topic" | "mistakes";
 export type Level = "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
 
 export interface Question {
@@ -24,10 +24,12 @@ export interface Question {
   correction?: string;
 }
 
-export interface Practice {
-  exam: { _id: string; title: string; mode: ExamMode; level: Level; questions: Question[] };
+export interface LessonRun {
+  lesson: { _id: string; title: string; mode: LessonMode; level: Level; questions: Question[] };
   attemptId: string;
   topics: Array<{ value: string; label: string }>;
+  /** Only when continuing: indexes already answered. */
+  answered?: number[];
 }
 
 export interface CheckResult {
@@ -42,24 +44,25 @@ export interface GrammarGroup {
   topics: Array<{ value: string; label: string; level: Level }>;
 }
 
-export interface ExamStats {
+export interface LessonStats {
   topics: Array<{ value: string; label: string; seen: number; accuracy: number }>;
-  recent: Array<{ _id: string; title: string; mode: ExamMode; level: Level; score?: number; xp?: number; completedAt?: string }>;
+  recent: Array<{ _id: string; title: string; mode: LessonMode; level: Level; score?: number; xp?: number; completedAt?: string }>;
   mistakes: number;
 }
 
 export const LEVELS: Level[] = ["A1", "A2", "B1", "B2", "C1", "C2"];
 
-export const examsApi = {
-  catalog: () => api<GrammarGroup[]>("/api/exams/catalog"),
-  stats: () => api<ExamStats>("/api/exams/stats"),
-  practice: (body: { mode: ExamMode; level?: Level; grammarTopics?: string[]; count?: number }) =>
-    api<Practice>("/api/exams/practice", { method: "POST", body }),
+export const lessonsApi = {
+  catalog: () => api<GrammarGroup[]>("/api/lessons/catalog"),
+  stats: () => api<LessonStats>("/api/lessons/stats"),
+  create: (body: { mode: LessonMode; level?: Level; grammarTopics?: string[]; count?: number }) => api<LessonRun>("/api/lessons", { method: "POST", body }),
+  current: () => api<LessonRun | null>("/api/lessons/current"),
   answer: (attemptId: string, index: number, answer: unknown) =>
-    api<CheckResult>(`/api/exams/attempts/${attemptId}/answer`, { method: "POST", body: { index, answer } }),
-  finish: (attemptId: string) => api<{ score: number; xp: number; correct: number; total: number }>(`/api/exams/attempts/${attemptId}/finish`, { method: "POST" }),
-  chat: (attemptId: string, index: number) => api<Array<{ role: "user" | "assistant"; content: string }>>(`/api/exams/attempts/${attemptId}/questions/${index}/chat`),
-  chatPath: (attemptId: string, index: number) => `/api/exams/attempts/${attemptId}/questions/${index}/chat/stream`,
+    api<CheckResult>(`/api/lessons/attempts/${attemptId}/answer`, { method: "POST", body: { index, answer } }),
+  finish: (attemptId: string) => api<{ score: number; xp: number; correct: number; total: number }>(`/api/lessons/attempts/${attemptId}/finish`, { method: "POST" }),
+  report: (attemptId: string, index: number) => api(`/api/lessons/attempts/${attemptId}/questions/${index}/report`, { method: "POST" }),
+  chat: (attemptId: string, index: number) => api<Array<{ role: "user" | "assistant"; content: string }>>(`/api/lessons/attempts/${attemptId}/questions/${index}/chat`),
+  chatPath: (attemptId: string, index: number) => `/api/lessons/attempts/${attemptId}/questions/${index}/chat/stream`,
 };
 
 /** Human readable correct answer (shown after checking). */

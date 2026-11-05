@@ -42,7 +42,7 @@
   --mod-words: var(--sky);         /* Lumi  · Palabras */
   --mod-expressions: var(--lilac); /* Nubo  · Expresiones */
   --mod-stories: var(--peach);     /* Tula  · Historias */
-  --mod-exams: var(--butter);      /* Bruno · Exámenes */
+  --mod-lessons: var(--butter);      /* Bruno · Lecciones */
   --mod-anki: var(--mint);         /* Menti · Anki */
 
   /* Niveles MCER */

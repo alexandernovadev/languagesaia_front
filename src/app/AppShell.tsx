@@ -16,6 +16,7 @@ import { useProgress } from "../lib/progress";
 import { useSession } from "../lib/session";
 import { sound } from "../lib/sound";
 import { BOTTOM_NAV, MODULES, SIDEBAR, type ModuleDef } from "./modules";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import styles from "./AppShell.module.css";
 
 const isActive = (m: ModuleDef, path: string) =>
@@ -31,9 +32,12 @@ export function AppShell() {
     <div className={styles.shell}>
       {/* ── Desktop sidebar ── */}
       <aside className={styles.sidebar}>
-        <NavLink to="/" className={styles.brand} aria-label="Glota, inicio">
-          <Logo size={40} animated />
-        </NavLink>
+        <div className={styles.brandBlock}>
+          <NavLink to="/" className={styles.brand} aria-label="Glota, inicio">
+            <Logo size={40} animated />
+          </NavLink>
+          <span className={styles.version}>v{__APP_VERSION__}</span>
+        </div>
         <nav className={styles.sideNav} aria-label="Secciones">
           {SIDEBAR.map((group, gi) => (
             <div key={gi} className={styles.sideGroup}>
@@ -71,13 +75,15 @@ export function AppShell() {
             <XPCounter value={xp} />
             <StreakCounter days={streak} />
           </div>
+          <LanguageSwitcher />
           <NavLink to="/perfil" className={styles.avatarLink} aria-label="Tu perfil" onClick={() => sound.play("tap")}>
             <Avatar name={name} src={user?.image} size={38} />
           </NavLink>
         </header>
 
         <main className={styles.content}>
-          <PageTransition screen={pathname}>
+          {/* the language is part of the key: every screen reloads its data when it changes */}
+          <PageTransition screen={`${user?.language}:${pathname}`}>
             <Suspense fallback={null}>
               <Outlet />
             </Suspense>

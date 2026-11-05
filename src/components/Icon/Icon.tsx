@@ -68,7 +68,7 @@ const G: Record<string, Glyph> = {
       </>
     ),
   },
-  exams: {
+  lessons: {
     body: <path d="M12 3 19.5 6v5.6c0 4.4-3.1 7.9-7.5 9.4-4.4-1.5-7.5-5-7.5-9.4V6L12 3Z" />,
     lines: (
       <>

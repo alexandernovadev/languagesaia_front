@@ -1,11 +1,12 @@
 /**
- * Exams — /examenes. Bruno trains you, Duolingo-style (no lives, no timer).
+ * Lessons — /lecciones. Bruno trains you, Duolingo-style (no lives, no timer).
  *
- * Home     modes (Práctica rápida · Examen por tema · Repetir errores),
- *          weak points per grammar topic, recent practices.
- * Prepare  Bruno warms up while the AI writes and checks the exercises.
+ * Home     continue the open lesson, modes (Lección rápida · Lección por tema ·
+ *          Repetir errores), weak points per grammar topic, recent lessons.
+ * Prepare  Bruno warms up while the AI writes and reviews the exercises.
  * Session  full screen, one exercise at a time: answer → "Comprobar" →
  *          instant result + explanation, "¿Por qué?" opens a chat with Bruno.
+ *          Every answer is saved: leaving and coming back loses nothing.
  * Result   score, XP, what to reinforce.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -19,6 +20,7 @@ import {
   EmptyState,
   FeedbackBanner,
   Icon,
+  Modal,
   ProgressBar,
   RichText,
   RobotStage,
@@ -26,6 +28,7 @@ import {
   Segmented,
   Sheet,
   Skeleton,
+  toast,
   useRobotMood,
 } from "../../components";
 import { tint } from "../../components/types";
@@ -34,11 +37,11 @@ import { fx } from "../../lib/fx";
 import { haptics } from "../../lib/haptics";
 import { progress } from "../../lib/progress";
 import { sound } from "../../lib/sound";
-import { correctAnswerOf, examsApi, LEVELS, TYPE_LABEL, type CheckResult, type ExamMode, type ExamStats, type GrammarGroup, type Level, type Practice } from "./api";
+import { correctAnswerOf, lessonsApi, LEVELS, TYPE_LABEL, type CheckResult, type LessonMode, type LessonStats, type GrammarGroup, type Level, type LessonRun } from "./api";
 import { Choice, FillBlank, FindError, Match, Order, Translate } from "./Exercises";
-import styles from "./Exams.module.css";
+import styles from "./Lessons.module.css";
 
-const LEVEL_KEY = "glota.examLevel";
+const LEVEL_KEY = "glota.lessonLevel";
 const savedLevel = (): Level => {
   try {
     return (localStorage.getItem(LEVEL_KEY) as Level) || "B1";
@@ -48,14 +51,16 @@ const savedLevel = (): Level => {
 };
 
 /* ───────────────────────── Home ───────────────────────── */
-function Home({ onStart }: { onStart: (cfg: { mode: ExamMode; level?: Level; grammarTopics?: string[]; count?: number }) => void }) {
-  const [stats, setStats] = useState<ExamStats | null>(null);
+function Home({ onStart, onResume }: { onStart: (cfg: { mode: LessonMode; level?: Level; grammarTopics?: string[]; count?: number }) => void; onResume: (open: LessonRun) => void }) {
+  const [stats, setStats] = useState<LessonStats | null>(null);
+  const [open, setOpen] = useState<LessonRun | null>(null);
   const [level, setLevel] = useState<Level>(savedLevel());
   const [topicOpen, setTopicOpen] = useState(false);
   const bruno = useRobotMood();
 
   useEffect(() => {
-    examsApi.stats().then(setStats).catch(() => setStats({ topics: [], recent: [], mistakes: 0 }));
+    lessonsApi.stats().then(setStats).catch(() => setStats({ topics: [], recent: [], mistakes: 0 }));
+    lessonsApi.current().then(setOpen).catch(() => undefined);
     const t = window.setTimeout(() => bruno.react("wave"), 300);
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -77,7 +82,7 @@ function Home({ onStart }: { onStart: (cfg: { mode: ExamMode; level?: Level; gra
       <section className={styles.hero}>
         <RobotStage hero="bruno" {...bruno.props} say="¡A entrenar, recluta! Sin vidas, sin prisa." size={200} />
         <div className={styles.heroBody}>
-          <h1>Exámenes</h1>
+          <h1>Lecciones</h1>
           <p>Ejercicios cortos y variados con respuesta al instante. Bruno te explica cada error y recuerda en qué fallas.</p>
           <div className={styles.level}>
             <span>Tu nivel</span>
@@ -86,16 +91,29 @@ function Home({ onStart }: { onStart: (cfg: { mode: ExamMode; level?: Level; gra
         </div>
       </section>
 
+      {open && (
+        <button type="button" className={styles.resume} style={tint("butter")} onClick={() => onResume(open)}>
+          <span>
+            <b>Continuar lección</b>
+            <span>{open.lesson.title}</span>
+          </span>
+          <em>
+            {open.answered?.length ?? 0}/{open.lesson.questions.length}
+          </em>
+          <Icon name="next" size={22} />
+        </button>
+      )}
+
       <section className={styles.modes}>
         <button type="button" className={styles.mode} style={tint("butter")} onClick={() => onStart({ mode: "quick", level })}>
           <span className={styles.modeIcon}>⚡</span>
-          <b>Práctica rápida</b>
+          <b>Lección rápida</b>
           <span>8 ejercicios con tus palabras y tus puntos débiles.</span>
           <em>3–5 min</em>
         </button>
         <button type="button" className={styles.mode} style={tint("sky")} onClick={() => setTopicOpen(true)}>
           <span className={styles.modeIcon}>🎯</span>
-          <b>Examen por tema</b>
+          <b>Lección por tema</b>
           <span>Elige los temas de gramática que quieras entrenar.</span>
           <em>10–15 min</em>
         </button>
@@ -116,12 +134,12 @@ function Home({ onStart }: { onStart: (cfg: { mode: ExamMode; level?: Level; gra
       <div className={styles.columns}>
         <Card>
           <h2 className={styles.cardTitle}>
-            <Icon name="exams" active /> Tus puntos débiles
+            <Icon name="lessons" active /> Tus puntos débiles
           </h2>
           {!stats ? (
             <Skeleton lines={3} />
           ) : stats.topics.length === 0 ? (
-            <p className={styles.muted}>Haz tu primera práctica y aquí verás qué temas te cuestan más.</p>
+            <p className={styles.muted}>Haz tu primera lección y aquí verás qué temas te cuestan más.</p>
           ) : (
             <ul className={styles.topics}>
               {stats.topics.slice(0, 6).map((t) => (
@@ -147,7 +165,7 @@ function Home({ onStart }: { onStart: (cfg: { mode: ExamMode; level?: Level; gra
         </Card>
         <Card>
           <h2 className={styles.cardTitle}>
-            <Icon name="star" active /> Últimas prácticas
+            <Icon name="star" active /> Últimas lecciones
           </h2>
           {!stats ? (
             <Skeleton lines={3} />
@@ -179,11 +197,11 @@ function TopicSheet({ open, onClose, level, onStart }: { open: boolean; onClose:
   const [picked, setPicked] = useState<string[]>([]);
   const [count, setCount] = useState<"5" | "10" | "15">("10");
   useEffect(() => {
-    if (open && !groups) examsApi.catalog().then(setGroups).catch(() => setGroups([]));
+    if (open && !groups) lessonsApi.catalog().then(setGroups).catch(() => setGroups([]));
   }, [open, groups]);
   const toggle = (v: string) => setPicked((p) => (p.includes(v) ? p.filter((x) => x !== v) : p.length >= 4 ? p : [...p, v]));
   return (
-    <Sheet open={open} onClose={onClose} title="Examen por tema" description={`Elige hasta 4 temas · nivel ${level}`}>
+    <Sheet open={open} onClose={onClose} title="Lección por tema" description={`Elige hasta 4 temas · nivel ${level}`}>
       <div className={styles.sheet}>
         {!groups ? (
           <Skeleton lines={4} />
@@ -203,8 +221,8 @@ function TopicSheet({ open, onClose, level, onStart }: { open: boolean; onClose:
           ))
         )}
         <div className={styles.group}>
-          <span className={styles.groupLabel}>Preguntas</span>
-          <Segmented label="Preguntas" value={count} onChange={setCount} options={[{ value: "5", label: "5", tint: "sky" }, { value: "10", label: "10", tint: "sky" }, { value: "15", label: "15", tint: "sky" }]} />
+          <span className={styles.groupLabel}>Ejercicios</span>
+          <Segmented label="Ejercicios" value={count} onChange={setCount} options={[{ value: "5", label: "5", tint: "sky" }, { value: "10", label: "10", tint: "sky" }, { value: "15", label: "15", tint: "sky" }]} />
         </div>
         <Button
           tone="info"
@@ -216,7 +234,7 @@ function TopicSheet({ open, onClose, level, onStart }: { open: boolean; onClose:
             onStart(picked, Number(count));
           }}
         >
-          Empezar examen
+          Empezar lección
         </Button>
       </div>
     </Sheet>
@@ -224,7 +242,7 @@ function TopicSheet({ open, onClose, level, onStart }: { open: boolean; onClose:
 }
 
 /* ───────────────────────── Prepare ───────────────────────── */
-const TIPS = ["Bruno está calentando…", "Eligiendo ejercicios a tu nivel…", "Metiendo tus palabras difíciles…", "Revisando que cada pregunta tenga una sola respuesta…", "¡Casi listo, recluta!"];
+const TIPS = ["Bruno está calentando…", "Eligiendo ejercicios a tu nivel…", "Metiendo tus palabras difíciles…", "Revisando cada ejercicio…", "¡Casi listo, recluta!"];
 function Prepare() {
   const bruno = useRobotMood("think");
   const [tip, setTip] = useState(0);
@@ -242,7 +260,7 @@ function Prepare() {
       <div className={styles.prepareHero}>
         <Robot hero="bruno" {...bruno.props} voice={false} />
       </div>
-      <h2>Preparando tu práctica</h2>
+      <h2>Preparando tu lección</h2>
       <p key={tip} className={styles.tip}>
         {TIPS[tip]}
       </p>
@@ -257,14 +275,15 @@ const emptyValue = (t: string): Value => (t === "order" ? [] : t === "translate"
 const isAnswered = (t: string, v: Value) =>
   t === "order" ? (v as number[]).length > 0 : t === "translate" ? String(v).trim().length > 1 : t === "match" ? (v as { done: boolean }).done : v !== null;
 
-function Session({ practice, onExit, onDone }: { practice: Practice; onExit: () => void; onDone: (r: { score: number; xp: number; correct: number; total: number }) => void }) {
-  const questions = practice.exam.questions;
-  const [index, setIndex] = useState(0);
+function Session({ current, startAt, onExit, onDone }: { current: LessonRun; startAt: number; onExit: () => void; onDone: (r: { score: number; xp: number; correct: number; total: number }) => void }) {
+  const questions = current.lesson.questions;
+  const [index, setIndex] = useState(startAt);
   const q = questions[index];
   const [value, setValue] = useState<Value>(emptyValue(q.type));
   const [checked, setChecked] = useState<CheckResult | null>(null);
   const [checking, setChecking] = useState(false);
   const [why, setWhy] = useState(false);
+  const [leaving, setLeaving] = useState(false);
   const [run, setRun] = useState(0);
   const bruno = useRobotMood();
   const area = useRef<HTMLDivElement>(null);
@@ -276,7 +295,7 @@ function Session({ practice, onExit, onDone }: { practice: Practice; onExit: () 
     setChecking(true);
     if (q.type === "translate") bruno.react("think");
     try {
-      const r = await examsApi.answer(practice.attemptId, index, toAnswer(value));
+      const r = await lessonsApi.answer(current.attemptId, index, toAnswer(value));
       setChecked(r);
       if (r.correct) {
         const n = run + 1;
@@ -309,16 +328,26 @@ function Session({ practice, onExit, onDone }: { practice: Practice; onExit: () 
       return;
     }
     try {
-      onDone(await examsApi.finish(practice.attemptId));
+      onDone(await lessonsApi.finish(current.attemptId));
     } catch {
       onDone({ score: 0, xp: 0, correct: 0, total: questions.length });
     }
-  }, [index, questions, practice.attemptId, onDone, bruno]);
+  }, [index, questions, current.attemptId, onDone, bruno]);
+
+  const report = async () => {
+    try {
+      await lessonsApi.report(current.attemptId, index);
+      toast("Ejercicio descartado. No cuenta para tu nota.", { tone: "info" });
+    } catch {
+      toast("No pude descartarlo. Sigue con el siguiente.", { tone: "danger" });
+    }
+    await next();
+  };
 
   // Enter = check / continue; 1-4 pick options
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (why) return;
+      if (why || leaving) return;
       const t = e.target as HTMLElement | null;
       const typing = t && (t.tagName === "TEXTAREA" || t.tagName === "INPUT");
       if (e.key === "Enter" && (!typing || e.metaKey || e.ctrlKey || q.type === "translate")) {
@@ -328,11 +357,18 @@ function Session({ practice, onExit, onDone }: { practice: Practice; onExit: () 
         else void check();
       }
       if (!typing && !checked && (q.type === "choice" || q.type === "fillBlank") && /^[1-4]$/.test(e.key)) setValue(Number(e.key) - 1);
-      if (e.key === "Escape") onExit();
+    };
+    // On release: the browser would close a dialog opened during the same key press
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !why && !leaving) setLeaving(true);
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [check, next, checked, q.type, why, onExit]);
+    window.addEventListener("keyup", onKeyUp);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("keyup", onKeyUp);
+    };
+  }, [check, next, checked, q.type, why, leaving]);
 
   const Exercise = { choice: Choice, fillBlank: FillBlank, order: Order, translate: Translate, match: Match, findError: FindError }[q.type] as React.ComponentType<{
     q: typeof q;
@@ -342,9 +378,9 @@ function Session({ practice, onExit, onDone }: { practice: Practice; onExit: () 
   }>;
 
   return createPortal(
-    <div className={styles.session} role="dialog" aria-modal="true" aria-label="Práctica" style={tint("butter")}>
+    <div className={styles.session} role="dialog" aria-modal="true" aria-label="Lección" style={tint("butter")}>
       <header className={styles.top}>
-        <Button tone="neutral" variant="ghost" iconOnly icon={<Icon name="close" />} aria-label="Salir" onClick={onExit} />
+        <Button tone="neutral" variant="ghost" iconOnly icon={<Icon name="close" />} aria-label="Salir" onClick={() => setLeaving(true)} />
         <ProgressBar value={index + (checked ? 1 : 0)} max={questions.length} tone="warning" className={styles.progress} />
         <span className={styles.counter}>
           {index + 1}/{questions.length}
@@ -360,6 +396,9 @@ function Session({ practice, onExit, onDone }: { practice: Practice; onExit: () 
             <span>{TYPE_LABEL[q.type]}</span>
           </div>
           <Exercise q={q} value={value} onChange={setValue} checked={checked} />
+          <button type="button" className={styles.report} onClick={() => void report()}>
+            Este ejercicio está mal
+          </button>
         </div>
       </main>
 
@@ -398,12 +437,23 @@ function Session({ practice, onExit, onDone }: { practice: Practice; onExit: () 
         </div>
       </footer>
 
-      <Sheet open={why} onClose={() => setWhy(false)} title="Pregúntale a Bruno" description={q.grammarTopic ? `Tema: ${practice.topics.find((t) => t.value === q.grammarTopic)?.label ?? q.grammarTopic}` : undefined}>
+      <Modal open={leaving} onClose={() => setLeaving(false)} title="¿Salir de la lección?" description="Tu progreso queda guardado y puedes continuar cuando quieras.">
+        <Modal.Actions>
+          <Button tone="neutral" variant="soft" onClick={onExit}>
+            Salir
+          </Button>
+          <Button tone="warning" onClick={() => setLeaving(false)}>
+            Seguir
+          </Button>
+        </Modal.Actions>
+      </Modal>
+
+      <Sheet open={why} onClose={() => setWhy(false)} title="Pregúntale a Bruno" description={q.grammarTopic ? `Tema: ${current.topics.find((t) => t.value === q.grammarTopic)?.label ?? q.grammarTopic}` : undefined}>
         {why && (
           <ChatPanel
             hero="bruno"
-            load={() => examsApi.chat(practice.attemptId, index)}
-            streamPath={examsApi.chatPath(practice.attemptId, index)}
+            load={() => lessonsApi.chat(current.attemptId, index)}
+            streamPath={lessonsApi.chatPath(current.attemptId, index)}
             suggestions={["¿Por qué es así?", "Dame otro ejemplo", "¿Cuál es la regla?"]}
           />
         )}
@@ -414,13 +464,15 @@ function Session({ practice, onExit, onDone }: { practice: Practice; onExit: () 
 }
 
 /* ───────────────────────── Result ───────────────────────── */
-function Result({ r, topics, onAgain, onHome }: { r: { score: number; xp: number; correct: number; total: number }; topics: Practice["topics"]; onAgain: () => void; onHome: () => void }) {
+function Result({ r, topics, onAgain, onHome }: { r: { score: number; xp: number; correct: number; total: number }; topics: LessonRun["topics"]; onAgain: () => void; onHome: () => void }) {
   const bruno = useRobotMood();
   const title = useRef<HTMLHeadingElement>(null);
   const great = r.score >= 85;
   const ok = r.score >= 50;
+  const awarded = useRef(false);
   useEffect(() => {
-    progress.addXp(r.xp);
+    if (!awarded.current) progress.addXp(r.xp); // effects run twice in development
+    awarded.current = true;
     if (ok) {
       bruno.react("party");
       sound.play("levelup");
@@ -454,8 +506,8 @@ function Result({ r, topics, onAgain, onHome }: { r: { score: number; xp: number
         <Button tone="neutral" size="lg" onClick={onHome}>
           Volver
         </Button>
-        <Button tone="warning" size="lg" icon={<Icon name="exams" size={22} active />} onClick={onAgain}>
-          Otra práctica
+        <Button tone="warning" size="lg" icon={<Icon name="lessons" size={22} active />} onClick={onAgain}>
+          Otra lección
         </Button>
       </div>
     </div>
@@ -463,24 +515,39 @@ function Result({ r, topics, onAgain, onHome }: { r: { score: number; xp: number
 }
 
 /* ───────────────────────── Page ───────────────────────── */
-export function Exams() {
+export function Lessons() {
   const navigate = useNavigate();
   const [phase, setPhase] = useState<"home" | "prepare" | "session" | "result" | "error">("home");
-  const [practice, setPractice] = useState<Practice | null>(null);
+  const [current, setCurrent] = useState<LessonRun | null>(null);
+  const [startAt, setStartAt] = useState(0);
   const [result, setResult] = useState<{ score: number; xp: number; correct: number; total: number } | null>(null);
   const [error, setError] = useState("");
-  const last = useRef<Parameters<typeof examsApi.practice>[0] | null>(null);
+  const last = useRef<Parameters<typeof lessonsApi.create>[0] | null>(null);
 
-  const start = async (cfg: Parameters<typeof examsApi.practice>[0]) => {
+  const start = async (cfg: Parameters<typeof lessonsApi.create>[0]) => {
     last.current = cfg;
     setPhase("prepare");
     try {
-      setPractice(await examsApi.practice(cfg));
+      setCurrent(await lessonsApi.create(cfg));
+      setStartAt(0);
       setPhase("session");
     } catch (e) {
       setError((e as Error).message);
       setPhase("error");
     }
+  };
+
+  /** Back to the first exercise without an answer; if none is left, straight to the result. */
+  const resume = async (open: LessonRun) => {
+    const next = open.lesson.questions.findIndex((_, i) => !open.answered?.includes(i));
+    setCurrent(open);
+    if (next >= 0) {
+      setStartAt(next);
+      setPhase("session");
+      return;
+    }
+    setResult(await lessonsApi.finish(open.attemptId));
+    setPhase("result");
   };
 
   if (phase === "prepare") return <Prepare />;
@@ -489,7 +556,7 @@ export function Exams() {
       <EmptyState
         kind="error"
         hero="bruno"
-        title="Bruno no pudo preparar la práctica"
+        title="Bruno no pudo preparar la lección"
         text={error}
         action={
           <div style={{ display: "flex", gap: 12 }}>
@@ -503,10 +570,11 @@ export function Exams() {
         }
       />
     );
-  if (phase === "session" && practice)
+  if (phase === "session" && current)
     return (
       <Session
-        practice={practice}
+        current={current}
+        startAt={startAt}
         onExit={() => setPhase("home")}
         onDone={(r) => {
           setResult(r);
@@ -514,7 +582,7 @@ export function Exams() {
         }}
       />
     );
-  if (phase === "result" && result && practice)
-    return <Result r={result} topics={practice.topics} onAgain={() => last.current && void start(last.current)} onHome={() => (setPhase("home"), navigate(MODULES.exams.path))} />;
-  return <Home onStart={(cfg) => void start(cfg)} />;
+  if (phase === "result" && result && current)
+    return <Result r={result} topics={current.topics} onAgain={() => last.current && void start(last.current)} onHome={() => (setPhase("home"), navigate(MODULES.lessons.path))} />;
+  return <Home onStart={(cfg) => void start(cfg)} onResume={(open) => void resume(open)} />;
 }
