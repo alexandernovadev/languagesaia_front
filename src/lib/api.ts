@@ -99,12 +99,17 @@ export async function apiStream(path: string, body: unknown, onChunk: (piece: st
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
   let full = "";
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    const piece = decoder.decode(value, { stream: true });
-    full += piece;
-    onChunk(piece, full);
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const piece = decoder.decode(value, { stream: true });
+      full += piece;
+      onChunk(piece, full);
+    }
+  } catch (e) {
+    if ((e as Error).name === "AbortError") throw e;
+    throw new ApiError(FRIENDLY[500], 500, e); // the answer was cut halfway
   }
   return full;
 }
