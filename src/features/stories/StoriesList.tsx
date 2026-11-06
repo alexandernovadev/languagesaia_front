@@ -27,9 +27,10 @@ function NewStorySheet({ open, onClose }: { open: boolean; onClose: () => void }
   const [level, setLevel] = useState("A2");
   const [length, setLength] = useState("6");
   const [theme, setTheme] = useState("");
+  const [surprise, setSurprise] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  const start = async (surprise = false) => {
+  const start = async () => {
     setBusy(true);
     try {
       const story = await storiesApi.create({
@@ -54,16 +55,37 @@ function NewStorySheet({ open, onClose }: { open: boolean; onClose: () => void }
         <AIThinking title="Tula está escribiendo" tips={["Inventando a tu protagonista…", "Pensando la trama…"]} skeletonLines={0} />
       ) : (
         <div className={styles.form}>
-          <div className={styles.field}>
-            <span className={styles.label}>Género</span>
-            <div className={styles.chips}>
-              {Object.entries(GENRES).map(([value, label]) => (
-                <Chip key={value} tint="peach" selected={genre === value} onToggle={() => setGenre(value)}>
-                  {label}
-                </Chip>
-              ))}
-            </div>
+          <div className={styles.tabs} role="tablist" aria-label="Cómo crear la historia">
+            {[false, true].map((value) => (
+              <button
+                key={String(value)}
+                type="button"
+                role="tab"
+                className={styles.tab}
+                aria-selected={surprise === value}
+                onClick={() => {
+                  sound.play("tap");
+                  setSurprise(value);
+                }}
+              >
+                {value ? "Sorpréndeme" : "Yo elijo"}
+              </button>
+            ))}
           </div>
+          {surprise ? (
+            <p className={styles.muted}>Tula elige el género y se inventa la trama. Tú solo decides el nivel y el largo.</p>
+          ) : (
+            <div className={styles.field}>
+              <span className={styles.label}>Género</span>
+              <div className={styles.chips}>
+                {Object.entries(GENRES).map(([value, label]) => (
+                  <Chip key={value} tint="peach" selected={genre === value} onToggle={() => setGenre(value)}>
+                    {label}
+                  </Chip>
+                ))}
+              </div>
+            </div>
+          )}
           <div className={styles.field}>
             <span className={styles.label}>Nivel</span>
             <div className={styles.chips}>
@@ -84,17 +106,14 @@ function NewStorySheet({ open, onClose }: { open: boolean; onClose: () => void }
               ))}
             </div>
           </div>
-          <Field label="Tema, si quieres uno">
-            <input type="text" value={theme} maxLength={200} placeholder="Una casa vieja en São Paulo" onChange={(e) => setTheme(e.target.value)} />
-          </Field>
-          <div className={styles.formActions}>
-            <Button tone="warning" block onClick={() => void start()}>
-              Escribir capítulo 1
-            </Button>
-            <Button tone="neutral" variant="soft" block onClick={() => void start(true)}>
-              Sorpréndeme
-            </Button>
-          </div>
+          {!surprise && (
+            <Field label="Tema, si quieres uno">
+              <input type="text" value={theme} maxLength={200} placeholder="Una casa vieja en São Paulo" onChange={(e) => setTheme(e.target.value)} />
+            </Field>
+          )}
+          <Button tone="warning" block onClick={() => void start()}>
+            {surprise ? "¡Sorpréndeme!" : "Escribir capítulo 1"}
+          </Button>
         </div>
       )}
     </Sheet>
@@ -112,8 +131,9 @@ function StoryCard({ story, index }: { story: Story; index: number }) {
         haptics.tap();
       }}
       className={styles.card} style={{ "--i": index } as React.CSSProperties}>
-      <span className={styles.cover} data-genre={story.genre}>
-        {GENRES[story.genre] ?? story.genre}
+      <span className={styles.cover} data-genre={story.genre} data-painted={story.img ? true : undefined}>
+        {story.img && <img className={styles.coverImage} src={story.img} alt="" />}
+        <span className={styles.coverLabel}>{GENRES[story.genre] ?? story.genre}</span>
         <LevelBadge level={story.languageLevel as CefrLevel} size="sm" />
       </span>
       <span className={styles.cardBody}>

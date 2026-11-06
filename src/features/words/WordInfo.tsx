@@ -9,7 +9,7 @@
  * @example
  *   <WordInfo word={word} onChange={setWord} onMood={(m) => lumi.react(m)} />
  */
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { SpeakButtons, Button, Card, Chip, Icon, RichText, Skeleton, toast, type Mood } from "../../components";
 import { cx } from "../../components/types";
 import { useSession } from "../../lib/session";
@@ -80,6 +80,23 @@ export function WordInfo({ word, onChange, onMood, compact, className }: WordInf
   const isAdmin = useSession()?.user.role === "admin";
   const [showEs, setShowEs] = useState(compact ?? false);
   const highlight = word.word.split(" ")[0];
+  const lean = !word.completedAt && (word.examples.length < 5 || !word.codeSwitching?.length || !word.synonyms?.length);
+  const [completing, setCompleting] = useState(lean);
+
+  useEffect(() => {
+    if (!lean) return;
+    let gone = false;
+    setCompleting(true);
+    wordsApi
+      .complete(word._id)
+      .then((more) => !gone && onChange({ ...word, ...more }))
+      .catch(() => undefined) // the card still works with what it has
+      .finally(() => !gone && setCompleting(false));
+    return () => {
+      gone = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [word._id]);
 
   const regen = async (what: Regen) => {
     setBusy(what);
@@ -145,6 +162,7 @@ export function WordInfo({ word, onChange, onMood, compact, className }: WordInf
         {busy === "examples" ? (
           <Skeleton lines={4} />
         ) : (
+          <>
           <ol className={styles.examples}>
             {word.examples.map((ex, i) => (
               <li key={i} className={styles.exampleRow} style={{ "--i": i } as React.CSSProperties}>
@@ -153,12 +171,14 @@ export function WordInfo({ word, onChange, onMood, compact, className }: WordInf
               </li>
             ))}
           </ol>
+          {completing && word.examples.length < 5 && <Skeleton lines={2} />}
+          </>
         )}
       </Section>
 
-      {word.codeSwitching?.length > 0 && (
+      {(word.codeSwitching?.length > 0 || completing) && (
         <Section compact={compact} title="Mezclando idiomas" icon={<Icon name="globe" />} action={regenBtn("code-switching")}>
-          {busy === "code-switching" ? (
+          {busy === "code-switching" || (completing && !word.codeSwitching?.length) ? (
             <Skeleton lines={3} />
           ) : (
             <ul className={styles.examples}>
@@ -205,7 +225,7 @@ export function WordInfo({ word, onChange, onMood, compact, className }: WordInf
       )}
 
       <Section compact={compact} title="Sinónimos" icon={<Icon name="sparkle" />} action={regenBtn("synonyms")}>
-        {busy === "synonyms" ? (
+        {busy === "synonyms" || (completing && !word.synonyms?.length) ? (
           <Skeleton lines={1} />
         ) : (
           <div className={styles.chips}>

@@ -49,6 +49,30 @@
 .cover[data-genre="action"] { background: linear-gradient(135deg, var(--sky-deep), var(--peach)); }
 .cover[data-genre="drama"],
 .cover[data-genre="historical"] { background: linear-gradient(135deg, var(--butter-deep), var(--peach)); }
+.cover {
+  position: relative;
+  overflow: hidden;
+}
+.coverImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cover[data-painted]::after {
+  content: "";
+  position: absolute;
+  inset: 40% 0 0;
+  background: linear-gradient(to top, rgb(0 0 0 / 0.65), transparent);
+}
+.cover > :not(img) {
+  position: relative;
+  z-index: 1;
+}
+.cover[data-painted] .coverLabel {
+  color: #fff;
+}
 .cardBody {
   display: flex;
   flex-direction: column;
@@ -81,6 +105,48 @@
   flex-direction: column;
   gap: var(--sp-2);
 }
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-bottom: var(--border) solid var(--line);
+}
+.tab {
+  min-height: 44px;
+  padding: 0;
+  color: var(--text-3);
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  filter: none;
+  transition: color var(--t-fast) ease;
+}
+.tab:hover,
+.tab:focus-visible {
+  color: var(--text-1);
+}
+/* the dialog focuses the first tab on open: a box around it looks like a bug */
+.tab:focus-visible {
+  outline: none;
+}
+.tab:active {
+  transform: none;
+  box-shadow: none;
+}
+.tab[aria-selected="true"] {
+  color: var(--lilac);
+}
+.tab[aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--border) * -1);
+  height: 3px;
+  border-radius: var(--r-full) var(--r-full) 0 0;
+  background: var(--lilac);
+  animation: lai-bump var(--t-slow) var(--spring);
+}
 .label {
   font-size: var(--fs-small);
   color: var(--text-3);
@@ -88,11 +154,6 @@
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--sp-2);
-}
-.formActions {
-  display: flex;
-  flex-direction: column;
   gap: var(--sp-2);
 }
 
@@ -110,12 +171,17 @@
   gap: var(--sp-4);
   min-width: 0;
 }
-.back {
-  display: inline-flex;
+/* Stays on top while you read, so leaving never needs a scroll */
+.readerBar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  display: flex;
   align-items: center;
-  gap: var(--sp-1);
-  color: var(--text-3);
-  text-decoration: none;
+  gap: var(--sp-3);
+  margin-top: calc(var(--sp-6) * -1);
+  padding: var(--sp-3) 0;
+  background: var(--bg-0); /* solid: text passing behind it was still readable */
 }
 .readerHead {
   display: flex;
@@ -181,7 +247,7 @@
 .dock {
   animation: lai-reveal var(--t-base) var(--ease-out);
   position: sticky;
-  bottom: calc(var(--bar-h) + var(--sp-3));
+  bottom: var(--sp-3);
   z-index: var(--z-sticky);
   display: flex;
   flex-direction: column;
@@ -216,13 +282,45 @@
 }
 .cardModal {
   width: min(640px, 100%);
+  height: 85dvh;
   max-height: 85dvh;
-  overflow-y: auto;
+  overflow: hidden;
+}
+.cardModal[open] {
+  display: flex;
+  flex-direction: column;
 }
 .wordCard {
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: var(--sp-3);
+}
+/* One column at a fixed height: the top stays put and only the content scrolls */
+.wordTop {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.wordTop .ipa {
+  margin-left: auto;
+}
+.wordBody {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* the scrollbar lives in the modal's margin, away from the content */
+  margin-right: calc(var(--sp-5) * -1);
+  padding-right: var(--sp-5);
+  scrollbar-width: thin;
+  scrollbar-color: var(--bg-3) transparent;
 }
 .wordImage {
   display: block;
@@ -235,7 +333,7 @@
 .wordChat {
   display: flex;
   flex-direction: column;
-  height: 58dvh;
+  flex: 1;
   min-height: 0;
 }
 .dockIdle {
@@ -243,7 +341,7 @@
 }
 @media (min-width: 960px) {
   .dock {
-    bottom: calc(var(--bar-h) + var(--sp-10)); /* clears the floating dock */
+    bottom: var(--sp-4);
   }
   .grid {
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -279,7 +377,7 @@
   .dock,
   .dockIdle {
     position: sticky;
-    top: 88px;
+    top: var(--sp-6);
     bottom: auto;
   }
   .reader[data-solo] {
@@ -347,7 +445,7 @@
   }
   .quiz > :first-child {
     position: sticky;
-    top: 88px;
+    top: var(--sp-6);
   }
 }
 .question {

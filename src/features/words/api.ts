@@ -26,6 +26,8 @@ export interface Word {
   seen: number;
   difficulty: Difficulty;
   codeSwitching: string[];
+  /** Set once the AI filled in what a dictionary word was missing. */
+  completedAt?: string;
   /** Verbs only: tense → person → form. */
   conjugations?: Record<string, Record<string, string>> | null;
   spanish?: { word?: string; definition?: string };
@@ -105,6 +107,8 @@ export const wordsApi = {
   },
   setDifficulty: (id: string, difficulty: Difficulty) => api<Word>(`/api/words/${id}/difficulty`, { method: "PUT", body: { difficulty } }),
   seen: (id: string) => api<Word>(`/api/words/${id}/increment-seen`, { method: "PUT" }),
+  /** The first open of a dictionary word: the AI fills in the rest. */
+  complete: (id: string) => api<Pick<Word, "examples" | "codeSwitching" | "synonyms" | "completedAt">>(`/api/words/${id}/complete`, { method: "POST", silent: true }),
   regenerate: (id: string, what: "examples" | "code-switching" | "synonyms" | "types", w: Word) =>
     api<Word>(`/api/words/${id}/generate-${what}`, {
       method: "POST",

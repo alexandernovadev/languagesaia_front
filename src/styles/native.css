@@ -827,6 +827,10 @@
     overlay var(--t-slow) allow-discrete,
     display var(--t-slow) allow-discrete;
 }
+/* While a modal is open only the modal scrolls: the page behind stays still. */
+html:has(dialog[open]) {
+  overflow: hidden;
+}
 :where(dialog[open]) {
   opacity: 1;
   scale: 1;

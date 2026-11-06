@@ -69,6 +69,10 @@
   padding: var(--sp-6) var(--gutter) calc(var(--bar-h) + var(--sp-10) + env(safe-area-inset-bottom, 0px));
 }
 
+.shell[data-reading] .content {
+  padding-bottom: var(--sp-10);
+}
+
 /* ── Bottom bar (phone / tablet) ── */
 .bottom {
   position: fixed;
@@ -171,6 +175,9 @@
   }
   .content {
     padding-bottom: calc(var(--bar-h) + var(--sp-16));
+  }
+  .shell[data-reading] .content {
+    padding-bottom: var(--sp-16);
   }
   .bottom {
     left: 50%;

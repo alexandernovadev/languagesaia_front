@@ -3,6 +3,7 @@
  *
  * Top bar (logo · XP · streak · avatar) + 5 tabs, Repasar as the big mint button
  * in the middle. On a phone the tabs are a bottom bar; on desktop, a floating dock.
+ * While reading a story both go away: the reader has its own X.
  *
  * Each tab lights up with its module color: the icon fills with the pastel,
  * a small pill appears under it and it springs in.
@@ -30,13 +31,14 @@ export function AppShell() {
     progress.load().catch(() => undefined);
   }, [user?._id]);
 
+  const reading = pathname.startsWith(`${MODULES.stories.path}/`);
   const name = [user?.firstName, user?.lastName].filter((n) => n && n !== "System").join(" ") || user?.username || "Tú";
 
   return (
-    <div className={styles.shell}>
+    <div className={styles.shell} data-reading={reading || undefined}>
       <div className={styles.main}>
         {/* ── Top bar ── */}
-        <header className={styles.top}>
+        {!reading && <header className={styles.top}>
           <NavLink to="/" className={styles.topBrand} aria-label="Glota, inicio">
             <Logo size={30} />
             <span className={styles.version}>v{__APP_VERSION__}</span>
@@ -53,7 +55,7 @@ export function AppShell() {
           <NavLink to="/perfil" className={styles.avatarLink} aria-label="Tu perfil" onClick={() => sound.play("tap")}>
             <Avatar name={name} src={user?.image} size={38} />
           </NavLink>
-        </header>
+        </header>}
 
         <main className={styles.content}>
           {/* the language is part of the key: every screen reloads its data when it changes */}
@@ -66,7 +68,7 @@ export function AppShell() {
       </div>
 
       {/* ── Tabs: bottom bar on a phone, floating dock on desktop ── */}
-      <nav className={styles.bottom} aria-label="Secciones">
+      {!reading && <nav className={styles.bottom} aria-label="Secciones">
         {BOTTOM_NAV.map((m) => {
           const active = isActive(m, pathname);
           const center = m.id === "review";
@@ -87,7 +89,7 @@ export function AppShell() {
             </NavLink>
           );
         })}
-      </nav>
+      </nav>}
     </div>
   );
 }

@@ -3,7 +3,7 @@
  * meaning and pronunciation, and adds it to your list. Your words are marked.
  */
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { AIThinking, AnswerOption, Button, ChatPanel, Chip, EmptyState, Icon, Modal, RobotStage, Skeleton, SpeakButtons, StreamingText, toast, useRobotMood } from "../../components";
 import { MODULES } from "../../app/modules";
 import { fx } from "../../lib/fx";
@@ -86,19 +86,21 @@ function WordCard({ word, onChange }: { word: Word; onChange: (w: Word) => void 
   const [tab, setTab] = useState<"info" | "chat">("info");
   return (
     <div className={styles.wordCard}>
-      <div className={styles.chips}>
+      <div className={styles.wordTop}>
         <Chip tint="peach" selected={tab === "info"} onToggle={() => setTab("info")}>
           Info
         </Chip>
         <Chip tint="peach" selected={tab === "chat"} onToggle={() => setTab("chat")}>
           Chat
         </Chip>
+        {word.IPA && <span className={styles.ipa}>{word.IPA}</span>}
+        <SpeakButtons text={word.word} language={word.language} wordId={word._id} audio={word.audio} recorded size="sm" />
       </div>
       {tab === "info" ? (
-        <>
+        <div className={styles.wordBody}>
           {word.img && <img className={styles.wordImage} src={word.img} alt="" />}
           <WordInfo word={word} onChange={onChange} onMood={() => undefined} compact />
-        </>
+        </div>
       ) : (
         <div className={styles.wordChat}>
           <ChatPanel
@@ -367,13 +369,13 @@ export function StoryReader() {
   return (
     <div className={styles.reader} data-solo={quiz || undefined}>
       <div className={styles.readerMain}>
-      <Link to={MODULES.stories.path} className={styles.back}>
-        <Icon name="back" size={18} /> Historias
-      </Link>
-      <header className={styles.readerHead}>
+      <div className={styles.readerBar}>
+        <Button tone="neutral" variant="ghost" size="sm" iconOnly icon={<Icon name="close" size={18} />} aria-label="Salir de la lectura" onClick={() => navigate(MODULES.stories.path)} />
         <span className={styles.muted}>
           {story.title} · Capítulo {writing ? story.chapters.length + 1 : index + 1} de {story.totalChapters}
         </span>
+      </div>
+      <header className={styles.readerHead}>
         {writing ? written.title && <h1>{written.title}</h1> : chapter && <h1>{chapter.title}</h1>}
       </header>
 
@@ -390,7 +392,7 @@ export function StoryReader() {
       {writing && written.title ? (
         <>
           <StreamingText text={written.text} streaming={!written.finished} className={styles.draft} />
-          {written.finished && <p className={styles.muted}>Tula está preparando las preguntas…</p>}
+          {written.finished && <AIThinking title="Tula está preparando las preguntas" tips={["Releyendo el capítulo…", "Buscando tus palabras…", "Pensando las preguntas…"]} skeletonLines={0} />}
         </>
       ) : writing ? (
         <AIThinking title="Tula está escribiendo" tips={["Siguiendo la trama…", "Metiendo tus palabras de hoy…"]} />
