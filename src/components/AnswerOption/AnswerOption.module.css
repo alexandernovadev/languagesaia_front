@@ -17,7 +17,7 @@
   background: var(--bg-2);
   border: var(--border) solid var(--line);
   border-radius: var(--r-md);
-  box-shadow: 0 var(--depth) 0 var(--bg-3);
+  box-shadow: 0 var(--btn-depth) 0 var(--bg-3);
   filter: none;
   transition:
     transform var(--t-base) var(--spring),
@@ -33,7 +33,7 @@
   }
 }
 .root:active:not(:disabled) {
-  transform: translateY(var(--depth)) scale(0.98);
+  transform: translateY(var(--btn-depth)) scale(0.98);
   box-shadow: 0 0 0 var(--bg-3);
 }
 
@@ -56,7 +56,7 @@
 .root[data-state="selected"] {
   border-color: var(--brand);
   background: var(--brand-soft);
-  box-shadow: 0 var(--depth) 0 var(--brand-deep);
+  box-shadow: 0 var(--btn-depth) 0 var(--brand-deep);
 }
 .root[data-state="selected"] .key {
   color: var(--ink);
@@ -68,7 +68,7 @@
   color: var(--success);
   background: var(--success-soft);
   border-color: var(--success-deep);
-  box-shadow: 0 var(--depth) 0 var(--success-deep);
+  box-shadow: 0 var(--btn-depth) 0 var(--success-deep);
   animation: lai-pop var(--t-party) var(--spring);
 }
 .root[data-state="right"] .key {
@@ -81,7 +81,7 @@
   color: var(--danger);
   background: var(--danger-soft);
   border-color: var(--danger-deep);
-  box-shadow: 0 var(--depth) 0 var(--danger-deep);
+  box-shadow: 0 var(--btn-depth) 0 var(--danger-deep);
   animation: lai-shake 420ms var(--ease-in-out);
 }
 .root[data-state="wrong"] .key {

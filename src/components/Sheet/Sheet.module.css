@@ -32,3 +32,8 @@
   color: var(--text-2);
   font-size: var(--fs-small);
 }
+@media (min-width: 960px) {
+  .grab {
+    display: none;
+  }
+}

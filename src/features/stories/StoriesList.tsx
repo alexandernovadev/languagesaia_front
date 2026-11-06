@@ -1,6 +1,6 @@
 /**
  * StoriesList — your stories, and a sheet to start a new one. Tula writes the
- * premise and the first chapter, using words you're reviewing.
+ * premise here; the first chapter is written live in the reader.
  */
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
@@ -18,7 +18,6 @@ const LEVELS = ["A1", "A2", "B1", "B2", "C1"] as const;
 const LENGTHS = [
   { value: "3", label: "Corta · 3" },
   { value: "6", label: "Media · 6" },
-  { value: "10", label: "Larga · 10" },
 ];
 const pick = <T,>(list: T[]) => list[Math.floor(Math.random() * list.length)];
 
@@ -39,7 +38,6 @@ function NewStorySheet({ open, onClose }: { open: boolean; onClose: () => void }
         totalChapters: Number(length),
         theme: surprise ? undefined : theme.trim() || undefined,
       });
-      await storiesApi.nextChapter(story._id);
       sound.play("levelup");
       haptics.celebrate();
       fx.confetti({ x: window.innerWidth / 2, y: window.innerHeight / 2 }, 40, 1.6);
@@ -53,7 +51,7 @@ function NewStorySheet({ open, onClose }: { open: boolean; onClose: () => void }
   return (
     <Sheet open={open} onClose={busy ? () => undefined : onClose} title="Nueva historia" description="Tula escribe con las palabras que estás repasando.">
       {busy ? (
-        <AIThinking title="Tula está escribiendo" tips={["Inventando a tu protagonista…", "Metiendo tus palabras en la trama…", "Preparando el primer capítulo…"]} skeletonLines={0} />
+        <AIThinking title="Tula está escribiendo" tips={["Inventando a tu protagonista…", "Pensando la trama…"]} skeletonLines={0} />
       ) : (
         <div className={styles.form}>
           <div className={styles.field}>
@@ -120,6 +118,7 @@ function StoryCard({ story, index }: { story: Story; index: number }) {
       </span>
       <span className={styles.cardBody}>
         <b>{story.title}</b>
+        <p>{story.description}</p>
         <small>{finished ? "Terminada" : `Capítulo ${Math.min(done + 1, story.totalChapters)} de ${story.totalChapters}`}</small>
         <span className={styles.bar}>
           <i style={{ width: `${(done / story.totalChapters) * 100}%` }} />

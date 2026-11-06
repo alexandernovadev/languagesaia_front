@@ -16,7 +16,7 @@ import styles from "./LanguageSwitcher.module.css";
 
 const LEARNABLE = LANGUAGES.filter((l) => l.value !== "es");
 
-/** Same breakpoint as AppShell's sidebar. */
+/** Same breakpoint as AppShell's floating dock. */
 const desktop = window.matchMedia("(min-width: 960px)");
 const useIsDesktop = () =>
   useSyncExternalStore(

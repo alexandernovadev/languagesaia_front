@@ -32,14 +32,14 @@
   user-select: auto;
   filter: none;
   cursor: pointer;
-  box-shadow: 0 var(--depth) 0 var(--bg-3);
+  box-shadow: 0 var(--btn-depth) 0 var(--bg-3);
   transition:
     transform var(--t-base) var(--spring),
     box-shadow var(--t-instant) ease,
     border-color var(--t-fast) ease;
 }
 .root[data-interactive][data-tinted] {
-  box-shadow: 0 var(--depth) 0 var(--c-deep);
+  box-shadow: 0 var(--btn-depth) 0 var(--c-deep);
 }
 @media (hover: hover) {
   .root[data-interactive]:hover {
@@ -48,7 +48,7 @@
   }
 }
 .root[data-interactive]:active {
-  transform: translateY(var(--depth)) scale(0.98);
+  transform: translateY(var(--btn-depth)) scale(0.98);
   box-shadow: 0 0 0 var(--bg-3);
   transition-duration: var(--t-instant);
 }
@@ -61,7 +61,7 @@
 .root[aria-pressed="true"],
 .root[aria-current="true"] {
   border-color: var(--c);
-  box-shadow: 0 var(--depth) 0 var(--c-deep);
+  box-shadow: 0 var(--btn-depth) 0 var(--c-deep);
   background:
     linear-gradient(180deg, var(--c-soft), transparent 70%),
     var(--bg-1);

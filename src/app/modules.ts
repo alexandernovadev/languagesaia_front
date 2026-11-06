@@ -27,11 +27,8 @@ export const MODULES: Record<ModuleDef["id"], ModuleDef> = {
   profile: { id: "profile", path: "/perfil", label: "Perfil", icon: "profile", tint: "lilac" },
 };
 
-/** Phone bottom bar (Repasar is the big center button). */
+/** The app tabs: bottom bar on a phone, floating dock on desktop (Repasar is the big center button). */
 export const BOTTOM_NAV = [MODULES.home, MODULES.words, MODULES.review, MODULES.stories, MODULES.lessons];
-/** Desktop sidebar, in groups. */
-export const SIDEBAR = [[MODULES.home, MODULES.review], [MODULES.words, MODULES.expressions, MODULES.stories, MODULES.lessons], [MODULES.profile]];
-
 export const LANGUAGES = [
   { value: "en", label: "Inglés", flag: "🇺🇸" },
   { value: "pt", label: "Portugués", flag: "🇧🇷" },

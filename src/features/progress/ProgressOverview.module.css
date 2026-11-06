@@ -13,6 +13,11 @@
   gap: var(--sp-1);
   max-width: 320px;
 }
+@media (min-width: 960px) {
+  .calendar {
+    max-width: 380px;
+  }
+}
 .weekday {
   text-align: center;
   font-size: var(--fs-caption);

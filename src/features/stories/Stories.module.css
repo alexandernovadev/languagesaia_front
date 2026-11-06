@@ -104,6 +104,12 @@
   width: min(680px, 100%);
   margin: 0 auto;
 }
+.readerMain {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  min-width: 0;
+}
 .back {
   display: inline-flex;
   align-items: center;
@@ -129,6 +135,10 @@
 }
 .text p {
   margin: 0;
+}
+.draft {
+  max-width: none;
+  color: var(--text-1);
 }
 .word {
   all: unset;
@@ -228,9 +238,67 @@
   height: 58dvh;
   min-height: 0;
 }
+.dockIdle {
+  display: none;
+}
 @media (min-width: 960px) {
   .dock {
-    bottom: var(--sp-4);
+    bottom: calc(var(--bar-h) + var(--sp-10)); /* clears the floating dock */
+  }
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--sp-4);
+  }
+  .cover {
+    height: 150px;
+  }
+  .cardBody p {
+    display: -webkit-box;
+    margin: 0;
+    overflow: hidden;
+    color: var(--text-2);
+    font-size: var(--fs-small);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+}
+@media (max-width: 959px) {
+  .cardBody p {
+    display: none;
+  }
+}
+/* Wide screens: the word opens beside the text, so it never covers what you read */
+@media (min-width: 1100px) {
+  .reader {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 280px;
+    align-items: start;
+    gap: var(--sp-6);
+    width: 100%;
+  }
+  .dock,
+  .dockIdle {
+    position: sticky;
+    top: 88px;
+    bottom: auto;
+  }
+  .dock {
+    box-shadow: 0 var(--depth) 0 var(--bg-3);
+  }
+  .dockIdle {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-1);
+    padding: var(--sp-4);
+    color: var(--text-3);
+    font-size: var(--fs-small);
+    border: var(--border) dashed var(--line);
+    border-radius: var(--r-md);
+  }
+  .dockIdle b {
+    color: var(--text-2);
+    font-family: var(--font-display);
+    font-size: var(--fs-body);
   }
 }
 .ipa {

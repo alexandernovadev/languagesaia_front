@@ -57,7 +57,7 @@
   background: var(--btn-bg);
   border: var(--border) solid var(--btn-border);
   border-radius: var(--r-md);
-  box-shadow: 0 var(--depth) 0 var(--btn-edge);
+  box-shadow: 0 var(--btn-depth) 0 var(--btn-edge);
   cursor: pointer;
   user-select: none;
   -webkit-user-select: none;
@@ -79,16 +79,16 @@
 :where(button[data-variant="soft"]) {
   --btn-bg: var(--c-soft);
   --btn-fg: var(--c);
-  --btn-edge: transparent;
+  --btn-edge: color-mix(in oklab, var(--c-deep) 60%, transparent);
   --btn-border: transparent;
   border: 0;
 }
 :where(button[data-variant="ghost"]) {
   --btn-bg: transparent;
   --btn-fg: var(--c);
-  --btn-edge: transparent;
-  --btn-border: transparent;
-  border: 0;
+  --btn-edge: var(--bg-3);
+  --btn-border: var(--line);
+  border: var(--border) solid var(--btn-border); /* el tono quita el borde; el fantasma lo necesita */
 }
 :where(button:hover, input:is([type="button"], [type="submit"]):hover) {
   filter: brightness(1.06);
@@ -98,7 +98,7 @@
   filter: none;
 }
 :where(button:active:not(:disabled, [aria-busy="true"]), input:is([type="button"], [type="submit"]):active:not(:disabled, [aria-busy="true"])) {
-  transform: translateY(var(--depth)) scale(var(--press-scale));
+  transform: translateY(var(--btn-depth)) scale(var(--press-scale));
   box-shadow: 0 0 0 var(--btn-edge);
   transition-duration: var(--t-instant);
 }
@@ -624,12 +624,12 @@
   background: var(--c);
   border: 0;
   border-radius: var(--r-sm);
-  box-shadow: 0 var(--depth) 0 var(--c-deep);
+  box-shadow: 0 var(--btn-depth) 0 var(--c-deep);
   cursor: pointer;
   transition: transform var(--t-base) var(--spring), box-shadow var(--t-instant) ease;
 }
 :where(input[type="file"])::file-selector-button:active {
-  transform: translateY(var(--depth)) scale(var(--press-scale));
+  transform: translateY(var(--btn-depth)) scale(var(--press-scale));
   box-shadow: 0 0 0 var(--c-deep);
 }
 
@@ -939,6 +939,34 @@
     border-radius: var(--r-full);
     background: var(--line);
   }
+}
+
+/* En escritorio la hoja es un modal centrado: desde abajo se ve pegada al borde. */
+@media (min-width: 960px) {
+  :where(dialog[data-sheet]) {
+    inset: 0;
+    margin: auto;
+    width: calc(100% - 2 * var(--sp-6));
+    max-width: 560px;
+    height: fit-content;
+    max-height: 85dvh;
+    padding: var(--sp-6);
+    border: var(--border) solid var(--line);
+    border-radius: var(--r-lg);
+    opacity: 0;
+    scale: 0.96;
+    translate: 0 0;
+    transition:
+      opacity var(--t-base) ease,
+      scale var(--t-base) var(--spring),
+      overlay var(--t-base) allow-discrete,
+      display var(--t-base) allow-discrete;
+  }
+  :where(dialog[data-sheet][open]) { opacity: 1; scale: 1; }
+  @starting-style {
+    :where(dialog[data-sheet][open]) { opacity: 0; scale: 0.96; translate: 0 0; }
+  }
+  :where(dialog[data-sheet])::before { display: none; }
 }
 
 /* El menú del <select> como hoja en tablet y móvil (Chrome/Android).

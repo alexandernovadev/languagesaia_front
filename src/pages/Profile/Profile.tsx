@@ -63,6 +63,7 @@ export function Profile() {
 
       <ProgressOverview />
 
+      <div className={styles.side}>
       <Card>
         <h2 className={styles.title}>
           <Icon name="globe" /> Idiomas
@@ -112,6 +113,7 @@ export function Profile() {
       </Button>
 
       <p className={styles.version}>Glota v{__APP_VERSION__}</p>
+      </div>
     </div>
   );
 }

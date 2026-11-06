@@ -92,6 +92,7 @@
   --r-full: 999px;
 
   --border: 2px;  /* en todo */
+  --btn-depth: 4px; /* borde inferior de todo lo que se presiona, estilo Duolingo */
   --depth: 2px;   /* borde inferior 3D (box-shadow 0 var(--depth) 0 <deep>) — sin sombras difusas */
 
   /* Espaciado · rejilla de 4 px */

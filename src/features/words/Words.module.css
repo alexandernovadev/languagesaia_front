@@ -203,6 +203,12 @@
   color: var(--text-3);
 }
 
+@media (min-width: 960px) {
+  .list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
 @media (max-width: 640px) {
   .tools {
     grid-template-columns: minmax(0, 1fr) auto;

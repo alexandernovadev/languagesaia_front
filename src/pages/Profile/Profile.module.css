@@ -73,6 +73,23 @@
 .link:hover {
   color: var(--text-1);
 }
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  min-width: 0;
+}
+@media (min-width: 960px) {
+  .page {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    align-items: start;
+    max-width: none;
+  }
+  .page > :first-child {
+    grid-column: 1 / -1;
+  }
+}
 @media (max-width: 520px) {
   .grid {
     grid-template-columns: 1fr;

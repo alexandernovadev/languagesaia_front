@@ -1,5 +1,5 @@
 /** Stories — types and backend calls for the Historias module (Tula). */
-import { api } from "../../lib/api";
+import { api, apiStream } from "../../lib/api";
 import { progress, type Reward } from "../../lib/progress";
 import type { Page } from "../words/api";
 
@@ -77,7 +77,8 @@ export const storiesApi = {
   get: (id: string) => api<Story>(`/api/stories/${id}`),
   create: (data: NewStory) => api<Story>("/api/stories", { method: "POST", body: data }),
   remove: (id: string) => api(`/api/stories/${id}`, { method: "DELETE" }),
-  nextChapter: (id: string) => api<Story>(`/api/stories/${id}/chapters/next`, { method: "POST" }),
+  /** Resolves when the chapter is saved. `onText` gets everything written so far. */
+  nextChapter: (id: string, onText: (full: string) => void) => apiStream(`/api/stories/${id}/chapters/next`, {}, (_, full) => onText(full)),
   progress: (id: string) => api<StoryProgress | null>(`/api/stories/${id}/progress`),
   async finishChapter(id: string, chapterIndex: number, correct: number) {
     const { reward } = await api<{ reward: Reward | null }>(`/api/stories/${id}/progress`, { method: "POST", body: { chapterIndex, correct } });

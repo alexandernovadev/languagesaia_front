@@ -6,8 +6,8 @@
   isolation: isolate;
 }
 
-/* Shine: a soft diagonal light that sweeps across pastel buttons on hover */
-.root[data-tone]:not([data-variant])::before {
+/* Shine: a soft diagonal light that sweeps across every button on hover */
+.root::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -17,7 +17,7 @@
   pointer-events: none;
 }
 @media (hover: hover) {
-  .root[data-tone]:not([data-variant]):hover:not(:disabled)::before {
+  .root:hover:not(:disabled)::before {
     translate: 120% 0;
     transition: translate 650ms var(--ease-out);
   }

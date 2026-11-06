@@ -1,9 +1,8 @@
 /**
  * AppShell — the frame around every screen once you're logged in.
  *
- * Phone/tablet (< 960px): top bar (logo · XP · streak · avatar) + bottom bar with
- * 5 tabs, Repasar as the big mint button in the middle.
- * Desktop: sidebar with every module + profile; XP/streak/avatar top-right.
+ * Top bar (logo · XP · streak · avatar) + 5 tabs, Repasar as the big mint button
+ * in the middle. On a phone the tabs are a bottom bar; on desktop, a floating dock.
  *
  * Each tab lights up with its module color: the icon fills with the pastel,
  * a small pill appears under it and it springs in.
@@ -15,7 +14,7 @@ import { tint } from "../components/types";
 import { progress, useProgress } from "../lib/progress";
 import { useSession } from "../lib/session";
 import { sound } from "../lib/sound";
-import { BOTTOM_NAV, MODULES, SIDEBAR, type ModuleDef } from "./modules";
+import { BOTTOM_NAV, MODULES, type ModuleDef } from "./modules";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import styles from "./AppShell.module.css";
 
@@ -35,46 +34,12 @@ export function AppShell() {
 
   return (
     <div className={styles.shell}>
-      {/* ── Desktop sidebar ── */}
-      <aside className={styles.sidebar}>
-        <div className={styles.brandBlock}>
-          <NavLink to="/" className={styles.brand} aria-label="Glota, inicio">
-            <Logo size={40} animated />
-          </NavLink>
-          <span className={styles.version}>v{__APP_VERSION__}</span>
-        </div>
-        <nav className={styles.sideNav} aria-label="Secciones">
-          {SIDEBAR.map((group, gi) => (
-            <div key={gi} className={styles.sideGroup}>
-              {group.map((m) => {
-                const on = isActive(m, pathname) && !(m.id === "words" && pathname.startsWith(MODULES.expressions.path));
-                const expr = m.id === "expressions" && pathname.startsWith(m.path);
-                const active = on || expr;
-                return (
-                  <NavLink
-                    key={m.id}
-                    to={m.path}
-                    end={m.path === "/"}
-                    className={styles.sideItem}
-                    style={tint(m.tint)}
-                    aria-current={active ? "page" : undefined}
-                    onClick={() => sound.play("tap")}
-                  >
-                    {m.id === "profile" ? <Avatar name={name} src={user?.image} size={26} /> : <Icon name={m.icon} active={active} />}
-                    <span>{m.label}</span>
-                  </NavLink>
-                );
-              })}
-            </div>
-          ))}
-        </nav>
-      </aside>
-
       <div className={styles.main}>
         {/* ── Top bar ── */}
         <header className={styles.top}>
           <NavLink to="/" className={styles.topBrand} aria-label="Glota, inicio">
             <Logo size={30} />
+            <span className={styles.version}>v{__APP_VERSION__}</span>
           </NavLink>
           <div className={styles.stats}>
             {stats && (
@@ -100,7 +65,7 @@ export function AppShell() {
         </main>
       </div>
 
-      {/* ── Phone bottom bar ── */}
+      {/* ── Tabs: bottom bar on a phone, floating dock on desktop ── */}
       <nav className={styles.bottom} aria-label="Secciones">
         {BOTTOM_NAV.map((m) => {
           const active = isActive(m, pathname);

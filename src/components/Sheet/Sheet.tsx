@@ -1,5 +1,6 @@
 /**
  * Sheet — bottom sheet: slides up from the bottom with a grab handle.
+ * From 960px up it is a centered modal instead (native.css).
  *
  * The phone-native way to pick options, filter or show quick actions.
  * Close it by dragging the handle down (past 90px or a fast flick), tapping

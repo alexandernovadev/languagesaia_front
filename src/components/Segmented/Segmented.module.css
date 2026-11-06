@@ -16,7 +16,7 @@
   border-radius: var(--r-full);
   background: var(--c-soft);
   border: var(--border) solid var(--c);
-  box-shadow: 0 var(--depth) 0 var(--c-deep);
+  box-shadow: 0 var(--btn-depth) 0 var(--c-deep);
   transition:
     translate var(--t-slow) var(--spring),
     width var(--t-slow) var(--spring),

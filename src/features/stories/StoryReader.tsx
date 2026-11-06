@@ -4,7 +4,7 @@
  */
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
-import { AIThinking, AnswerOption, Button, ChatPanel, Chip, EmptyState, Icon, Modal, RobotStage, Skeleton, SpeakButtons, toast, useRobotMood } from "../../components";
+import { AIThinking, AnswerOption, Button, ChatPanel, Chip, EmptyState, Icon, Modal, RobotStage, Skeleton, SpeakButtons, StreamingText, toast, useRobotMood } from "../../components";
 import { MODULES } from "../../app/modules";
 import { fx } from "../../lib/fx";
 import { haptics } from "../../lib/haptics";
@@ -24,6 +24,19 @@ const savedMarks = () => {
     return true;
   }
 };
+
+const END_OF_TEXT = "\u0003";
+
+/** The chapter as it arrives: the title on the first line, then the text. */
+function readDraft(full: string) {
+  const written = full.replace(END_OF_TEXT, "").trimStart();
+  const cut = written.indexOf("\n");
+  return {
+    title: (cut < 0 ? written : written.slice(0, cut)).replace(/[#*"“”]/g, "").trim(),
+    text: cut < 0 ? "" : written.slice(cut).trim(),
+    finished: full.includes(END_OF_TEXT),
+  };
+}
 
 const cleanWord = (w: string) => w.toLowerCase().replace(/^[^\p{L}]+|[^\p{L}]+$/gu, "");
 
@@ -138,7 +151,14 @@ function WordDock({ tapped, language, onClose }: { tapped: { word: string; sente
     }
   };
 
-  if (!tapped) return null;
+  if (!tapped) {
+    return (
+      <aside className={styles.dockIdle}>
+        <b>Toca cualquier palabra</b>
+        <span>Aquí verás su significado y su pronunciación, sin perder el hilo.</span>
+      </aside>
+    );
+  }
   return (
     <>
       <aside className={styles.dock} aria-label="Palabra">
@@ -241,6 +261,9 @@ export function StoryReader() {
   const [index, setIndex] = useState(0);
   const [failed, setFailed] = useState(false);
   const [writing, setWriting] = useState(false);
+  const [draft, setDraft] = useState("");
+  const [stuck, setStuck] = useState(false);
+  const [done, setDone] = useState<number[]>([]);
   const [marks, setMarks] = useState(savedMarks);
   const [tapped, setTapped] = useState<{ word: string; sentence: string } | null>(null);
   const [quiz, setQuiz] = useState(false);
@@ -249,11 +272,17 @@ export function StoryReader() {
 
   const write = async () => {
     setWriting(true);
+    setStuck(false);
+    setDraft("");
     try {
-      const updated = await storiesApi.nextChapter(id);
+      await storiesApi.nextChapter(id, setDraft);
+      const updated = await storiesApi.get(id);
       setStory(updated);
       setIndex(updated.chapters.length - 1);
+      sound.play("ready");
+      haptics.success();
     } catch (e) {
+      setStuck(true);
       toast((e as Error).message, { tone: "danger" });
     } finally {
       setWriting(false);
@@ -264,6 +293,7 @@ export function StoryReader() {
     Promise.all([storiesApi.get(id), storiesApi.progress(id)])
       .then(([s, p]) => {
         setStory(s);
+        setDone(p?.completedChapters ?? []);
         setIndex(Math.min(p?.currentChapter ?? 0, s.totalChapters - 1));
       })
       .catch(() => setFailed(true));
@@ -274,7 +304,8 @@ export function StoryReader() {
     player.current?.pause();
     setTapped({ word, sentence });
   }, []);
-  const needsChapter = !!story && !chapter && !writing;
+  const needsChapter = !!story && !chapter && !writing && !stuck;
+  const written = readDraft(draft);
 
   useEffect(() => {
     if (needsChapter) void write();
@@ -291,11 +322,19 @@ export function StoryReader() {
     }
   };
 
+  const goTo = (chapterIndex: number) => {
+    setQuiz(false);
+    setTapped(null);
+    setIndex(chapterIndex);
+    window.scrollTo({ top: 0 });
+  };
+
   const finish = async (correct: number) => {
     if (!story) return;
     setQuiz(false);
     try {
       await storiesApi.finishChapter(id, index, correct);
+      setDone((list) => [...list, index]);
     } catch (e) {
       toast((e as Error).message, { tone: "danger" });
       return;
@@ -306,9 +345,17 @@ export function StoryReader() {
       haptics.celebrate();
       fx.confetti({ x: window.innerWidth / 2, y: window.innerHeight / 3 }, 60, 1.8);
       navigate(MODULES.stories.path);
-    } else if (story.chapters[index + 1]) setIndex(index + 1);
-    else void write();
-    window.scrollTo({ top: 0 });
+    } else next();
+  };
+
+  /** Moves on from a chapter that's already finished. */
+  const next = () => {
+    if (story?.chapters[index + 1]) goTo(index + 1);
+    else {
+      setTapped(null);
+      window.scrollTo({ top: 0 });
+      void write();
+    }
   };
 
   if (failed) return <EmptyState kind="error" hero="tula" title="No encontré esta historia" action={<Button onClick={() => navigate(MODULES.stories.path)}>Volver a Historias</Button>} />;
@@ -316,18 +363,36 @@ export function StoryReader() {
 
   return (
     <div className={styles.reader}>
+      <div className={styles.readerMain}>
       <Link to={MODULES.stories.path} className={styles.back}>
         <Icon name="back" size={18} /> Historias
       </Link>
       <header className={styles.readerHead}>
         <span className={styles.muted}>
-          {story.title} · Capítulo {index + 1} de {story.totalChapters}
+          {story.title} · Capítulo {writing ? story.chapters.length + 1 : index + 1} de {story.totalChapters}
         </span>
-        {chapter && <h1>{chapter.title}</h1>}
+        {writing ? written.title && <h1>{written.title}</h1> : chapter && <h1>{chapter.title}</h1>}
       </header>
 
-      {writing || !chapter ? (
-        <AIThinking title="Tula está escribiendo" tips={["Siguiendo la trama…", "Metiendo tus palabras de hoy…", "Preparando las preguntas…"]} />
+      {!writing && story.chapters.length > 1 && (
+        <nav className={styles.chips} aria-label="Capítulos">
+          {story.chapters.map((c, i) => (
+            <Chip key={i} tint="peach" selected={i === index} onToggle={() => goTo(i)}>
+              {i + 1}
+            </Chip>
+          ))}
+        </nav>
+      )}
+
+      {writing && written.title ? (
+        <>
+          <StreamingText text={written.text} streaming={!written.finished} className={styles.draft} />
+          {written.finished && <p className={styles.muted}>Tula está preparando las preguntas…</p>}
+        </>
+      ) : writing ? (
+        <AIThinking title="Tula está escribiendo" tips={["Siguiendo la trama…", "Metiendo tus palabras de hoy…"]} />
+      ) : !chapter ? (
+        <EmptyState kind="error" hero="tula" title="No pude escribir el capítulo" action={<Button onClick={() => void write()}>Intentar de nuevo</Button>} />
       ) : quiz ? (
         <Quiz questions={chapter.questions} onDone={(correct) => void finish(correct)} />
       ) : (
@@ -344,12 +409,23 @@ export function StoryReader() {
             <label className={styles.switch}>
               <input type="checkbox" role="switch" checked={marks} onChange={toggleMarks} /> Marcar mis palabras
             </label>
-            <Button tone="warning" block onClick={() => (chapter.questions.length ? setQuiz(true) : void finish(0))}>
-              Terminé el capítulo
-            </Button>
+            {!done.includes(index) ? (
+              <Button tone="warning" block onClick={() => (chapter.questions.length ? setQuiz(true) : void finish(0))}>
+                Terminé el capítulo
+              </Button>
+            ) : index + 1 < story.totalChapters ? (
+              <Button tone="warning" block onClick={next}>
+                Siguiente capítulo
+              </Button>
+            ) : (
+              <Button tone="neutral" variant="soft" block onClick={() => navigate(MODULES.stories.path)}>
+                Volver a Historias
+              </Button>
+            )}
           </div>
         </>
       )}
+      </div>
 
       <WordDock
         tapped={tapped}

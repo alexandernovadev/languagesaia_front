@@ -24,7 +24,9 @@ button.root {
   color: var(--text-2);
   background: var(--bg-2);
   border-color: var(--line);
+  box-shadow: 0 var(--btn-depth) 0 var(--bg-3);
   transition:
+    box-shadow var(--t-instant) ease,
     color var(--t-fast) ease,
     background-color var(--t-fast) ease,
     border-color var(--t-fast) ease,
@@ -37,13 +39,14 @@ button.root {
   }
 }
 button.root:active {
-  transform: scale(var(--press-scale));
-  box-shadow: none;
+  transform: translateY(var(--btn-depth)) scale(var(--press-scale));
+  box-shadow: 0 0 0 var(--bg-3);
 }
 button.root[aria-pressed="true"] {
   color: var(--c);
   background: var(--c-soft);
   border-color: var(--c);
+  box-shadow: 0 var(--btn-depth) 0 var(--c-deep);
   animation: lai-bump var(--t-slow) var(--spring);
 }
 

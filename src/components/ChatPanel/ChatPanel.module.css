@@ -139,7 +139,7 @@
   background: var(--c-soft);
   border: var(--border) solid transparent;
   border-radius: var(--r-full);
-  box-shadow: none;
+  box-shadow: 0 var(--btn-depth) 0 color-mix(in oklab, var(--c-deep) 60%, transparent);
   filter: none;
 }
 .suggestion:hover {
