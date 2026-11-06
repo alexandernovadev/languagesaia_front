@@ -117,25 +117,46 @@ function WordCard({ word, onChange }: { word: Word; onChange: (w: Word) => void 
 }
 
 /** Stays over the text without covering it, so you keep reading while it's open. */
+/** Words already looked up in this reading: tapping one again is instant. */
+const lookups = new Map<string, WordLookup>();
+
 function WordDock({ tapped, language, onClose }: { tapped: { word: string; sentence: string } | null; language: string; onClose: () => void }) {
   const [info, setInfo] = useState<WordLookup | null>(null);
   const [failed, setFailed] = useState(false);
   const [adding, setAdding] = useState(false);
   const [card, setCard] = useState<Word | null>(null);
 
+  const key = tapped && `${language}:${tapped.word}`;
+
   useEffect(() => {
-    if (!tapped) return;
-    setInfo(null);
+    if (!tapped || !key) return;
     setFailed(false);
-    storiesApi.lookup(tapped.word, tapped.sentence, language).then(setInfo).catch(() => setFailed(true));
-  }, [tapped, language]);
+    const known = lookups.get(key);
+    setInfo(known ?? null);
+    if (known) return;
+    let stale = false;
+    storiesApi
+      .lookup(tapped.word, tapped.sentence, language)
+      .then((found) => {
+        lookups.set(key, found);
+        if (!stale) setInfo(found);
+      })
+      .catch(() => !stale && setFailed(true));
+    return () => {
+      stale = true;
+    };
+    // the sentence only helps the first lookup: the same word must not search again
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
 
   const add = async () => {
     if (!info) return;
     setAdding(true);
     try {
       const saved = await wordsApi.generate(info.lemma, language);
-      setInfo({ ...info, inList: true, wordId: saved._id, audio: saved.audio });
+      const added = { ...info, inList: true, wordId: saved._id, audio: saved.audio };
+      if (key) lookups.set(key, added);
+      setInfo(added);
       toast(`«${saved.word}» guardada`, { tone: "success" });
     } catch (e) {
       toast((e as Error).message, { tone: "danger" });
