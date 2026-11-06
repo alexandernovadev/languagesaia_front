@@ -44,6 +44,7 @@
 .combo {
   display: inline-block;
   min-height: 1.6em;
+  white-space: nowrap;
   font-family: var(--font-display);
   font-weight: var(--fw-heavy);
   font-size: 1.15rem;

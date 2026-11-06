@@ -350,6 +350,7 @@ function Session({ cards, daily, onExit, onDone }: { cards: Word[]; daily: boole
       <header className={styles.sessionTop}>
         <Button tone="neutral" variant="ghost" iconOnly icon={<Icon name="close" />} aria-label="Salir del repaso" onClick={onExit} />
         <ProgressBar value={Math.min(index, total)} max={total} size="md" className={styles.sessionProgress} />
+        <ComboBadge count={combo} />
         <span className={styles.counter}>
           {Math.min(index + 1, total)}/{total}
         </span>
@@ -358,7 +359,6 @@ function Session({ cards, daily, onExit, onDone }: { cards: Word[]; daily: boole
       <div className={styles.sessionBody}>
         <div className={styles.mentiCorner}>
           <RobotStage hero="menti" {...menti.props} size={110} />
-          <ComboBadge count={combo} />
         </div>
 
         <div className={styles.deck}>
