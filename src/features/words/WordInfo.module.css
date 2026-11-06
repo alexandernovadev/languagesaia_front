@@ -97,3 +97,32 @@ ul.examples li::before {
   content: "↔";
   background: var(--lilac);
 }
+
+.conjugations {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--sp-3);
+}
+.tense b {
+  display: block;
+  margin-bottom: var(--sp-1);
+  color: var(--text-1);
+  font-size: var(--fs-small);
+}
+.tense dl {
+  margin: 0;
+}
+.tense dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  padding: 2px 0;
+  font-size: var(--fs-small);
+}
+.tense dt {
+  color: var(--text-3);
+}
+.tense dd {
+  margin: 0;
+  color: var(--text-1);
+}

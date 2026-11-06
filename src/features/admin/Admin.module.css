@@ -219,6 +219,15 @@
   color: var(--danger);
   overflow-wrap: anywhere;
 }
+.rowText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.confirm {
+  width: 100%;
+  margin-top: var(--sp-2);
+}
 .wrap {
   white-space: normal;
 }

@@ -4,6 +4,7 @@
  * answer is checked one by one.
  */
 import { api } from "../../lib/api";
+import { progress, type Reward } from "../../lib/progress";
 
 export type QuestionType = "choice" | "fillBlank" | "order" | "translate" | "match" | "findError";
 export type LessonMode = "quick" | "topic" | "mistakes";
@@ -59,7 +60,11 @@ export const lessonsApi = {
   current: () => api<LessonRun | null>("/api/lessons/current"),
   answer: (attemptId: string, index: number, answer: unknown) =>
     api<CheckResult>(`/api/lessons/attempts/${attemptId}/answer`, { method: "POST", body: { index, answer } }),
-  finish: (attemptId: string) => api<{ score: number; xp: number; correct: number; total: number }>(`/api/lessons/attempts/${attemptId}/finish`, { method: "POST" }),
+  async finish(attemptId: string) {
+    const result = await api<{ score: number; xp: number; correct: number; total: number; reward: Reward | null }>(`/api/lessons/attempts/${attemptId}/finish`, { method: "POST" });
+    progress.apply(result.reward);
+    return result;
+  },
   report: (attemptId: string, index: number) => api(`/api/lessons/attempts/${attemptId}/questions/${index}/report`, { method: "POST" }),
   chat: (attemptId: string, index: number) => api<Array<{ role: "user" | "assistant"; content: string }>>(`/api/lessons/attempts/${attemptId}/questions/${index}/chat`),
   chatPath: (attemptId: string, index: number) => `/api/lessons/attempts/${attemptId}/questions/${index}/chat/stream`,

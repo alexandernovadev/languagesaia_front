@@ -3,6 +3,7 @@
  * Every component, every state and every effect, working together.
  * Route: /catalogo, in development only.
  */
+import { useNavigate } from "react-router";
 import { useState } from "react";
 import {
   AIThinking,
@@ -36,7 +37,6 @@ import {
   type Mood,
 } from "../../components";
 import { fx } from "../../lib/fx";
-import { logout } from "../../lib/session";
 import { sound } from "../../lib/sound";
 import styles from "./Catalog.module.css";
 
@@ -76,6 +76,8 @@ function Section({ title, code, children }: { title: string; code: string; child
 }
 
 export function Catalog() {
+  const navigate = useNavigate();
+
   // header rewards
   const [xp, setXp] = useState(120);
   const [streak, setStreak] = useState(6);
@@ -143,8 +145,8 @@ export function Catalog() {
         <Logo variant="symbol" size={36} animated />
         <XPCounter value={xp} />
         <StreakCounter days={streak} />
-        <Button tone="neutral" size="sm" onClick={logout}>
-          Salir
+        <Button tone="neutral" size="sm" onClick={() => navigate("/perfil")}>
+          Volver
         </Button>
       </div>
 

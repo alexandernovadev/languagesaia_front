@@ -12,7 +12,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router";
-import {
+import { DailyGoal,
   Button,
   Card,
   ChatPanel,
@@ -35,7 +35,6 @@ import { tint } from "../../components/types";
 import { MODULES } from "../../app/modules";
 import { fx } from "../../lib/fx";
 import { haptics } from "../../lib/haptics";
-import { progress } from "../../lib/progress";
 import { sound } from "../../lib/sound";
 import { correctAnswerOf, lessonsApi, LEVELS, TYPE_LABEL, type CheckResult, type LessonMode, type LessonStats, type GrammarGroup, type Level, type LessonRun } from "./api";
 import { Choice, FillBlank, FindError, Match, Order, Translate } from "./Exercises";
@@ -469,10 +468,7 @@ function Result({ r, topics, onAgain, onHome }: { r: { score: number; xp: number
   const title = useRef<HTMLHeadingElement>(null);
   const great = r.score >= 85;
   const ok = r.score >= 50;
-  const awarded = useRef(false);
   useEffect(() => {
-    if (!awarded.current) progress.addXp(r.xp); // effects run twice in development
-    awarded.current = true;
     if (ok) {
       bruno.react("party");
       sound.play("levelup");
@@ -493,6 +489,7 @@ function Result({ r, topics, onAgain, onHome }: { r: { score: number; xp: number
       <p className={styles.resultSub}>
         {r.correct} de {r.total} correctas · <b>+{r.xp} XP</b>
       </p>
+      <DailyGoal compact />
       {topics.length > 0 && (
         <div className={styles.chips}>
           {topics.map((t) => (

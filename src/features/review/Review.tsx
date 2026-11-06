@@ -1,16 +1,17 @@
 /**
- * Review — /repasar. Menti's daily flashcard session (Anki-style).
+ * Review — /repasar. Menti's flashcards with spaced repetition.
  *
- * 1. Setup: how many cards, which difficulties, review or random order.
+ * 1. Setup: today's cards (overdue, then new ones), or a free practice with
+ *    filters that doesn't touch the schedule.
  * 2. Session (full screen, no nav): flip the card, answer
  *    Otra vez (forgot → card comes back at the end) · Difícil · Fácil.
- *    Saves the difficulty and +1 "seen" for every card. Space flips, 1/2/3 answer.
- * 3. Done: Menti celebrates, confetti, stats and XP earned.
+ *    Each answer decides when the word returns. Space flips, 1/2/3 answer.
+ * 3. Done: Menti celebrates, confetti, stats, XP and what's next.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router";
-import {
+import { DailyGoal,
   Button,
   Chip,
   ComboBadge,
@@ -28,49 +29,70 @@ import {
 import { MODULES } from "../../app/modules";
 import { fx } from "../../lib/fx";
 import { haptics } from "../../lib/haptics";
-import { progress } from "../../lib/progress";
+import { progress, useProgress, type Reward } from "../../lib/progress";
 import { useSession } from "../../lib/session";
 import { sound } from "../../lib/sound";
-import { DIFFICULTY, WORD_TYPES, wordsApi, type Difficulty, type Word } from "../words/api";
+import { DIFFICULTY, WORD_TYPES, wordsApi, type Difficulty, type ReviewSummary, type Word } from "../words/api";
 import { WordInfo } from "../words/WordInfo";
 import styles from "./Review.module.css";
 
 type Answer = "again" | "hard" | "easy";
-const ANSWER: Record<Answer, { difficulty: Difficulty; xp: number; label: string; tone: "danger" | "warning" | "success"; key: string }> = {
-  again: { difficulty: "hard", xp: 0, label: "Otra vez", tone: "danger", key: "1" },
-  hard: { difficulty: "medium", xp: 1, label: "Difícil", tone: "warning", key: "2" },
-  easy: { difficulty: "easy", xp: 3, label: "Fácil", tone: "success", key: "3" },
+const ANSWER: Record<Answer, { difficulty: Difficulty; label: string; tone: "danger" | "warning" | "success"; key: string }> = {
+  again: { difficulty: "hard", label: "Otra vez", tone: "danger", key: "1" },
+  hard: { difficulty: "medium", label: "Difícil", tone: "warning", key: "2" },
+  easy: { difficulty: "easy", label: "Fácil", tone: "success", key: "3" },
 };
 
 interface Stats {
   again: number;
   hard: number;
   easy: number;
-  xp: number;
+  startXp: number;
   bestCombo: number;
 }
 
 /* ───────────────────────── Setup ───────────────────────── */
-type Cfg = { limit: number; difficulty: Difficulty[]; mode: "review" | "random"; type?: string };
+/** `daily` is today's schedule; without it, a free practice with these filters. */
+type Cfg = { daily?: boolean; limit: number; difficulty: Difficulty[]; mode: "review" | "random"; type?: string };
+
+const longDate = (iso: string) => new Intl.DateTimeFormat("es", { weekday: "long", day: "numeric", month: "long" }).format(new Date(iso));
 
 function Setup({ onStart }: { onStart: (cfg: Cfg) => void }) {
   const [limit, setLimit] = useState<"10" | "20" | "30">("20");
   const [type, setType] = useState("");
   const [diff, setDiff] = useState<Difficulty[]>(["hard", "medium"]);
   const [mode, setMode] = useState<"review" | "random">("review");
+  const [summary, setSummary] = useState<ReviewSummary | null>(null);
+  const [free, setFree] = useState(false);
   const menti = useRobotMood();
   useEffect(() => {
+    wordsApi.reviewSummary().then(setSummary).catch(() => setFree(true));
     const t = window.setTimeout(() => menti.react("wave"), 300);
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const toggle = (d: Difficulty) => setDiff((v) => (v.includes(d) ? v.filter((x) => x !== d) : [...v, d]));
+  const today = summary ? summary.due + summary.newToday : 0;
 
   return (
     <div className={styles.setup}>
-      <RobotStage hero="menti" {...menti.props} say="¡Bip! ¿Cuántas tarjetas hoy?" size={200} />
+      <RobotStage hero="menti" {...menti.props} say={summary && today === 0 ? "¡Bip! Todo al día." : "¡Bip! ¿Cuántas tarjetas hoy?"} size={200} />
       <div className={styles.setupCard}>
-        <h1>Repaso del día</h1>
+        <h1>{free ? "Práctica libre" : "Repaso del día"}</h1>
+        {!free && !summary && <Skeleton lines={2} />}
+        {!free && summary && (
+          <p className={styles.today}>
+            {today > 0 ? (
+              <>
+                <b>{today}</b> {today === 1 ? "tarjeta" : "tarjetas"} para hoy · {summary.due} para repasar · {summary.newToday} {summary.newToday === 1 ? "nueva" : "nuevas"}
+              </>
+            ) : summary.nextDueAt ? (
+              <>Lo tienes al día. Próximo repaso: {longDate(summary.nextDueAt)}.</>
+            ) : (
+              <>Lo tienes al día.</>
+            )}
+          </p>
+        )}
         <div className={styles.option}>
           <span>Tarjetas</span>
           <Segmented
@@ -84,57 +106,64 @@ function Setup({ onStart }: { onStart: (cfg: Cfg) => void }) {
             ]}
           />
         </div>
-        <div className={styles.option}>
-          <span>Qué palabras</span>
-          <div className={styles.chips}>
-            <Chip tint="rose" selected={diff.includes("hard")} onToggle={() => toggle("hard")}>
-              Difíciles
-            </Chip>
-            <Chip tint="butter" selected={diff.includes("medium")} onToggle={() => toggle("medium")}>
-              Medias
-            </Chip>
-            <Chip tint="mint" selected={diff.includes("easy")} onToggle={() => toggle("easy")}>
-              Fáciles
-            </Chip>
-          </div>
-        </div>
-        <div className={styles.option}>
-          <span>Tipo de palabra</span>
-          <select value={type} onChange={(e) => setType(e.target.value)} aria-label="Tipo de palabra">
-            <option value="">Todos los tipos</option>
-            {Object.entries(WORD_TYPES).map(([v, l]) => (
-              <option key={v} value={v}>
-                {l}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className={styles.option}>
-          <span>Orden</span>
-          <Segmented
-            label="Orden"
-            value={mode}
-            onChange={setMode}
-            options={[
-              { value: "review", label: "Las que más cuestan", tint: "mint" },
-              { value: "random", label: "Al azar", tint: "mint" },
-            ]}
-          />
-        </div>
+        {free && (
+          <>
+            <div className={styles.option}>
+              <span>Qué palabras</span>
+              <div className={styles.chips}>
+                <Chip tint="rose" selected={diff.includes("hard")} onToggle={() => toggle("hard")}>
+                  Difíciles
+                </Chip>
+                <Chip tint="butter" selected={diff.includes("medium")} onToggle={() => toggle("medium")}>
+                  Medias
+                </Chip>
+                <Chip tint="mint" selected={diff.includes("easy")} onToggle={() => toggle("easy")}>
+                  Fáciles
+                </Chip>
+              </div>
+            </div>
+            <div className={styles.option}>
+              <span>Tipo de palabra</span>
+              <select value={type} onChange={(e) => setType(e.target.value)} aria-label="Tipo de palabra">
+                <option value="">Todos los tipos</option>
+                {Object.entries(WORD_TYPES).map(([v, l]) => (
+                  <option key={v} value={v}>
+                    {l}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className={styles.option}>
+              <span>Orden</span>
+              <Segmented
+                label="Orden"
+                value={mode}
+                onChange={setMode}
+                options={[
+                  { value: "review", label: "Las que más cuestan", tint: "mint" },
+                  { value: "random", label: "Al azar", tint: "mint" },
+                ]}
+              />
+            </div>
+          </>
+        )}
         <Button
           tone="success"
           size="lg"
           block
-          attention={diff.length > 0}
-          disabled={diff.length === 0}
+          attention={free ? diff.length > 0 : today > 0}
+          disabled={free ? diff.length === 0 : today === 0}
           icon={<Icon name="review" size={22} active />}
           onClick={() => {
             menti.react("party");
-            window.setTimeout(() => onStart({ limit: Number(limit), difficulty: diff, mode, type: type || undefined }), 350);
+            window.setTimeout(() => onStart({ daily: !free, limit: Number(limit), difficulty: diff, mode, type: type || undefined }), 350);
           }}
         >
-          Empezar
+          {free ? "Empezar práctica" : "Empezar repaso"}
         </Button>
+        <button type="button" className={styles.switchMode} onClick={() => setFree((f) => !f)}>
+          {free ? "Volver al repaso del día" : "Práctica libre: elige tú las palabras"}
+        </button>
       </div>
     </div>
   );
@@ -146,7 +175,14 @@ function Front({ w }: { w: Word }) {
   return (
     <div className={styles.frontFace}>
       <div className={styles.frontMedia}>
-        {w.img ? <img src={w.img} alt="" /> : <span className={styles.letter}>{w.word.charAt(0).toUpperCase()}</span>}
+        {w.img ? (
+          <>
+            <img className={styles.frontBackdrop} src={w.img} alt="" aria-hidden="true" />
+            <img className={styles.frontImage} src={w.img} alt="" />
+          </>
+        ) : (
+          <span className={styles.letter}>{w.word.charAt(0).toUpperCase()}</span>
+        )}
         <span className={styles.diffBadge} data-tone={d.tone}>
           {d.label}
         </span>
@@ -179,21 +215,24 @@ function Back({ w, onChange, onFlipBack, onMood }: { w: Word; onChange: (w: Word
           <Button tone="neutral" size="sm" iconOnly icon={<Icon name="review" size={18} />} aria-label="Volver a la palabra" onClick={onFlipBack} />
         </div>
       </header>
-      <Segmented
-        label="Sección"
-        value={tab}
-        onChange={setTab}
-        options={[
-          { value: "info", label: "Info", icon: "words", tint: "mint" },
-          { value: "chat", label: "Chat", icon: "expressions", tint: "mint" },
-        ]}
-      />
-      <div className={styles.backScroll}>
+      <div className={styles.backTabs}>
+        <Segmented
+          label="Sección"
+          value={tab}
+          onChange={setTab}
+          options={[
+            { value: "info", label: "Info", icon: "words", tint: "mint" },
+            { value: "chat", label: "Chat", icon: "expressions", tint: "mint" },
+          ]}
+        />
+      </div>
+      <div className={tab === "info" ? styles.backScroll : styles.backChat}>
         {tab === "info" ? (
           <WordInfo word={w} onChange={onChange} onMood={onMood} compact />
         ) : (
           <ChatPanel
             hero="lumi"
+            fill
             load={() => wordsApi.chat(w._id)}
             streamPath={`/api/words/${w._id}/chat/stream`}
             suggestions={["Dame otro ejemplo", "¿Cuándo se usa?", "Explícamelo fácil"]}
@@ -205,13 +244,13 @@ function Back({ w, onChange, onFlipBack, onMood }: { w: Word; onChange: (w: Word
 }
 
 /* ───────────────────────── Session ───────────────────────── */
-function Session({ cards, onExit, onDone }: { cards: Word[]; onExit: () => void; onDone: (s: Stats) => void }) {
+function Session({ cards, daily, onExit, onDone }: { cards: Word[]; daily: boolean; onExit: () => void; onDone: (s: Stats) => void }) {
   const [queue, setQueue] = useState<Word[]>(cards);
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [leaving, setLeaving] = useState<Answer | null>(null);
   const [combo, setCombo] = useState(0);
-  const stats = useRef<Stats>({ again: 0, hard: 0, easy: 0, xp: 0, bestCombo: 0 });
+  const stats = useRef<Stats>({ again: 0, hard: 0, easy: 0, startXp: progress.get()?.xp ?? 0, bestCombo: 0 });
   const requeued = useRef(new Set<string>());
   const menti = useRobotMood();
   const cardRef = useRef<HTMLDivElement>(null);
@@ -231,8 +270,6 @@ function Session({ cards, onExit, onDone }: { cards: Word[]; onExit: () => void;
       const cfg = ANSWER[a];
       const s = stats.current;
       s[a] += 1;
-      s.xp += cfg.xp;
-      if (cfg.xp) progress.addXp(cfg.xp);
 
       if (a === "easy") {
         const c = combo + 1;
@@ -242,7 +279,6 @@ function Session({ cards, onExit, onDone }: { cards: Word[]; onExit: () => void;
         sound.play("correct");
         haptics.success();
         if (cardRef.current) fx.confetti(cardRef.current, 14);
-        if (cardRef.current) fx.float(cardRef.current, `+${cfg.xp} XP`);
       } else {
         setCombo(0);
         menti.react(a === "again" ? "sad" : "think");
@@ -250,9 +286,16 @@ function Session({ cards, onExit, onDone }: { cards: Word[]; onExit: () => void;
         if (a === "again") haptics.error();
       }
 
-      // save in the background
-      if (card.difficulty !== cfg.difficulty) void wordsApi.setDifficulty(card._id, cfg.difficulty).catch(() => undefined);
-      void wordsApi.seen(card._id).catch(() => undefined);
+      // save in the background; a card that came back at the end was already scheduled
+      const earned = (reward: Reward) => cardRef.current && fx.float(cardRef.current, `+${reward.gained} XP`);
+      const again = requeued.current.has(card._id);
+      if (daily) {
+        if (!again) void wordsApi.answerReview(card._id, a).then(earned).catch(() => undefined);
+      } else {
+        if (card.difficulty !== cfg.difficulty) void wordsApi.setDifficulty(card._id, cfg.difficulty).catch(() => undefined);
+        if (again) void wordsApi.seen(card._id).catch(() => undefined);
+        else void wordsApi.practice(card._id).then(earned).catch(() => undefined);
+      }
 
       // "Otra vez": the card comes back once at the end of the session
       if (a === "again" && !requeued.current.has(card._id)) {
@@ -267,7 +310,7 @@ function Session({ cards, onExit, onDone }: { cards: Word[]; onExit: () => void;
         setIndex((i) => i + 1);
       }, 380);
     },
-    [card, flipped, leaving, combo, menti],
+    [card, flipped, leaving, combo, menti, daily],
   );
 
   useEffect(() => {
@@ -348,12 +391,12 @@ function Session({ cards, onExit, onDone }: { cards: Word[]; onExit: () => void;
 
       <footer className={styles.answers}>
         {!flipped ? (
-          <Button tone="success" size="lg" block attention onClick={flip} sound={false}>
+          <Button tone="success" size="sm" block attention onClick={flip} sound={false}>
             Mostrar respuesta
           </Button>
         ) : (
           (Object.keys(ANSWER) as Answer[]).map((a) => (
-            <Button key={a} tone={ANSWER[a].tone} size="lg" block sound={false} onClick={() => answer(a)}>
+            <Button key={a} tone={ANSWER[a].tone} size="sm" block sound={false} onClick={() => answer(a)}>
               <span className={styles.key}>{ANSWER[a].key}</span>
               {ANSWER[a].label}
             </Button>
@@ -368,9 +411,12 @@ function Session({ cards, onExit, onDone }: { cards: Word[]; onExit: () => void;
 /* ───────────────────────── Done ───────────────────────── */
 function Done({ stats, total, onAgain }: { stats: Stats; total: number; onAgain: () => void }) {
   const navigate = useNavigate();
+  const [summary, setSummary] = useState<ReviewSummary | null>(null);
+  const gained = (useProgress()?.xp ?? stats.startXp) - stats.startXp;
   const menti = useRobotMood();
   const title = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
+    wordsApi.reviewSummary().then(setSummary).catch(() => undefined);
     menti.react("party");
     sound.play("levelup");
     haptics.celebrate();
@@ -382,15 +428,21 @@ function Done({ stats, total, onAgain }: { stats: Stats; total: number; onAgain:
     ["Fáciles", stats.easy, "mint"],
     ["Difíciles", stats.hard, "butter"],
     ["Otra vez", stats.again, "rose"],
-    ["Mejor racha", stats.bestCombo, "lilac"],
+    ["Mejor combo", stats.bestCombo, "lilac"],
   ];
   return (
     <div className={styles.done}>
       <RobotStage hero="menti" {...menti.props} say="¡Memoria de acero!" bubble="top" size={210} />
       <h1 ref={title}>¡Repaso completado!</h1>
       <p className={styles.doneSub}>
-        {total} tarjetas · <b>+{stats.xp} XP</b>
+        {total} tarjetas · <b>+{gained} XP</b>
       </p>
+      <DailyGoal compact />
+      {summary && (
+        <p className={styles.doneNext}>
+          {summary.due + summary.newToday > 0 ? `Te quedan ${summary.due + summary.newToday} para hoy.` : summary.nextDueAt ? `Próximo repaso: ${longDate(summary.nextDueAt)}.` : "Lo tienes al día."}
+        </p>
+      )}
       <div className={styles.tiles}>
         {tiles.map(([label, n, tone], i) => (
           <div key={label} className={styles.tile} style={{ "--c": `var(--${tone})`, "--i": i } as React.CSSProperties}>
@@ -423,7 +475,7 @@ export function Review() {
     lastCfg.current = cfg;
     setPhase("loading");
     try {
-      const list = await wordsApi.ankiCards({ ...cfg, language });
+      const list = cfg.daily ? await wordsApi.reviewQueue(cfg.limit) : await wordsApi.ankiCards({ ...cfg, language });
       if (!list.length) return setPhase("empty");
       setCards(list);
       setPhase("session");
@@ -443,8 +495,8 @@ export function Review() {
     return (
       <EmptyState
         hero="menti"
-        title="No hay tarjetas con esos filtros"
-        text="Prueba con otras dificultades o añade palabras nuevas."
+        title="No hay tarjetas"
+        text="Prueba con otros filtros o añade palabras nuevas."
         action={<Button tone="success" onClick={() => setPhase("setup")}>Cambiar filtros</Button>}
       />
     );
@@ -461,6 +513,7 @@ export function Review() {
   return (
     <Session
       cards={cards}
+      daily={!!lastCfg.current?.daily}
       onExit={() => setPhase("setup")}
       onDone={onDone}
     />

@@ -28,6 +28,19 @@
   border-radius: 6px;
   background: var(--bg-3);
 }
+.ipa {
+  font-family: var(--font-ipa);
+  font-weight: var(--fw-heavy);
+  color: var(--c, var(--brand));
+}
+.quote {
+  font-style: italic;
+  font-weight: var(--fw-semibold);
+  color: var(--peach);
+}
+.aside {
+  color: var(--lilac);
+}
 /* the studied word inside an example */
 .hl {
   color: var(--c, var(--brand));

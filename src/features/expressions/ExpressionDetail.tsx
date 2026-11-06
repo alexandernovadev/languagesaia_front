@@ -10,7 +10,6 @@ import { Button, Card, ChatPanel, Chip, EmptyState, Icon, Modal, RichText, Robot
 import { tint } from "../../components/types";
 import { MODULES } from "../../app/modules";
 import { fx } from "../../lib/fx";
-import { progress } from "../../lib/progress";
 import { sound } from "../../lib/sound";
 import type { Difficulty } from "../words/api";
 import { DifficultyPicker } from "../words/WordDetail";
@@ -78,7 +77,6 @@ export function ExpressionDetail() {
       nubo.react("party");
       sound.play("correct");
       if (diffRef.current) fx.confetti(diffRef.current, 18);
-      progress.addXp(2);
     } else nubo.react(d === "hard" ? "sad" : "happy");
     try {
       await expressionsApi.update(item._id, { difficulty: d });

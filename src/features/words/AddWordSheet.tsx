@@ -8,7 +8,6 @@ import { useNavigate } from "react-router";
 import { Button, Field, Icon, Robot, Sheet, toast, useRobotMood } from "../../components";
 import { MODULES, LANGUAGES } from "../../app/modules";
 import { fx } from "../../lib/fx";
-import { progress } from "../../lib/progress";
 import { sound } from "../../lib/sound";
 import { wordsApi } from "./api";
 import styles from "./Words.module.css";
@@ -66,8 +65,7 @@ export function AddWordSheet({ open, onClose, language }: { open: boolean; onClo
       lumi.react("party");
       sound.play("levelup");
       if (btn.current) fx.confetti(btn.current, 30);
-      progress.addXp(5);
-      toast(`«${created.word}» guardada`, { tone: "success" });
+      toast(created.alreadyInList ? `«${created.word}» ya estaba en tu lista` : `«${created.word}» guardada`, { tone: "success" });
       window.setTimeout(() => {
         setBusy(false);
         setWord("");

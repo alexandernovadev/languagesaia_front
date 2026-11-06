@@ -31,11 +31,13 @@ export interface ChatPanelProps {
   load: () => Promise<ChatMsg[]>;
   streamPath: string;
   suggestions?: string[];
+  /** Takes the container's height: only the messages scroll and the input stays in place. */
+  fill?: boolean;
   placeholder?: string;
   className?: string;
 }
 
-export function ChatPanel({ hero, load, streamPath, suggestions = [], placeholder = "Escribe tu pregunta…", className }: ChatPanelProps) {
+export function ChatPanel({ hero, load, streamPath, suggestions = [], fill = false, placeholder = "Escribe tu pregunta…", className }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMsg[] | null>(null);
   const [draft, setDraft] = useState("");
   const [streaming, setStreaming] = useState(false);
@@ -103,7 +105,7 @@ export function ChatPanel({ hero, load, streamPath, suggestions = [], placeholde
   };
 
   return (
-    <div className={cx(styles.root, className)} style={tint(h.tint)}>
+    <div className={cx(styles.root, fill && styles.fill, className)} style={tint(h.tint)}>
       <div ref={scroller} className={styles.thread} aria-live="polite">
         {messages === null && <Skeleton lines={3} />}
         {messages?.length === 0 && (

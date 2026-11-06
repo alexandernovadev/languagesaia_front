@@ -7,6 +7,7 @@ import { useState } from "react";
 import { Link } from "react-router";
 import { Avatar, Button, Card, Field, Icon, SoundToggle, toast } from "../../components";
 import { LANGUAGES } from "../../app/modules";
+import { ProgressOverview } from "../../features/progress/ProgressOverview";
 import { api } from "../../lib/api";
 import { logout, session, useSession, type User } from "../../lib/session";
 import styles from "./Profile.module.css";
@@ -59,6 +60,8 @@ export function Profile() {
       ) : (
         who
       )}
+
+      <ProgressOverview />
 
       <Card>
         <h2 className={styles.title}>

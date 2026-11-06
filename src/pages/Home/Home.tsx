@@ -2,11 +2,13 @@
  * Home — "¡Hola, Alex!": the daily review front and center (Menti), then each
  * hero presenting their module. Tapping a hero card makes it wave and opens it.
  */
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { Button, Icon, Robot, SpeechBubble, useRobotMood, type Hero } from "../../components";
+import { Button, DailyGoal, Icon, Robot, SpeechBubble, useRobotMood, type Hero } from "../../components";
 import { tint } from "../../components/types";
 import { MODULES, type ModuleDef } from "../../app/modules";
+import { wordsApi, type ReviewSummary } from "../../features/words/api";
+import { progress } from "../../lib/progress";
 import { useSession } from "../../lib/session";
 import { sound } from "../../lib/sound";
 import styles from "./Home.module.css";
@@ -55,8 +57,12 @@ export function Home() {
   const user = useSession()?.user;
   const name = (user?.firstName && user.firstName !== "System" ? user.firstName : user?.username) ?? "";
   const menti = useRobotMood();
+  const [summary, setSummary] = useState<ReviewSummary | null>(null);
+  const today = summary ? summary.due + summary.newToday : null;
 
   useEffect(() => {
+    wordsApi.reviewSummary().then(setSummary).catch(() => undefined);
+    progress.load().catch(() => undefined); // a new day may have started
     const t = window.setTimeout(() => menti.react("wave"), 500);
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -69,15 +75,17 @@ export function Home() {
         <h1>¡Hola, {name}! 👋</h1>
       </header>
 
+      <DailyGoal />
+
       {/* Daily review: the heart of Glota */}
       <section className={styles.review} style={tint("mint")}>
         <div className={styles.reviewHero}>
           <Robot hero="menti" {...menti.props} voice={false} />
         </div>
         <div className={styles.reviewBody}>
-          <SpeechBubble tail="left">¡Bip! Tus tarjetas te esperan.</SpeechBubble>
+          <SpeechBubble tail="left">{today === 0 ? "¡Bip! Todo al día." : today ? `¡Bip! Hoy te tocan ${today} ${today === 1 ? "tarjeta" : "tarjetas"}.` : "¡Bip! Tus tarjetas te esperan."}</SpeechBubble>
           <h2>Repaso del día</h2>
-          <p>Unos minutos al día y no olvidas nada. Menti elige las palabras que más te cuestan.</p>
+          <p>Unos minutos al día y no olvidas nada. Cada palabra vuelve justo cuando empiezas a olvidarla.</p>
           <Button
             tone="success"
             size="lg"

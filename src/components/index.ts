@@ -6,6 +6,7 @@ export { Button } from "./Button/Button";
 export { ChatPanel, type ChatMsg } from "./ChatPanel/ChatPanel";
 export { Card } from "./Card/Card";
 export { Chip } from "./Chip/Chip";
+export { DailyGoal } from "./DailyGoal/DailyGoal";
 export { EmptyState } from "./EmptyState/EmptyState";
 export { FeedbackBanner } from "./FeedbackBanner/FeedbackBanner";
 export { Field } from "./Field/Field";

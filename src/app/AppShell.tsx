@@ -8,11 +8,11 @@
  * Each tab lights up with its module color: the icon fills with the pastel,
  * a small pill appears under it and it springs in.
  */
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { NavLink, Outlet, useLocation } from "react-router";
 import { Avatar, Icon, Logo, PageTransition, StreakCounter, XPCounter } from "../components";
 import { tint } from "../components/types";
-import { useProgress } from "../lib/progress";
+import { progress, useProgress } from "../lib/progress";
 import { useSession } from "../lib/session";
 import { sound } from "../lib/sound";
 import { BOTTOM_NAV, MODULES, SIDEBAR, type ModuleDef } from "./modules";
@@ -25,7 +25,12 @@ const isActive = (m: ModuleDef, path: string) =>
 export function AppShell() {
   const { pathname } = useLocation();
   const user = useSession()?.user;
-  const { xp, streak } = useProgress();
+  const stats = useProgress();
+
+  useEffect(() => {
+    progress.load().catch(() => undefined);
+  }, [user?._id]);
+
   const name = [user?.firstName, user?.lastName].filter((n) => n && n !== "System").join(" ") || user?.username || "Tú";
 
   return (
@@ -72,8 +77,12 @@ export function AppShell() {
             <Logo size={30} />
           </NavLink>
           <div className={styles.stats}>
-            <XPCounter value={xp} />
-            <StreakCounter days={streak} />
+            {stats && (
+              <>
+                <XPCounter value={stats.xp} />
+                <StreakCounter days={stats.streak} />
+              </>
+            )}
           </div>
           <LanguageSwitcher />
           <NavLink to="/perfil" className={styles.avatarLink} aria-label="Tu perfil" onClick={() => sound.play("tap")}>

@@ -34,7 +34,7 @@ const FRIENDLY: Record<number, string> = {
 };
 
 async function raw<T>(path: string, { method = "GET", body, auth = true, signal }: Options, retried = false): Promise<T> {
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = { "X-Time-Zone": Intl.DateTimeFormat().resolvedOptions().timeZone };
   const isForm = body instanceof FormData;
   if (body !== undefined && !isForm) headers["Content-Type"] = "application/json";
   const token = session.get()?.token;

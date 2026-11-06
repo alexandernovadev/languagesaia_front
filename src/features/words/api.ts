@@ -3,6 +3,7 @@
  * Most "generate*" calls hit the AI and take 10–60 s.
  */
 import { api } from "../../lib/api";
+import { progress, type Reward } from "../../lib/progress";
 
 export type Difficulty = "easy" | "medium" | "hard";
 
@@ -25,10 +26,21 @@ export interface Word {
   seen: number;
   difficulty: Difficulty;
   codeSwitching: string[];
+  /** Verbs only: tense → person → form. */
+  conjugations?: Record<string, Record<string, string>> | null;
   spanish?: { word?: string; definition?: string };
   img?: string;
   createdAt?: string;
 }
+
+/** What the daily review has for today. */
+export interface ReviewSummary {
+  due: number;
+  newToday: number;
+  nextDueAt: string | null;
+}
+
+export type ReviewAnswer = "again" | "hard" | "easy";
 
 export interface Page<T> {
   data: T[];
@@ -84,9 +96,12 @@ export const wordsApi = {
       { signal },
     ),
   get: (id: string) => api<Word>(`/api/words/${id}`),
-  /** AI creates the full word (definition, IPA, examples…) and saves it. */
-  generate: (word: string, language: string) => api<Word>("/api/words/generate", { method: "POST", body: { word, language } }),
-  remove: (id: string) => api(`/api/words/${id}`, { method: "DELETE" }),
+  /** Adds a word to your list. If nobody has it yet, the AI creates it for the dictionary first. */
+  async generate(word: string, language: string) {
+    const created = await api<Word & { alreadyInList: boolean; reward: Reward | null }>("/api/words/generate", { method: "POST", body: { word, language } });
+    progress.apply(created.reward);
+    return created;
+  },
   setDifficulty: (id: string, difficulty: Difficulty) => api<Word>(`/api/words/${id}/difficulty`, { method: "PUT", body: { difficulty } }),
   seen: (id: string) => api<Word>(`/api/words/${id}/increment-seen`, { method: "PUT" }),
   regenerate: (id: string, what: "examples" | "code-switching" | "synonyms" | "types", w: Word) =>
@@ -95,7 +110,21 @@ export const wordsApi = {
       body: { word: w.word, language: w.language, oldExamples: what === "code-switching" ? w.codeSwitching : w.examples },
     }),
   image: (id: string, w: Word) => api<Word>(`/api/words/${id}/generate-image`, { method: "POST", body: { word: w.word, imgOld: w.img } }),
-  /** Cards for a review session. `review` = hardest and least seen first; `random` = shuffled. */
+  reviewSummary: () => api<ReviewSummary>("/api/words/review/summary"),
+  /** Today's cards: overdue first, then new ones. */
+  reviewQueue: (limit: number) => api<Word[]>(`/api/words/review/queue?limit=${limit}`),
+  async answerReview(id: string, answer: ReviewAnswer) {
+    const { reward } = await api<{ reward: Reward }>(`/api/words/${id}/review`, { method: "POST", body: { answer } });
+    progress.apply(reward);
+    return reward;
+  },
+  /** One card of free practice: it earns XP and doesn't touch the schedule. */
+  async practice(id: string) {
+    const { reward } = await api<{ reward: Reward }>(`/api/words/${id}/practice`, { method: "POST" });
+    progress.apply(reward);
+    return reward;
+  },
+  /** Free practice, outside the schedule. `review` = hardest and least seen first; `random` = shuffled. */
   ankiCards: ({ mode = "review", limit = 20, difficulty = ["hard", "medium"], language, type }: { mode?: "random" | "review"; limit?: number; difficulty?: Difficulty[]; language?: string; type?: string }) =>
     api<Word[]>(`/api/words/anki-cards?${qs({ mode, limit, difficulty: difficulty.join(","), language, type })}`),
   chat: (id: string) => api<ChatMessage[]>(`/api/words/${id}/chat`),

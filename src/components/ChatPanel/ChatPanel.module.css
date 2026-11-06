@@ -14,6 +14,37 @@
   overscroll-behavior: contain;
   padding: var(--sp-1);
 }
+/* Fills its container: only the messages scroll, the input stays in place */
+.fill {
+  flex: 1;
+  height: 100%;
+}
+.fill .thread {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+}
+.fill {
+  gap: var(--sp-2);
+}
+.fill .suggestion {
+  min-height: 26px;
+  padding: 0 var(--sp-2);
+  font-size: 0.8rem;
+}
+.fill .composer input,
+.fill .composer button {
+  min-height: 36px;
+  height: 36px;
+}
+.fill .composer input {
+  padding-block: 0;
+}
+.fill .composer button {
+  width: 36px;
+  min-width: 36px;
+  padding: 0;
+}
 .intro {
   display: flex;
   align-items: center;

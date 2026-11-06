@@ -32,6 +32,8 @@ export interface SystemInfo {
   errors: Array<{ time: string; message: string }>;
 }
 
+export type DeletableData = "words" | "expressions" | "lessons" | "exercises" | "stories";
+
 export type DataKind = "words" | "expressions";
 export type DuplicateStrategy = "skip" | "overwrite";
 
@@ -68,6 +70,8 @@ const upload = <T>(kind: DataKind, file: File, query: string) => {
 };
 
 export const adminApi = {
+  dataCounts: () => api<Record<DeletableData, number>>("/api/labs/data/counts"),
+  deleteAll: (what: DeletableData) => api<{ deletedCount: number }>(`/api/labs/data/${what}/delete-all`, { method: "DELETE" }),
   system: () => api<SystemInfo>("/api/labs/system"),
   backupStatus: () => api<BackupStatus>("/api/labs/backup/status"),
   sendBackup: () => api<{ wordsCount: number; expressionsCount: number }>("/api/labs/backup/send-email", { method: "POST" }),

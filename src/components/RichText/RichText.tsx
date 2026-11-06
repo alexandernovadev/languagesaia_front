@@ -1,6 +1,8 @@
 /**
  * RichText — renders the small Markdown the AI writes (**bold**, *italic*,
- * `code`, bullet/numbered lists, paragraphs) as safe React elements.
+ * `code`, bullet/numbered lists, paragraphs) as safe React elements. A
+ * pronunciation between slashes, like /θred/, a short "quoted" word and a
+ * short (aside) stand out.
  * No HTML injection: it only builds known elements.
  *
  * `highlight` marks every occurrence of a word (e.g. the word being studied
@@ -16,7 +18,7 @@ import styles from "./RichText.module.css";
 
 function inline(text: string, highlight?: string, keyBase = ""): ReactNode[] {
   const out: ReactNode[] = [];
-  const re = /(\*\*[^*]+\*\*|\*[^*\s][^*]*\*|`[^`]+`)/g;
+  const re = /(\*\*[^*]+\*\*|\*[^*\s][^*]*\*|`[^`]+`|(?<![\w/:.])\/[^\s/][^/\n]{0,40}\/(?![\w/])|"[^"\n]{1,40}"|“[^”\n]{1,40}”|(?<![\w\]])\([^()\n]{1,60}\))/g;
   let last = 0;
   let m: RegExpExecArray | null;
   let i = 0;
@@ -38,7 +40,22 @@ function inline(text: string, highlight?: string, keyBase = ""): ReactNode[] {
     const tok = m[0];
     const k = `${keyBase}${i++}`;
     if (tok.startsWith("**")) out.push(<strong key={k}>{inline(tok.slice(2, -2), highlight, k)}</strong>);
-    else if (tok.startsWith("`")) out.push(<code key={k}>{tok.slice(1, -1)}</code>);
+    else if (tok.startsWith("/") || /^`\/.+\/`$/.test(tok)) out.push(<span key={k} className={styles.ipa}>{tok.replace(/`/g, "")}</span>);
+    else if (tok.startsWith('"') || tok.startsWith("“")) {
+      out.push(
+        <em key={k} className={styles.quote}>
+          {tok[0]}
+          {inline(tok.slice(1, -1), highlight, k)}
+          {tok.at(-1)}
+        </em>,
+      );
+    } else if (tok.startsWith("(")) {
+      out.push(
+        <span key={k} className={styles.aside}>
+          ({inline(tok.slice(1, -1), highlight, k)})
+        </span>,
+      );
+    } else if (tok.startsWith("`")) out.push(<code key={k}>{tok.slice(1, -1)}</code>);
     else out.push(<em key={k}>{inline(tok.slice(1, -1), highlight, k)}</em>);
     last = m.index + tok.length;
   }
@@ -47,7 +64,8 @@ function inline(text: string, highlight?: string, keyBase = ""): ReactNode[] {
 }
 
 export function RichText({ text, highlight, className }: { text: string; highlight?: string; className?: string }) {
-  const blocks = text.trim().split(/\n{2,}/);
+  // a heading is its own block, even with text right below it
+  const blocks = text.replace(/^#{1,6}\s+.*$/gm, "\n\n$&\n\n").trim().split(/\n{2,}/);
   return (
     <div className={cx(styles.root, className)}>
       {blocks.map((block, bi) => {
@@ -55,7 +73,7 @@ export function RichText({ text, highlight, className }: { text: string; highlig
         // horizontal rule
         if (/^\s*(-{3,}|\*{3,}|_{3,})\s*$/.test(block)) return <hr key={bi} />;
         // heading
-        const h = /^(#{1,4})\s+(.*)$/.exec(block);
+        const h = /^(#{1,6})\s+(.*)$/.exec(block);
         if (h && lines.length === 1) return <p key={bi} className={styles.heading}>{inline(h[2], highlight, `${bi}`)}</p>;
         // table: every line starts with "|"
         if (lines.length >= 2 && lines.every((l) => l.trim().startsWith("|"))) {

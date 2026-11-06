@@ -20,6 +20,7 @@ const Lessons = lazy(() => import("./features/lessons/Lessons").then((m) => ({ d
 const AdminLayout = lazy(() => import("./features/admin/AdminLayout").then((m) => ({ default: m.AdminLayout })));
 const AdminSystem = lazy(() => import("./features/admin/AdminSystem").then((m) => ({ default: m.AdminSystem })));
 const AdminBackups = lazy(() => import("./features/admin/AdminBackups").then((m) => ({ default: m.AdminBackups })));
+const AdminDelete = lazy(() => import("./features/admin/AdminDelete").then((m) => ({ default: m.AdminDelete })));
 const AdminData = lazy(() => import("./features/admin/AdminData").then((m) => ({ default: m.AdminData })));
 
 /* Design system showcase: development only, it never ships to production. */
@@ -48,6 +49,7 @@ const router = createBrowserRouter([
       { path: "sistema", element: <AdminSystem /> },
       { path: "backups", element: <AdminBackups /> },
       { path: "datos", element: <AdminData /> },
+      { path: "borrado", element: <AdminDelete /> },
     ],
   },
   ...(Catalog ? [{ path: "/catalogo", element: <Suspense fallback={null}><Catalog /></Suspense> }] : []),

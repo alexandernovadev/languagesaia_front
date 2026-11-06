@@ -1,0 +1,66 @@
+.goal {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-5);
+  background: var(--bg-1);
+  border: var(--border) solid var(--line);
+  border-radius: var(--r-lg);
+}
+.ring {
+  display: grid;
+  place-items: center;
+  width: 92px;
+  height: 92px;
+  color: var(--success);
+  border-radius: 50%;
+  background:
+    radial-gradient(closest-side, var(--bg-1) 76%, transparent 77%),
+    conic-gradient(var(--success) var(--p), var(--bg-2) 0);
+}
+.ring svg * {
+  fill: var(--success);
+  fill-opacity: 1;
+  stroke: var(--success);
+}
+.ring span {
+  font-family: var(--font-display);
+  font-weight: var(--fw-heavy);
+  font-size: 1.25rem;
+}
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  min-width: 0;
+}
+.body h2 {
+  font-size: var(--fs-h3);
+}
+.body p {
+  color: var(--text-2);
+}
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  color: var(--text-2);
+}
+.facts span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+}
+.compact {
+  width: min(100%, 320px);
+  padding: var(--sp-3) var(--sp-4);
+  text-align: left;
+}
+.compact .ring {
+  width: 60px;
+  height: 60px;
+}
+.compact .ring span {
+  font-size: 0.9rem;
+}

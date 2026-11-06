@@ -1,0 +1,89 @@
+.title {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-3);
+}
+.subtitle {
+  margin: var(--sp-5) 0 var(--sp-3);
+}
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--sp-1);
+  max-width: 320px;
+}
+.weekday {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-2);
+}
+.day {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  background: var(--bg-2);
+}
+.day[data-state="some"] {
+  background: var(--success-soft);
+  box-shadow: inset 0 0 0 1px var(--success-deep);
+}
+.day[data-state="goal"] {
+  background: var(--success);
+}
+.day[data-state="future"] {
+  background: transparent;
+}
+.day[data-today] {
+  outline: 2px solid var(--text-2);
+  outline-offset: 1px;
+}
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+  font-size: 0.85rem;
+  color: var(--text-2);
+}
+.legend .day {
+  width: 14px;
+  border-radius: 4px;
+}
+.achievements {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--sp-4);
+}
+.achievement {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+.achievementHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+.stars {
+  display: inline-flex;
+  gap: 2px;
+  color: var(--text-2);
+  opacity: 0.45;
+}
+.stars span[data-on] {
+  color: var(--warning);
+}
+.stars span[data-on] svg * {
+  fill: var(--warning);
+  fill-opacity: 1;
+  stroke: var(--warning);
+}
+.stars:has(span[data-on]) {
+  opacity: 1;
+}
+.complete {
+  color: var(--success);
+}

@@ -8,7 +8,6 @@ import { Button, Field, Icon, Robot, Sheet, toast, useRobotMood } from "../../co
 import { LANGUAGES, MODULES } from "../../app/modules";
 import { ApiError } from "../../lib/api";
 import { fx } from "../../lib/fx";
-import { progress } from "../../lib/progress";
 import { sound } from "../../lib/sound";
 import styles from "../words/Words.module.css";
 import { expressionsApi } from "./api";
@@ -65,7 +64,6 @@ export function AddExpressionSheet({ open, onClose, language }: { open: boolean;
       nubo.react("party");
       sound.play("levelup");
       if (btn.current) fx.confetti(btn.current, 30);
-      progress.addXp(5);
       toast(`«${created.expression}» guardada`, { tone: "success" });
       window.setTimeout(() => {
         setBusy(false);

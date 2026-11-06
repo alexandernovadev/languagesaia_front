@@ -5,6 +5,7 @@
  */
 import { api } from "../../lib/api";
 import type { ChatMessage, Difficulty, Page } from "../words/api";
+import { progress, type Reward } from "../../lib/progress";
 
 export interface Expression {
   _id: string;
@@ -43,7 +44,9 @@ export const expressionsApi = {
   get: (id: string) => api<Expression>(`/api/expressions/${id}`),
   async generateAndSave(prompt: string, language: string) {
     const draft = await api<Partial<Expression>>("/api/expressions/generate", { method: "POST", body: { prompt, language } });
-    return api<Expression>("/api/expressions", { method: "POST", body: { ...draft, language: draft.language ?? language } });
+    const created = await api<Expression & { reward: Reward }>("/api/expressions", { method: "POST", body: { ...draft, language: draft.language ?? language } });
+    progress.apply(created.reward);
+    return created;
   },
   update: (id: string, data: Partial<Expression>) => api<Expression>(`/api/expressions/${id}`, { method: "PUT", body: data }),
   remove: (id: string) => api(`/api/expressions/${id}`, { method: "DELETE" }),

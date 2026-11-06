@@ -1,31 +1,57 @@
 /**
- * progress — XP and streak shown in the top bar.
- * TEMPORARY: kept in localStorage until the backend stores them
- * (decided: XP/streak/daily goal will live in the backend).
+ * progress — XP, level, daily goal and streak, as the backend keeps them.
+ * Every action that earns XP answers with a reward; `apply` shows it.
  */
 import { useSyncExternalStore } from "react";
+import { toast } from "../components/Toast/Toast";
+import { api } from "./api";
+import { sound } from "./sound";
 
-type Progress = { xp: number; streak: number };
-const KEY = "glota.progress";
+export type Progress = {
+  xp: number;
+  level: number;
+  levelXp: number;
+  levelNeed: number;
+  streak: number;
+  bestStreak: number;
+  freezes: number;
+  todayXp: number;
+  goal: number;
+};
+
+export type Reward = { gained: number; goalReached: boolean; leveledUp: boolean; progress: Progress };
+
 const listeners = new Set<() => void>();
-let state: Progress = (() => {
-  try {
-    return { xp: 0, streak: 0, ...JSON.parse(localStorage.getItem(KEY) ?? "{}") };
-  } catch {
-    return { xp: 0, streak: 0 };
-  }
-})();
+let state: Progress | null = null;
+
+const set = (next: Progress) => {
+  state = next;
+  listeners.forEach((l) => l());
+};
+
+try {
+  localStorage.removeItem("glota.progress"); // the old XP, from when it lived in the browser
+} catch {
+  /* ignore */
+}
 
 export const progress = {
   get: () => state,
-  addXp(n: number) {
-    state = { ...state, xp: state.xp + n };
-    try {
-      localStorage.setItem(KEY, JSON.stringify(state));
-    } catch {
-      /* ignore */
+  async load() {
+    set(await api<Progress>("/api/progress"));
+  },
+  apply(reward?: Reward | null) {
+    if (!reward) return;
+    // answers can arrive out of order: the highest XP is the newest
+    if (!state || reward.progress.xp >= state.xp) set(reward.progress);
+    if (reward.goalReached) {
+      sound.play("levelup");
+      toast(`¡Meta del día cumplida! Racha de ${reward.progress.streak} ${reward.progress.streak === 1 ? "día" : "días"}`, { tone: "success" });
     }
-    listeners.forEach((l) => l());
+    if (reward.leveledUp) {
+      sound.play("levelup");
+      toast(`¡Subiste al nivel ${reward.progress.level}!`, { tone: "success" });
+    }
   },
   subscribe(l: () => void) {
     listeners.add(l);

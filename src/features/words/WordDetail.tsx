@@ -6,11 +6,11 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
-import { Button, Card, ChatPanel, Chip, EmptyState, Icon, Modal, Robot, Segmented, Skeleton, SpeakButtons, toast, useRobotMood } from "../../components";
+import { Button, Card, ChatPanel, Chip, EmptyState, Icon, Robot, Segmented, Skeleton, SpeakButtons, toast, useRobotMood } from "../../components";
 import { tint } from "../../components/types";
 import { MODULES } from "../../app/modules";
 import { fx } from "../../lib/fx";
-import { progress } from "../../lib/progress";
+import { useSession } from "../../lib/session";
 import { sound } from "../../lib/sound";
 import { DIFFICULTY, WORD_TYPES, wordsApi, type Difficulty, type Word } from "./api";
 import { WordInfo } from "./WordInfo";
@@ -37,7 +37,7 @@ export function WordDetail() {
   const [word, setWord] = useState<Word | null>(null);
   const [failed, setFailed] = useState(false);
   const [imgBusy, setImgBusy] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(false);
+  const isAdmin = useSession()?.user.role === "admin";
   const lumi = useRobotMood();
   const counted = useRef(false);
   const diffRef = useRef<HTMLDivElement>(null);
@@ -95,22 +95,11 @@ export function WordDetail() {
       lumi.react("party");
       sound.play("correct");
       if (diffRef.current) fx.confetti(diffRef.current, 18);
-      progress.addXp(2);
     } else lumi.react(d === "hard" ? "sad" : "happy");
     try {
       await wordsApi.setDifficulty(word._id, d);
     } catch (e) {
       setWord((w) => (w ? { ...w, difficulty: prev } : w));
-      toast((e as Error).message, { tone: "danger" });
-    }
-  };
-
-  const remove = async () => {
-    try {
-      await wordsApi.remove(word._id);
-      toast(`«${word.word}» borrada`, { tone: "info" });
-      navigate(MODULES.words.path, { replace: true });
-    } catch (e) {
       toast((e as Error).message, { tone: "danger" });
     }
   };
@@ -130,9 +119,12 @@ export function WordDetail() {
               <Robot hero="lumi" {...lumi.props} voice={false} />
             </div>
           )}
-          <Button tone="neutral" size="sm" className={styles.imgBtn} loading={imgBusy} icon={<Icon name="image" size={18} />} onClick={() => void newImage()}>
+          {/* the picture is shared by everyone */}
+          {isAdmin && (
+            <Button tone="neutral" size="sm" className={styles.imgBtn} loading={imgBusy} icon={<Icon name="image" size={18} />} onClick={() => void newImage()}>
             {word.img ? "Otra imagen" : "Crear imagen"}
           </Button>
+          )}
         </div>
 
         <div className={styles.info}>
@@ -177,22 +169,8 @@ export function WordDetail() {
               suggestions={["Dame otro ejemplo", "¿Cuándo se usa?", "¿Formal o informal?", "Explícamelo fácil"]}
             />
           </Card>
-          <Button tone="danger" variant="soft" block icon={<Icon name="trash" size={20} />} onClick={() => setConfirmDelete(true)}>
-            Borrar palabra
-          </Button>
         </aside>
       </div>
-
-      <Modal open={confirmDelete} onClose={() => setConfirmDelete(false)} title={`¿Borrar «${word.word}»?`} description="Se borrará con sus ejemplos, imagen y chat. No se puede deshacer.">
-        <Modal.Actions>
-          <Button tone="neutral" onClick={() => setConfirmDelete(false)}>
-            Cancelar
-          </Button>
-          <Button tone="danger" onClick={() => void remove()}>
-            Sí, borrar
-          </Button>
-        </Modal.Actions>
-      </Modal>
     </div>
   );
 }

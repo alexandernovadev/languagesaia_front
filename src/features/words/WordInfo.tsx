@@ -1,7 +1,7 @@
 /**
  * WordInfo — everything we know about a word, section by section:
  * definition (+ Spanish), examples (word highlighted), mixed-language examples,
- * synonyms and word types. Every AI section can be regenerated (✦).
+ * synonyms and word types. An admin can regenerate every AI section (✦).
  *
  * Shared by the word page and the back of review cards.
  * `compact` = lighter sections for small spaces (the card back).
@@ -12,6 +12,7 @@
 import { useState, type ReactNode } from "react";
 import { Button, Card, Chip, Icon, RichText, Skeleton, toast, type Mood } from "../../components";
 import { cx } from "../../components/types";
+import { useSession } from "../../lib/session";
 import { sound } from "../../lib/sound";
 import { WORD_TYPES, wordsApi, type Word } from "./api";
 import styles from "./WordInfo.module.css";
@@ -53,8 +54,30 @@ export interface WordInfoProps {
   className?: string;
 }
 
+const TENSES = [
+  ["presente", "Presente"],
+  ["preterito", "Pretérito"],
+  ["imperfeito", "Imperfecto"],
+  ["futuro", "Futuro"],
+  ["subjuntivo", "Subjuntivo"],
+] as const;
+const ENGLISH_FORMS = [
+  ["base", "Base"],
+  ["past", "Pasado"],
+  ["participle", "Participio"],
+  ["gerund", "Gerundio"],
+  ["third", "He / she"],
+] as const;
+const PERSONS = [
+  ["eu", "eu"],
+  ["voce", "você"],
+  ["nos", "nós"],
+  ["eles", "eles"],
+] as const;
+
 export function WordInfo({ word, onChange, onMood, compact, className }: WordInfoProps) {
   const [busy, setBusy] = useState<Regen | null>(null);
+  const isAdmin = useSession()?.user.role === "admin";
   const [showEs, setShowEs] = useState(compact ?? false);
   const highlight = word.word.split(" ")[0];
 
@@ -74,7 +97,8 @@ export function WordInfo({ word, onChange, onMood, compact, className }: WordInf
     }
   };
 
-  const regenBtn = (what: Regen) => (
+  // the content of a word is shared by everyone
+  const regenBtn = (what: Regen) => isAdmin && (
     <Button
       tone="info"
       variant="soft"
@@ -144,6 +168,38 @@ export function WordInfo({ word, onChange, onMood, compact, className }: WordInf
               ))}
             </ul>
           )}
+        </Section>
+      )}
+
+      {word.conjugations && (
+        <Section compact={compact} title="Conjugación" icon={<Icon name="review" />}>
+          <div className={styles.conjugations}>
+            {word.conjugations.forms && (
+              <div className={styles.tense}>
+                <dl>
+                  {ENGLISH_FORMS.map(([form, name]) => (
+                    <div key={form}>
+                      <dt>{name}</dt>
+                      <dd>{word.conjugations?.forms?.[form]}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            )}
+            {TENSES.filter(([key]) => word.conjugations?.[key]).map(([key, label]) => (
+              <div key={key} className={styles.tense}>
+                <b>{label}</b>
+                <dl>
+                  {PERSONS.map(([person, name]) => (
+                    <div key={person}>
+                      <dt>{name}</dt>
+                      <dd>{word.conjugations?.[key]?.[person]}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            ))}
+          </div>
         </Section>
       )}
 

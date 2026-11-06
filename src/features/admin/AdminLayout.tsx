@@ -14,6 +14,7 @@ const SECTIONS: Array<{ path: string; label: string; icon: IconName }> = [
   { path: "sistema", label: "Sistema", icon: "settings" },
   { path: "backups", label: "Backups", icon: "check" },
   { path: "datos", label: "Importar y exportar", icon: "send" },
+  { path: "borrado", label: "Borrado", icon: "trash" },
 ];
 
 export function AdminLayout() {
