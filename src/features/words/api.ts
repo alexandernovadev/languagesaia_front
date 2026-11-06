@@ -30,6 +30,7 @@ export interface Word {
   conjugations?: Record<string, Record<string, string>> | null;
   spanish?: { word?: string; definition?: string };
   img?: string;
+  audio?: string;
   createdAt?: string;
 }
 

@@ -119,7 +119,7 @@ export function ExpressionDetail() {
         <div className={styles.info}>
           <h1 className={styles.word}>{item.expression}</h1>
           <div className={styles.meta}>
-            <SpeakButtons text={item.expression} language={item.language} size="sm" />
+            <SpeakButtons text={item.expression} language={item.language} recorded size="sm" />
           </div>
           {item.spanish?.expression && (
             <span className={styles.es}>
@@ -177,8 +177,9 @@ export function ExpressionDetail() {
               </header>
               <ol className={info.examples}>
                 {item.examples.map((ex, i) => (
-                  <li key={i} style={{ "--i": i } as React.CSSProperties}>
+                  <li key={i} className={info.exampleRow} style={{ "--i": i } as React.CSSProperties}>
                     <RichText text={ex} highlight={item.expression} />
+                    <SpeakButtons text={ex} language={item.language} recorded slow={false} size="sm" />
                   </li>
                 ))}
               </ol>

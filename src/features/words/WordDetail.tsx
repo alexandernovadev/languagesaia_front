@@ -131,7 +131,7 @@ export function WordDetail() {
           <h1 className={styles.word}>{word.word}</h1>
           <div className={styles.meta}>
             {word.IPA && <span className={styles.ipa}>{word.IPA}</span>}
-            <SpeakButtons text={word.word} language={word.language} size="sm" />
+            <SpeakButtons text={word.word} language={word.language} wordId={word._id} audio={word.audio} size="sm" />
           </div>
           {word.spanish?.word && (
             <span className={styles.es}>

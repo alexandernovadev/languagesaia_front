@@ -10,7 +10,7 @@
  *   <WordInfo word={word} onChange={setWord} onMood={(m) => lumi.react(m)} />
  */
 import { useState, type ReactNode } from "react";
-import { Button, Card, Chip, Icon, RichText, Skeleton, toast, type Mood } from "../../components";
+import { SpeakButtons, Button, Card, Chip, Icon, RichText, Skeleton, toast, type Mood } from "../../components";
 import { cx } from "../../components/types";
 import { useSession } from "../../lib/session";
 import { sound } from "../../lib/sound";
@@ -147,8 +147,9 @@ export function WordInfo({ word, onChange, onMood, compact, className }: WordInf
         ) : (
           <ol className={styles.examples}>
             {word.examples.map((ex, i) => (
-              <li key={i} style={{ "--i": i } as React.CSSProperties}>
+              <li key={i} className={styles.exampleRow} style={{ "--i": i } as React.CSSProperties}>
                 <RichText text={ex} highlight={highlight} />
+                <SpeakButtons text={ex} language={word.language} recorded slow={false} size="sm" />
               </li>
             ))}
           </ol>

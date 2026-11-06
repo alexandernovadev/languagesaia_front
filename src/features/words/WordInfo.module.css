@@ -76,6 +76,17 @@
   animation: lai-reveal var(--t-slow) var(--ease-out) both;
   animation-delay: calc(var(--i) * 60ms);
 }
+.examples li.exampleRow {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  align-items: center;
+}
+.exampleRow button {
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  min-height: 30px;
+}
 .compact .examples li {
   font-size: var(--fs-small);
   padding: var(--sp-2) var(--sp-3);

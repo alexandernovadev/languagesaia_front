@@ -31,6 +31,7 @@ import { fx } from "../../lib/fx";
 import { haptics } from "../../lib/haptics";
 import { progress, useProgress, type Reward } from "../../lib/progress";
 import { useSession } from "../../lib/session";
+import { wordRecording } from "../../lib/speech";
 import { sound } from "../../lib/sound";
 import { DIFFICULTY, WORD_TYPES, wordsApi, type Difficulty, type ReviewSummary, type Word } from "../words/api";
 import { WordInfo } from "../words/WordInfo";
@@ -188,7 +189,7 @@ function Front({ w }: { w: Word }) {
         </span>
       </div>
       <div className={styles.frontInfo}>
-        <SpeakButtons text={w.word} language={w.language} />
+        <SpeakButtons text={w.word} language={w.language} wordId={w._id} audio={w.audio} />
         <b className={styles.cardWord}>{w.word}</b>
         <div className={styles.frontMeta}>
           {w.IPA && <span className={styles.cardIpa}>{w.IPA}</span>}
@@ -211,7 +212,7 @@ function Back({ w, onChange, onFlipBack, onMood }: { w: Word; onChange: (w: Word
           {w.IPA && <span className={styles.cardIpa}>{w.IPA}</span>}
         </div>
         <div className={styles.backTools}>
-          <SpeakButtons text={w.word} language={w.language} size="sm" />
+          <SpeakButtons text={w.word} language={w.language} wordId={w._id} audio={w.audio} size="sm" />
           <Button tone="neutral" size="sm" iconOnly icon={<Icon name="review" size={18} />} aria-label="Volver a la palabra" onClick={onFlipBack} />
         </div>
       </header>
@@ -316,6 +317,13 @@ function Session({ cards, daily, onExit, onDone }: { cards: Word[]; daily: boole
   useEffect(() => {
     if (index >= total && total > 0) onDone(stats.current);
   }, [index, total, onDone]);
+
+  // this card's and the next one's recordings are ready before anyone taps
+  useEffect(() => {
+    for (const w of queue.slice(index, index + 2)) {
+      if (!w.audio) wordRecording(w._id).catch(() => undefined);
+    }
+  }, [queue, index]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
