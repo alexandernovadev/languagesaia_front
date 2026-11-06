@@ -13,6 +13,7 @@ export interface Chapter {
   order: number;
   title: string;
   content: string;
+  img?: string;
   idea?: string;
   targetVocabulary: string[];
   questions: Question[];

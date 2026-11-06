@@ -3,8 +3,9 @@
  * meaning and pronunciation, and adds it to your list. Your words are marked.
  */
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router";
-import { AIThinking, AnswerOption, Button, ChatPanel, Chip, EmptyState, Icon, LevelBadge, Modal, RobotStage, Skeleton, SpeakButtons, StreamingText, toast, useRobotMood } from "../../components";
+import { AIThinking, AnswerOption, Button, ChatPanel, Chip, EmptyState, Icon, LevelBadge, Logo, Modal, RobotStage, Skeleton, SpeakButtons, StreamingText, toast, useRobotMood } from "../../components";
 import { MODULES } from "../../app/modules";
 import { fx } from "../../lib/fx";
 import { haptics } from "../../lib/haptics";
@@ -223,7 +224,7 @@ const wide = window.matchMedia("(min-width: 960px)").matches; // same as the two
 const ANSWER_XP = 5;
 const CHAPTER_XP = 10;
 
-function Quiz({ questions, onDone }: { questions: Question[]; onDone: (correct: number) => void }) {
+function Quiz({ title: chapterTitle, questions, onDone }: { title: string; questions: Question[]; onDone: (correct: number) => void }) {
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const tula = useRobotMood();
   const title = useRef<HTMLHeadingElement>(null);
@@ -251,7 +252,10 @@ function Quiz({ questions, onDone }: { questions: Question[]; onDone: (correct: 
 
   return (
     <section className={styles.quiz}>
-      <RobotStage hero="tula" {...tula.props} say={say} bubble="top" size={wide ? 220 : 130} />
+      <div className={styles.quizSide}>
+        <h1>{chapterTitle}</h1>
+        <RobotStage hero="tula" {...tula.props} say={say} bubble="top" size={wide ? 300 : 130} />
+      </div>
       <div className={styles.quizBody}>
       <div>
         <h2 ref={title}>¿Entendiste?</h2>
@@ -282,6 +286,8 @@ function Quiz({ questions, onDone }: { questions: Question[]; onDone: (correct: 
 }
 
 const MAX_IDEA = 300;
+const PICTURE_POLL_MS = 5000;
+const PICTURE_TRIES = 8;
 const WORDS_PER_MINUTE = 130; // a learner's pace, not a native's
 
 /** What this reading is, at a glance. */
@@ -320,7 +326,7 @@ function NextIdea({ last, initial, onWrite }: { last: boolean; initial: string; 
   const tula = useRobotMood("wave");
   return (
     <section className={styles.quiz}>
-      <RobotStage hero="tula" {...tula.props} say={last ? "¡Último capítulo!" : "¡Tú mandas!"} bubble="top" size={wide ? 220 : 130} />
+      <RobotStage hero="tula" {...tula.props} say={last ? "¡Último capítulo!" : "¡Tú mandas!"} bubble="top" size={wide ? 300 : 130} />
       <div className={styles.quizBody}>
         <div>
           <h2>{last ? "¿Cómo quieres que termine?" : "¿Qué pasa ahora?"}</h2>
@@ -395,6 +401,23 @@ export function StoryReader() {
   }, []);
   const needsChapter = !!story && story.chapters.length === 0 && !writing && !stuck; // only the first one writes itself
   const written = readDraft(draft);
+  const picture = chapter?.img || story?.img;
+
+  // the chapter's picture is painted last, a few seconds after the text
+  const waiting = !!chapter && !chapter.img && index === (story?.chapters.length ?? 0) - 1;
+  useEffect(() => {
+    if (!waiting) return;
+    let tries = 0;
+    const timer = window.setInterval(() => {
+      tries += 1;
+      if (tries > PICTURE_TRIES) return window.clearInterval(timer);
+      storiesApi.get(id).then((fresh) => {
+        if (fresh.chapters[index]?.img) setStory(fresh);
+      }).catch(() => undefined);
+    }, PICTURE_POLL_MS);
+    return () => window.clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [waiting, index]);
   const focused = quiz || (!chapter && !writing); // no text to tap: the side panel goes away
 
   useEffect(() => {
@@ -447,18 +470,25 @@ export function StoryReader() {
   if (!story) return <Skeleton lines={8} />;
 
   return (
-    <div className={styles.reader} data-solo={focused || undefined}>
+    <div className={styles.reader} data-solo={focused || undefined} data-backdrop={picture ? true : undefined}>
+      {picture &&
+        createPortal(
+          <div className={styles.backdrop} aria-hidden="true">
+            <img key={picture} src={picture} alt="" />
+          </div>,
+          document.body,
+        )}
       <div className={styles.readerMain}>
       <div className={styles.readerBar}>
         <Button tone="neutral" variant="ghost" size="sm" iconOnly icon={<Icon name="close" size={18} />} aria-label="Salir de la lectura" onClick={() => navigate(MODULES.stories.path)} />
         <span className={styles.muted}>
           {story.title} · Capítulo {writing ? story.chapters.length + 1 : index + 1} de {story.totalChapters}
         </span>
+        <Logo size={26} className={styles.barLogo} />
       </div>
       {!focused && <StoryDetails story={story} chapter={chapter} />}
-      {story.img && !focused && <img className={styles.readerCover} src={story.img} alt="" />}
       <header className={styles.readerHead}>
-        {writing ? written.title && <h1>{written.title}</h1> : chapter && <h1>{chapter.title}</h1>}
+        {writing ? written.title && <h1>{written.title}</h1> : chapter && !quiz && <h1>{chapter.title}</h1>}
       </header>
 
       {!writing && story.chapters.length > 1 && (
@@ -483,7 +513,7 @@ export function StoryReader() {
       ) : !chapter ? (
         <NextIdea last={index + 1 === story.totalChapters} initial={lastIdea.current} onWrite={(idea) => void write(idea)} />
       ) : quiz ? (
-        <Quiz questions={chapter.questions} onDone={(correct) => void finish(correct)} />
+        <Quiz title={chapter.title} questions={chapter.questions} onDone={(correct) => void finish(correct)} />
       ) : (
         <>
           {chapter.idea && (
