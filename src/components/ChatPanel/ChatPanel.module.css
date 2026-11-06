@@ -61,6 +61,7 @@
 }
 .user {
   align-self: flex-end;
+  white-space: pre-wrap;
   max-width: 82%;
   padding: var(--sp-2) var(--sp-4);
   border-radius: var(--r-md) var(--r-md) 6px var(--r-md);
@@ -144,6 +145,36 @@
 }
 .suggestion:hover {
   border-color: var(--c);
+}
+.quote {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  color: var(--text-2);
+  font-size: var(--fs-small);
+  font-style: italic;
+  background: var(--c-soft);
+  border-left: 3px solid var(--c);
+  border-radius: var(--r-sm);
+}
+.quote span {
+  flex: 1;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+.quote button {
+  flex: none;
+  min-height: 0;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  color: var(--text-3);
+  background: none;
+  border: 0;
+  box-shadow: none;
 }
 .composer {
   display: flex;

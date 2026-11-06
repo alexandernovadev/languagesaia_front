@@ -100,5 +100,6 @@ export const storiesApi = {
   },
   narrate: (id: string, chapterIndex: number) =>
     api<{ urlAudio: string; audioAlignment: WordTime[] }>(`/api/stories/${id}/chapters/${chapterIndex}/generate-audio`, { method: "POST" }),
+  chat: (id: string, chapterIndex: number) => api<{ role: "user" | "assistant"; content: string }[]>(`/api/stories/${id}/chapters/${chapterIndex}/chat`),
   lookup: (word: string, sentence: string, language: string) => api<WordLookup>("/api/stories/word-lookup", { method: "POST", body: { word, sentence, language } }),
 };

@@ -33,11 +33,14 @@ export interface ChatPanelProps {
   suggestions?: string[];
   /** Takes the container's height: only the messages scroll and the input stays in place. */
   fill?: boolean;
+  /** A part of a text the next message is about: it travels with it and shows above the input. */
+  quote?: string;
+  onQuoteClear?: () => void;
   placeholder?: string;
   className?: string;
 }
 
-export function ChatPanel({ hero, load, streamPath, suggestions = [], fill = false, placeholder = "Escribe tu pregunta…", className }: ChatPanelProps) {
+export function ChatPanel({ hero, load, streamPath, suggestions = [], fill = false, quote, onQuoteClear, placeholder = "Escribe tu pregunta…", className }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMsg[] | null>(null);
   const [draft, setDraft] = useState("");
   const [streaming, setStreaming] = useState(false);
@@ -68,13 +71,16 @@ export function ChatPanel({ hero, load, streamPath, suggestions = [], fill = fal
     setDraft("");
     setStreaming(true);
     bot.react("think");
-    setMessages((m) => [...(m ?? []), { role: "user", content: message }, { role: "assistant", content: "" }]);
+    const body = quote ? { message, selection: quote } : { message };
+    const shown = quote ? `«${quote}»\n${message}` : message;
+    onQuoteClear?.();
+    setMessages((m) => [...(m ?? []), { role: "user", content: shown }, { role: "assistant", content: "" }]);
     // if the AI doesn't start answering in 90 s, give up kindly
     const ctrl = new AbortController();
     let started = false;
     const timer = window.setTimeout(() => !started && ctrl.abort(), 90_000);
     try {
-      await apiStream(streamPath, { message }, (_, full) => {
+      await apiStream(streamPath, body, (_, full) => {
         started = true;
         setMessages((m) => {
           if (!m) return m;
@@ -155,6 +161,15 @@ export function ChatPanel({ hero, load, streamPath, suggestions = [], fill = fal
               {s}
             </button>
           ))}
+        </div>
+      )}
+
+      {quote && (
+        <div className={styles.quote}>
+          <span>«{quote}»</span>
+          <button type="button" aria-label="Quitar la cita" onClick={onQuoteClear}>
+            <Icon name="close" size={14} />
+          </button>
         </div>
       )}
 

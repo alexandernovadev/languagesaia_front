@@ -38,6 +38,7 @@ import { MODULES } from "../../app/modules";
 import { fx } from "../../lib/fx";
 import { haptics } from "../../lib/haptics";
 import { sound } from "../../lib/sound";
+import { useMedia } from "../../lib/useMedia";
 import { correctAnswerOf, lessonsApi, LEVELS, TYPE_LABEL, type CheckResult, type LessonMode, type LessonStats, type GrammarGroup, type Level, type LessonRun } from "./api";
 import { Choice, FillBlank, FindError, Match, Order, Translate } from "./Exercises";
 import styles from "./Lessons.module.css";
@@ -279,9 +280,6 @@ const CHEERS = ["¡Bien hecho!", "¡Exacto!", "¡Genial!"];
 const isAnswered = (t: string, v: Value) =>
   t === "order" ? (v as number[]).length > 0 : t === "translate" ? String(v).trim().length > 1 : t === "match" ? (v as { done: boolean }).done : v !== null;
 
-const wide = window.matchMedia("(min-width: 960px)").matches;
-const roomy = window.matchMedia("(min-width: 641px)").matches; // same as .whySheet
-const spacious = window.matchMedia("(min-width: 821px)").matches; // same as the two-column .result
 
 function Session({ current, startAt, onExit, onDone }: { current: LessonRun; startAt: number; onExit: () => void; onDone: (r: { score: number; xp: number; correct: number; total: number }) => void }) {
   const questions = current.lesson.questions;
@@ -297,6 +295,8 @@ function Session({ current, startAt, onExit, onDone }: { current: LessonRun; sta
   const bruno = useRobotMood();
   const area = useRef<HTMLDivElement>(null);
   const instant = CHECKS_ITSELF.includes(q.type);
+  const wide = useMedia("(min-width: 960px)");
+  const roomy = useMedia("(min-width: 641px)"); // same as .whySheet
 
   const toAnswer = (v: Value) => (q.type === "order" ? (v as number[]).map((i) => q.tokens?.[i] ?? "") : v);
 
@@ -503,6 +503,7 @@ function Session({ current, startAt, onExit, onDone }: { current: LessonRun; sta
 function Result({ r, topics, onAgain, onHome }: { r: { score: number; xp: number; correct: number; total: number }; topics: LessonRun["topics"]; onAgain: () => void; onHome: () => void }) {
   const bruno = useRobotMood();
   const title = useRef<HTMLHeadingElement>(null);
+  const spacious = useMedia("(min-width: 821px)"); // same as the two-column .result
   const great = r.score >= 85;
   const ok = r.score >= 50;
   useEffect(() => {

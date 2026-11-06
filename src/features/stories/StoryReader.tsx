@@ -5,11 +5,12 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router";
-import { AIThinking, AnswerOption, Button, ChatPanel, Chip, EmptyState, Icon, LevelBadge, Logo, Modal, RobotStage, Skeleton, SpeakButtons, StreamingText, toast, useRobotMood } from "../../components";
+import { AIThinking, AnswerOption, Button, ChatPanel, Chip, EmptyState, Icon, LevelBadge, Logo, Modal, RobotStage, Sheet, Skeleton, SpeakButtons, StreamingText, toast, useRobotMood } from "../../components";
 import { MODULES } from "../../app/modules";
 import { fx } from "../../lib/fx";
 import { haptics } from "../../lib/haptics";
 import { sound } from "../../lib/sound";
+import { useMedia } from "../../lib/useMedia";
 import { wordsApi, type Word } from "../words/api";
 import { WordInfo } from "../words/WordInfo";
 import { tint, type CefrLevel } from "../../components/types";
@@ -96,11 +97,20 @@ const Paragraphs = memo(function Paragraphs({ chapter, marks, onWord }: { chapte
               const phrase = phrases.get(token);
               if (!word) return <span key={i} data-t={token}>{m[0]}</span>;
               return (
-                <button key={i} type="button" data-t={token} className={className} onClick={() => onWord(word, paragraph, phrase)}>
+                // a span, not a button: browsers can't select text across buttons
+                <span
+                  key={i}
+                  role="button"
+                  tabIndex={0}
+                  data-t={token}
+                  className={className}
+                  onClick={() => !window.getSelection()?.toString() && onWord(word, paragraph, phrase)}
+                  onKeyDown={(e) => e.key === "Enter" && onWord(word, paragraph, phrase)}
+                >
                   {before}
                   <span className={phrase ? styles.phrase : marks && mine.has(word) ? styles.mine : undefined}>{core}</span>
                   {after}
-                </button>
+                </span>
               );
             })}
           </p>
@@ -299,13 +309,13 @@ function WordDock({ tapped, language, onClose }: { tapped: Tapped | null; langua
   );
 }
 
-const wide = window.matchMedia("(min-width: 960px)").matches; // same as the two-column .quiz
 const ANSWER_XP = 5;
 const CHAPTER_XP = 10;
 
 function Quiz({ title: chapterTitle, questions, onDone }: { title: string; questions: Question[]; onDone: (correct: number) => void }) {
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const tula = useRobotMood();
+  const wide = useMedia("(min-width: 960px)"); // same as the two-column .quiz
   const title = useRef<HTMLHeadingElement>(null);
   const finished = Object.keys(answers).length === questions.length;
   const correct = questions.filter((q, i) => answers[i] === q.answer).length;
@@ -364,6 +374,62 @@ function Quiz({ title: chapterTitle, questions, onDone }: { title: string; quest
   );
 }
 
+const MIN_SELECTION = 2;
+
+/** Select part of the text and this button offers to ask Tula about it. */
+function SelectionAsk({ text, onAsk }: { text: React.RefObject<HTMLDivElement | null>; onAsk: (selected: string) => void }) {
+  const [selected, setSelected] = useState<{ text: string; top: number; left: number } | null>(null);
+
+  useEffect(() => {
+    const read = () => {
+      const selection = window.getSelection();
+      const picked = selection?.toString().trim() ?? "";
+      if (!selection || picked.length < MIN_SELECTION || !text.current?.contains(selection.anchorNode)) return setSelected(null);
+      const box = selection.getRangeAt(0).getBoundingClientRect();
+      setSelected({ text: picked, top: box.bottom + 10, left: Math.min(Math.max(box.left + box.width / 2, 110), window.innerWidth - 110) });
+    };
+    document.addEventListener("selectionchange", read);
+    return () => document.removeEventListener("selectionchange", read);
+  }, [text]);
+
+  if (!selected) return null;
+  return createPortal(
+    <div className={styles.askFloat} style={{ top: selected.top, left: selected.left }}>
+      <Button
+        tone="warning"
+        size="sm"
+        icon={<Icon name="expressions" size={16} active />}
+        onPointerDown={(e) => e.preventDefault()} // keeps the selection alive
+        onClick={() => {
+          onAsk(selected.text);
+          window.getSelection()?.removeAllRanges();
+        }}
+      >
+        Preguntar a Tula
+      </Button>
+    </div>,
+    document.body,
+  );
+}
+
+const SUGGESTIONS = ["¿Qué significa esto?", "Tradúcelo", "¿Por qué se dice así?"];
+
+/** One conversation per chapter: it remembers everything you asked about it. */
+function ChapterChat({ storyId, index, quote, onQuoteClear }: { storyId: string; index: number; quote: string; onQuoteClear: () => void }) {
+  return (
+    <ChatPanel
+      hero="tula"
+      fill
+      load={() => storiesApi.chat(storyId, index)}
+      streamPath={`/api/stories/${storyId}/chapters/${index}/chat/stream`}
+      quote={quote}
+      onQuoteClear={onQuoteClear}
+      suggestions={SUGGESTIONS}
+      placeholder="Pregúntale a Tula…"
+    />
+  );
+}
+
 const MAX_IDEA = 300;
 const PICTURE_POLL_MS = 5000;
 const PICTURE_TRIES = 8;
@@ -417,6 +483,7 @@ function StoryDetails({ story, chapter, marks }: { story: Story; chapter?: Chapt
 function NextIdea({ last, initial, onWrite }: { last: boolean; initial: string; onWrite: (idea?: string) => void }) {
   const [idea, setIdea] = useState(initial); // a failed chapter must not lose what you wrote
   const tula = useRobotMood("wave");
+  const wide = useMedia("(min-width: 960px)"); // same as the two-column .quiz
   return (
     <section className={styles.quiz}>
       <RobotStage hero="tula" {...tula.props} say={last ? "¡Último capítulo!" : "¡Tú mandas!"} bubble="top" size={wide ? 300 : 130} />
@@ -452,6 +519,10 @@ export function StoryReader() {
   const [done, setDone] = useState<number[]>([]);
   const [marks, setMarks] = useState(savedMarks);
   const [tapped, setTapped] = useState<Tapped | null>(null);
+  const [panel, setPanel] = useState<"word" | "chat">("word");
+  const sideBySide = useMedia("(min-width: 1100px)"); // same as the two-column .reader
+  const [quote, setQuote] = useState("");
+  const [chatOpen, setChatOpen] = useState(false);
   const [quiz, setQuiz] = useState(false);
   const textRef = useRef<HTMLDivElement>(null);
   const player = useRef<NarrationHandle>(null);
@@ -491,6 +562,12 @@ export function StoryReader() {
   const onWord = useCallback((word: string, sentence: string, phrase?: Phrase) => {
     player.current?.pause();
     setTapped({ word, sentence, phrase });
+    setPanel("word");
+  }, []);
+  const ask = useCallback((selected: string) => {
+    setQuote(selected);
+    setPanel("chat");
+    setChatOpen(true);
   }, []);
   const needsChapter = !!story && story.chapters.length === 0 && !writing && !stuck; // only the first one writes itself
   const written = readDraft(draft);
@@ -648,15 +725,50 @@ export function StoryReader() {
       )}
       </div>
 
+      {chapter && !focused && <SelectionAsk text={textRef} onAsk={ask} />}
+
       {!focused && (
-        <WordDock
-          tapped={tapped}
-          language={story.language}
-          onClose={() => {
-            setTapped(null);
-            player.current?.resume();
-          }}
-        />
+        <div className={styles.panel}>
+          {sideBySide && chapter && (
+            <div className={styles.panelTabs} role="tablist" aria-label="Panel">
+              {(["word", "chat"] as const).map((value) => (
+                <button key={value} type="button" role="tab" className={styles.tab} aria-selected={panel === value} onClick={() => setPanel(value)}>
+                  {value === "word" ? "Palabra" : "Tula"}
+                </button>
+              ))}
+            </div>
+          )}
+          <div className={styles.panelBody} hidden={sideBySide && panel !== "word"}>
+            <WordDock
+              tapped={tapped}
+              language={story.language}
+              onClose={() => {
+                setTapped(null);
+                player.current?.resume();
+              }}
+            />
+          </div>
+          {sideBySide && chapter && (
+            <div className={styles.panelChat} hidden={panel !== "chat"}>
+              <ChapterChat key={index} storyId={id} index={index} quote={quote} onQuoteClear={() => setQuote("")} />
+            </div>
+          )}
+        </div>
+      )}
+
+      {!sideBySide && chapter && !focused && (
+        <>
+          {/* in the body: the page transition would pin it to the text instead of the screen */}
+          {createPortal(
+            <button type="button" className={styles.tulaFab} data-raised={tapped ? true : undefined} aria-label="Hablar con Tula" onClick={() => setChatOpen(true)}>
+              <Icon name="expressions" size={28} active />
+            </button>,
+            document.body,
+          )}
+          <Sheet open={chatOpen} onClose={() => setChatOpen(false)} className={styles.askSheet} title="Pregúntale a Tula">
+            {chatOpen && <ChapterChat key={index} storyId={id} index={index} quote={quote} onQuoteClear={() => setQuote("")} />}
+          </Sheet>
+        </>
       )}
     </div>
   );

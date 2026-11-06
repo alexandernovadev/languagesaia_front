@@ -33,6 +33,7 @@ import { progress, useProgress, type Reward } from "../../lib/progress";
 import { useSession } from "../../lib/session";
 import { wordRecording } from "../../lib/speech";
 import { sound } from "../../lib/sound";
+import { useMedia } from "../../lib/useMedia";
 import { DIFFICULTY, WORD_TYPES, wordsApi, type Difficulty, type ReviewSummary, type Word } from "../words/api";
 import { WordInfo } from "../words/WordInfo";
 import styles from "./Review.module.css";
@@ -416,11 +417,10 @@ function Session({ cards, daily, onExit, onDone }: { cards: Word[]; daily: boole
 }
 
 /* ───────────────────────── Done ───────────────────────── */
-const spacious = window.matchMedia("(min-width: 821px)").matches; // same as the two-column .done
-
 function Done({ stats, total, onAgain }: { stats: Stats; total: number; onAgain: () => void }) {
   const navigate = useNavigate();
   const [summary, setSummary] = useState<ReviewSummary | null>(null);
+  const spacious = useMedia("(min-width: 821px)"); // same as the two-column .done
   const gained = (useProgress()?.xp ?? stats.startXp) - stats.startXp;
   const menti = useRobotMood();
   const title = useRef<HTMLHeadingElement>(null);
