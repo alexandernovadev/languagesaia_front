@@ -34,10 +34,10 @@ export interface Word {
   createdAt?: string;
 }
 
-/** What the daily review has for today. */
+/** What the review has ready. It's never a limit: you can always keep studying. */
 export interface ReviewSummary {
   due: number;
-  newToday: number;
+  newWords: number;
   nextDueAt: string | null;
 }
 

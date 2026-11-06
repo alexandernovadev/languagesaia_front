@@ -5,14 +5,15 @@
  *
  * choice     → value: option index
  * fillBlank  → value: option index (chip jumps into the gap)
- * order      → value: token indexes in the order tapped
+ * order      → value: token indexes in order; placed words can be dragged around
  * translate  → value: text
  * match      → value: { mistakes, done } (pairs lock as you match them)
  * findError  → value: token index
  */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AnswerOption, RichText } from "../../components";
 import { cx } from "../../components/types";
+import { fx } from "../../lib/fx";
 import { haptics } from "../../lib/haptics";
 import { sound } from "../../lib/sound";
 import type { CheckResult, Question } from "./api";
@@ -23,6 +24,8 @@ export interface ExerciseProps<V> {
   value: V;
   onChange: (v: V) => void;
   checked: CheckResult | null;
+  /** A step inside the exercise went right or wrong, before the final check. */
+  onStep?: (right: boolean) => void;
 }
 
 /* ───────── Elegir la correcta ───────── */
@@ -102,22 +105,81 @@ export function FillBlank({ q, value, onChange, checked }: ExerciseProps<number 
 }
 
 /* ───────── Ordenar las palabras ───────── */
+const DRAG_START_PX = 6;
+
 export function Order({ q, value, onChange, checked }: ExerciseProps<number[]>) {
   const tokens = q.tokens ?? [];
+  const line = useRef<HTMLDivElement>(null);
+  const [dragged, setDragged] = useState<number | null>(null);
+  const moved = useRef(false); // a drag must not count as a tap
+  const latest = useRef({ value, onChange });
+  latest.current = { value, onChange };
+
+  /** The placed word follows the pointer, and the others make room for it. */
+  const startDrag = (e: React.PointerEvent<HTMLButtonElement>, token: number) => {
+    if (checked) return;
+    const chip = e.currentTarget;
+    const box = chip.getBoundingClientRect();
+    const grab = { x: e.clientX - box.left, y: e.clientY - box.top };
+    const start = { x: e.clientX, y: e.clientY };
+    moved.current = false;
+
+    const onMove = (ev: PointerEvent) => {
+      if (!moved.current) {
+        if (Math.hypot(ev.clientX - start.x, ev.clientY - start.y) < DRAG_START_PX) return;
+        moved.current = true;
+        setDragged(token);
+      }
+      chip.style.translate = "";
+      const slot = chip.getBoundingClientRect();
+      chip.style.translate = `${ev.clientX - grab.x - slot.left}px ${ev.clientY - grab.y - slot.top}px`;
+
+      const chips = [...(line.current?.querySelectorAll<HTMLElement>("[data-token]") ?? [])];
+      const distance = (el: HTMLElement) => {
+        const r = el === chip ? slot : el.getBoundingClientRect();
+        return Math.hypot(ev.clientX - (r.left + r.width / 2), ev.clientY - (r.top + r.height / 2));
+      };
+      const nearest = chips.reduce((a, b) => (distance(b) < distance(a) ? b : a));
+      const { value: order, onChange: change } = latest.current;
+      const from = order.indexOf(token);
+      const to = order.indexOf(Number(nearest.dataset.token));
+      if (from === to) return;
+      const next = order.filter((t) => t !== token);
+      next.splice(to, 0, token);
+      change(next);
+      sound.play("tap");
+      haptics.tap();
+    };
+    const onUp = () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+      chip.style.translate = "";
+      setDragged(null);
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
+  };
+
   return (
     <div className={styles.stack}>
       <p className={styles.source}>{q.prompt}</p>
-      <div className={styles.line} data-state={checked ? (checked.correct ? "right" : "wrong") : undefined}>
+      <div ref={line} className={styles.line} data-state={checked ? (checked.correct ? "right" : "wrong") : undefined}>
         {value.length === 0 && !checked && <span className={styles.placeholder}>Toca las palabras en orden</span>}
-        {value.map((ti, pos) => (
+        {value.map((ti) => (
           <button
-            key={`${ti}-${pos}`}
+            key={ti}
             type="button"
             className={cx(styles.chip, styles.placed)}
+            data-token={ti}
+            data-dragging={dragged === ti || undefined}
             disabled={!!checked}
+            onPointerDown={(e) => startDrag(e, ti)}
             onClick={() => {
+              if (moved.current) return;
               sound.play("tap");
-              onChange(value.filter((_, p) => p !== pos));
+              onChange(value.filter((t) => t !== ti));
             }}
           >
             {tokens[ti]}
@@ -176,7 +238,8 @@ export function Translate({ q, value, onChange, checked }: ExerciseProps<string>
 }
 
 /* ───────── Unir parejas ───────── */
-export function Match({ q, onChange, checked }: ExerciseProps<{ mistakes: number; done: boolean }>) {
+export function Match({ q, onChange, checked, onStep }: ExerciseProps<{ mistakes: number; done: boolean }>) {
+  const board = useRef<HTMLDivElement>(null);
   const pairs = q.pairs ?? [];
   const rights = useMemo(() => [...pairs.keys()].sort(() => Math.random() - 0.5), [q]); // eslint-disable-line react-hooks/exhaustive-deps
   const [left, setLeft] = useState<number | null>(null);
@@ -187,17 +250,25 @@ export function Match({ q, onChange, checked }: ExerciseProps<{ mistakes: number
 
   useEffect(() => {
     if (left === null || right === null) return;
+    const chosen = [`[data-left="${left}"]`, `[data-right="${right}"]`].map((s) => board.current?.querySelector<HTMLElement>(s));
     if (left === right) {
       const next = new Set(done).add(left);
+      const finished = next.size === pairs.length;
       setDone(next);
-      sound.play("tap");
-      haptics.tap();
-      onChange({ mistakes, done: next.size === pairs.length });
+      chosen.forEach((el) => el && fx.marks(el, "right"));
+      if (!finished) { // the last pair gets the whole exercise's moment
+        sound.play("correct");
+        haptics.success();
+        onStep?.(true);
+      }
+      onChange({ mistakes, done: finished });
     } else {
       setMistakes((m) => m + 1);
       setWrong([left, right]);
+      chosen.forEach((el) => el && fx.marks(el, "wrong"));
       sound.play("wrong");
       haptics.error();
+      onStep?.(false);
       onChange({ mistakes: mistakes + 1, done: false });
       window.setTimeout(() => setWrong(null), 450);
     }
@@ -210,17 +281,17 @@ export function Match({ q, onChange, checked }: ExerciseProps<{ mistakes: number
     done.has(i) ? "matched" : wrong && wrong[side === "l" ? 0 : 1] === i ? "wrong" : (side === "l" ? left : right) === i ? "selected" : undefined;
 
   return (
-    <div className={styles.pairs}>
+    <div ref={board} className={styles.pairs}>
       <div className={styles.col}>
         {pairs.map((p, i) => (
-          <button key={i} type="button" className={styles.pair} data-state={state("l", i)} disabled={done.has(i) || !!checked} onClick={() => setLeft(i)}>
+          <button key={i} type="button" className={styles.pair} data-left={i} data-state={state("l", i)} disabled={done.has(i) || !!checked} onClick={() => setLeft(i)}>
             {p.left}
           </button>
         ))}
       </div>
       <div className={styles.col}>
         {rights.map((i) => (
-          <button key={i} type="button" className={styles.pair} data-state={state("r", i)} disabled={done.has(i) || !!checked} onClick={() => setRight(i)}>
+          <button key={i} type="button" className={styles.pair} data-right={i} data-state={state("r", i)} disabled={done.has(i) || !!checked} onClick={() => setRight(i)}>
             {pairs[i].right}
           </button>
         ))}

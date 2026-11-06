@@ -60,7 +60,7 @@ export function Home() {
   const name = (user?.firstName && user.firstName !== "System" ? user.firstName : user?.username) ?? "";
   const menti = useRobotMood();
   const [summary, setSummary] = useState<ReviewSummary | null>(null);
-  const today = summary ? summary.due + summary.newToday : null;
+  const due = summary?.due ?? null;
 
   useEffect(() => {
     wordsApi.reviewSummary().then(setSummary).catch(() => undefined);
@@ -85,7 +85,7 @@ export function Home() {
           <Robot hero="menti" {...menti.props} voice={false} />
         </div>
         <div className={styles.reviewBody}>
-          <SpeechBubble tail="left">{today === 0 ? "¡Bip! Todo al día." : today ? `¡Bip! Hoy te tocan ${today} ${today === 1 ? "tarjeta" : "tarjetas"}.` : "¡Bip! Tus tarjetas te esperan."}</SpeechBubble>
+          <SpeechBubble tail="left">{due === 0 ? "¡Bip! Al día. ¿Seguimos?" : due ? `¡Bip! Hoy te tocan ${due} ${due === 1 ? "tarjeta" : "tarjetas"}.` : "¡Bip! Tus tarjetas te esperan."}</SpeechBubble>
           <h2>Repaso del día</h2>
           <p>Unos minutos al día y no olvidas nada. Cada palabra vuelve justo cuando empiezas a olvidarla.</p>
           <Button

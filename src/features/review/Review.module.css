@@ -365,6 +365,30 @@
   font-size: var(--fs-h1);
   color: var(--mint);
 }
+.doneBody {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-4);
+  width: 100%;
+}
+@media (min-width: 821px) {
+  .done {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    gap: var(--sp-8);
+    align-items: center;
+    max-width: 960px;
+    min-height: calc(100dvh - 220px);
+    text-align: left;
+  }
+  .doneBody {
+    align-items: stretch;
+  }
+  .doneBody .doneActions {
+    justify-content: flex-start;
+  }
+}
 .doneSub {
   font-size: var(--fs-h3);
   color: var(--text-2);
@@ -409,6 +433,28 @@
 @media (min-width: 960px) {
   .setup {
     min-height: calc(100dvh - 180px);
+  }
+  /* Wide card: picture beside the word, and room for Menti next to the deck */
+  .session {
+    --deck: min(860px, calc(100vw - 280px));
+  }
+  .sessionTop,
+  .deck,
+  .answers {
+    width: var(--deck);
+  }
+  .mentiCorner {
+    left: calc(50% - var(--deck) / 2 - 124px);
+  }
+  .frontFace {
+    flex-direction: row;
+  }
+  .frontMedia {
+    margin: var(--sp-3) 0 var(--sp-3) var(--sp-3);
+  }
+  .frontInfo {
+    flex: 0 0 42%;
+    justify-content: center;
   }
 }
 @media (max-width: 760px) {

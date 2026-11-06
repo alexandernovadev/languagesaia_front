@@ -10,6 +10,7 @@
  *   fx.float(buttonEl, "+10 XP");     // number rises and fades
  *   fx.sparkles(robotEl, 9);          // butter stars around the hero
  *   fx.failure(buttonEl);             // rose shards crack off and fall
+ *   fx.marks(pairEl, "right");        // green pluses rise; "wrong" throws red crosses
  */
 import styles from "./fx.module.css";
 
@@ -95,6 +96,30 @@ export const fx = {
         },
         800,
         (el) => (el.style.animationDelay = `${i * 15}ms`),
+      );
+    }
+  },
+
+  /** A step went right or wrong: green pluses or red crosses pop around the target. */
+  marks(target: Target, kind: "right" | "wrong", count = 6) {
+    if (reduced()) return;
+    const { x, y } = toPoint(target);
+    for (let i = 0; i < count; i++) {
+      const a = (i / count) * Math.PI * 2 + Math.random() * 0.6;
+      const d = 24 + Math.random() * 18;
+      spawn(
+        styles.mark,
+        {
+          "--x": `${x}px`,
+          "--y": `${y}px`,
+          "--dx": `${Math.cos(a) * d * 1.3}px`,
+          "--dy": `${Math.sin(a) * d - 10}px`,
+          "--size": `${13 + Math.random() * 6}px`,
+          "--c": kind === "right" ? "var(--success)" : "var(--danger)",
+          "--turn": kind === "right" ? "0deg" : "45deg",
+        },
+        1000,
+        (el) => (el.style.animationDelay = `${i * 25}ms`),
       );
     }
   },

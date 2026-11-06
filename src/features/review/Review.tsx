@@ -59,7 +59,7 @@ type Cfg = { daily?: boolean; limit: number; difficulty: Difficulty[]; mode: "re
 const longDate = (iso: string) => new Intl.DateTimeFormat("es", { weekday: "long", day: "numeric", month: "long" }).format(new Date(iso));
 
 function Setup({ onStart }: { onStart: (cfg: Cfg) => void }) {
-  const [limit, setLimit] = useState<"10" | "20" | "30">("20");
+  const [limit, setLimit] = useState<"10" | "20" | "30" | "50">("20");
   const [type, setType] = useState("");
   const [diff, setDiff] = useState<Difficulty[]>(["hard", "medium"]);
   const [mode, setMode] = useState<"review" | "random">("review");
@@ -73,24 +73,22 @@ function Setup({ onStart }: { onStart: (cfg: Cfg) => void }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const toggle = (d: Difficulty) => setDiff((v) => (v.includes(d) ? v.filter((x) => x !== d) : [...v, d]));
-  const today = summary ? summary.due + summary.newToday : 0;
+  const canStudy = !!summary && (summary.due > 0 || summary.newWords > 0 || !!summary.nextDueAt);
 
   return (
     <div className={styles.setup}>
-      <RobotStage hero="menti" {...menti.props} say={summary && today === 0 ? "¡Bip! Todo al día." : "¡Bip! ¿Cuántas tarjetas hoy?"} size={200} />
+      <RobotStage hero="menti" {...menti.props} say={summary?.due === 0 ? "¡Bip! Al día. ¿Seguimos?" : "¡Bip! ¿Cuántas tarjetas hoy?"} size={200} />
       <div className={styles.setupCard}>
         <h1>{free ? "Práctica libre" : "Repaso del día"}</h1>
         {!free && !summary && <Skeleton lines={2} />}
         {!free && summary && (
           <p className={styles.today}>
-            {today > 0 ? (
+            {summary.due > 0 ? (
               <>
-                <b>{today}</b> {today === 1 ? "tarjeta" : "tarjetas"} para hoy · {summary.due} para repasar · {summary.newToday} {summary.newToday === 1 ? "nueva" : "nuevas"}
+                <b>{summary.due}</b> para repasar · {summary.newWords} {summary.newWords === 1 ? "nueva" : "nuevas"}
               </>
-            ) : summary.nextDueAt ? (
-              <>Lo tienes al día. Próximo repaso: {longDate(summary.nextDueAt)}.</>
             ) : (
-              <>Lo tienes al día.</>
+              <>Lo tienes al día. Puedes seguir todo lo que quieras: {summary.newWords} {summary.newWords === 1 ? "palabra nueva" : "palabras nuevas"}.</>
             )}
           </p>
         )}
@@ -104,6 +102,7 @@ function Setup({ onStart }: { onStart: (cfg: Cfg) => void }) {
               { value: "10", label: "10", tint: "mint" },
               { value: "20", label: "20", tint: "mint" },
               { value: "30", label: "30", tint: "mint" },
+              { value: "50", label: "50", tint: "mint" },
             ]}
           />
         </div>
@@ -152,8 +151,8 @@ function Setup({ onStart }: { onStart: (cfg: Cfg) => void }) {
           tone="success"
           size="lg"
           block
-          attention={free ? diff.length > 0 : today > 0}
-          disabled={free ? diff.length === 0 : today === 0}
+          attention={free ? diff.length > 0 : canStudy}
+          disabled={free ? diff.length === 0 : !canStudy}
           icon={<Icon name="review" size={22} active />}
           onClick={() => {
             menti.react("party");
@@ -417,6 +416,8 @@ function Session({ cards, daily, onExit, onDone }: { cards: Word[]; daily: boole
 }
 
 /* ───────────────────────── Done ───────────────────────── */
+const spacious = window.matchMedia("(min-width: 821px)").matches; // same as the two-column .done
+
 function Done({ stats, total, onAgain }: { stats: Stats; total: number; onAgain: () => void }) {
   const navigate = useNavigate();
   const [summary, setSummary] = useState<ReviewSummary | null>(null);
@@ -440,7 +441,8 @@ function Done({ stats, total, onAgain }: { stats: Stats; total: number; onAgain:
   ];
   return (
     <div className={styles.done}>
-      <RobotStage hero="menti" {...menti.props} say="¡Memoria de acero!" bubble="top" size={210} />
+      <RobotStage hero="menti" {...menti.props} say="¡Memoria de acero!" bubble="top" size={spacious ? 280 : 210} />
+      <div className={styles.doneBody}>
       <h1 ref={title}>¡Repaso completado!</h1>
       <p className={styles.doneSub}>
         {total} tarjetas · <b>+{gained} XP</b>
@@ -448,7 +450,7 @@ function Done({ stats, total, onAgain }: { stats: Stats; total: number; onAgain:
       <DailyGoal compact />
       {summary && (
         <p className={styles.doneNext}>
-          {summary.due + summary.newToday > 0 ? `Te quedan ${summary.due + summary.newToday} para hoy.` : summary.nextDueAt ? `Próximo repaso: ${longDate(summary.nextDueAt)}.` : "Lo tienes al día."}
+          {summary.due > 0 ? `Te quedan ${summary.due} para repasar.` : summary.nextDueAt ? `Próximo repaso: ${longDate(summary.nextDueAt)}. Puedes seguir cuando quieras.` : "Lo tienes al día."}
         </p>
       )}
       <div className={styles.tiles}>
@@ -466,6 +468,7 @@ function Done({ stats, total, onAgain }: { stats: Stats; total: number; onAgain:
         <Button tone="success" size="lg" icon={<Icon name="review" size={22} active />} onClick={onAgain}>
           Otra ronda
         </Button>
+      </div>
       </div>
     </div>
   );

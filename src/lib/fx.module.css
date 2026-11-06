@@ -115,3 +115,44 @@
     rotate: var(--rot);
   }
 }
+
+/* Plus or cross: two rounded bars, turned 45deg for the cross */
+.mark {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--size);
+  height: var(--size);
+  margin: calc(var(--size) / -2) 0 0 calc(var(--size) / -2);
+  opacity: 0;
+  animation: mark-pop 800ms var(--ease-out) forwards;
+}
+.mark::before,
+.mark::after {
+  content: "";
+  position: absolute;
+  inset: 38% 0;
+  border-radius: var(--r-full);
+  background: var(--c);
+}
+.mark::after {
+  rotate: 90deg;
+}
+@keyframes mark-pop {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(var(--turn)) scale(0.3);
+  }
+  30% {
+    opacity: 1;
+    transform: translate(calc(var(--dx) * 0.7), calc(var(--dy) * 0.7)) rotate(var(--turn)) scale(1.15);
+  }
+  70% {
+    opacity: 1;
+    transform: translate(calc(var(--dx) * 0.9), calc(var(--dy) * 0.9)) rotate(var(--turn)) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx), var(--dy)) rotate(var(--turn)) scale(0.8);
+  }
+}

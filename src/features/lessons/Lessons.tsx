@@ -4,8 +4,9 @@
  * Home     continue the open lesson, modes (Lección rápida · Lección por tema ·
  *          Repetir errores), weak points per grammar topic, recent lessons.
  * Prepare  Bruno warms up while the AI writes and reviews the exercises.
- * Session  full screen, one exercise at a time: answer → "Comprobar" →
- *          instant result + explanation, "¿Por qué?" opens a chat with Bruno.
+ * Session  full screen, one exercise at a time: a tap checks the answer (order
+ *          and translate use "Comprobar"), then result + explanation; "¿Por qué?"
+ *          opens a chat with Bruno.
  *          Every answer is saved: leaving and coming back loses nothing.
  * Result   score, XP, what to reinforce.
  */
@@ -16,6 +17,7 @@ import { LevelBadge, DailyGoal,
   Button,
   Card,
   ChatPanel,
+  ComboBadge,
   Chip,
   EmptyState,
   FeedbackBanner,
@@ -271,8 +273,15 @@ function Prepare() {
 /* ───────────────────────── Session ───────────────────────── */
 type Value = unknown;
 const emptyValue = (t: string): Value => (t === "order" ? [] : t === "translate" ? "" : t === "match" ? { mistakes: 0, done: false } : null);
+/** One tap is the whole answer: these check themselves. Order and translate need a Comprobar. */
+const CHECKS_ITSELF = ["choice", "fillBlank", "findError", "match"];
+const CHEERS = ["¡Bien hecho!", "¡Exacto!", "¡Genial!"];
 const isAnswered = (t: string, v: Value) =>
   t === "order" ? (v as number[]).length > 0 : t === "translate" ? String(v).trim().length > 1 : t === "match" ? (v as { done: boolean }).done : v !== null;
+
+const wide = window.matchMedia("(min-width: 960px)").matches;
+const roomy = window.matchMedia("(min-width: 641px)").matches; // same as .whySheet
+const spacious = window.matchMedia("(min-width: 821px)").matches; // same as the two-column .result
 
 function Session({ current, startAt, onExit, onDone }: { current: LessonRun; startAt: number; onExit: () => void; onDone: (r: { score: number; xp: number; correct: number; total: number }) => void }) {
   const questions = current.lesson.questions;
@@ -284,30 +293,39 @@ function Session({ current, startAt, onExit, onDone }: { current: LessonRun; sta
   const [why, setWhy] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [run, setRun] = useState(0);
+  const [say, setSay] = useState("¡Tú puedes!");
   const bruno = useRobotMood();
   const area = useRef<HTMLDivElement>(null);
+  const instant = CHECKS_ITSELF.includes(q.type);
 
   const toAnswer = (v: Value) => (q.type === "order" ? (v as number[]).map((i) => q.tokens?.[i] ?? "") : v);
 
-  const check = useCallback(async () => {
-    if (checked || checking || !isAnswered(q.type, value)) return;
+  const check = useCallback(async (answer: Value = value) => {
+    if (checked || checking || !isAnswered(q.type, answer)) return;
     setChecking(true);
     if (q.type === "translate") bruno.react("think");
     try {
-      const r = await lessonsApi.answer(current.attemptId, index, toAnswer(value));
+      const r = await lessonsApi.answer(current.attemptId, index, toAnswer(answer));
       setChecked(r);
+      const ownEffects = q.type === "choice"; // AnswerOption already plays the moment
       if (r.correct) {
         const n = run + 1;
         setRun(n);
+        setSay(n >= 3 ? "¡Imparable!" : CHEERS[n % CHEERS.length]);
         bruno.react(n >= 3 ? "party" : "happy");
-        sound.play("correct");
-        haptics.success();
-        if (area.current) fx.confetti(area.current, 18);
+        if (!ownEffects) {
+          sound.play("correct");
+          haptics.success();
+          if (area.current) fx.confetti(area.current, 18);
+        }
       } else {
         setRun(0);
+        setSay("Casi. ¡Sigue así!");
         bruno.react("sad");
-        sound.play("wrong");
-        haptics.error();
+        if (!ownEffects) {
+          sound.play("wrong");
+          haptics.error();
+        }
       }
     } catch {
       setChecked({ correct: false, score: 0, feedback: "No pude comprobarla. Sigue con la siguiente." });
@@ -317,12 +335,30 @@ function Session({ current, startAt, onExit, onDone }: { current: LessonRun; sta
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [checked, checking, value, q, index, run]);
 
+  const pick = useCallback(
+    (v: Value) => {
+      if (checked || checking) return;
+      setValue(v);
+      if (instant) void check(v);
+    },
+    [check, checked, checking, instant],
+  );
+
+  const step = useCallback(
+    (right: boolean) => {
+      setSay(right ? CHEERS[Math.floor(Math.random() * CHEERS.length)] : "Esa no. ¡Otra vez!");
+      bruno.react(right ? "happy" : "sad");
+    },
+    [bruno],
+  );
+
   const next = useCallback(async () => {
     if (index + 1 < questions.length) {
       const nq = questions[index + 1];
       setIndex(index + 1);
       setValue(emptyValue(nq.type));
       setChecked(null);
+      setSay("¡Tú puedes!");
       bruno.react("idle");
       return;
     }
@@ -355,7 +391,7 @@ function Session({ current, startAt, onExit, onDone }: { current: LessonRun; sta
         if (checked) void next();
         else void check();
       }
-      if (!typing && !checked && (q.type === "choice" || q.type === "fillBlank") && /^[1-4]$/.test(e.key)) setValue(Number(e.key) - 1);
+      if (!typing && !checked && (q.type === "choice" || q.type === "fillBlank") && /^[1-4]$/.test(e.key) && Number(e.key) <= (q.options?.length ?? 0)) pick(Number(e.key) - 1);
     };
     // On release: the browser would close a dialog opened during the same key press
     const onKeyUp = (e: KeyboardEvent) => {
@@ -367,13 +403,14 @@ function Session({ current, startAt, onExit, onDone }: { current: LessonRun; sta
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("keyup", onKeyUp);
     };
-  }, [check, next, checked, q.type, why, leaving]);
+  }, [check, next, pick, checked, q, why, leaving]);
 
   const Exercise = { choice: Choice, fillBlank: FillBlank, order: Order, translate: Translate, match: Match, findError: FindError }[q.type] as React.ComponentType<{
     q: typeof q;
     value: Value;
     onChange: (v: Value) => void;
     checked: CheckResult | null;
+    onStep: (right: boolean) => void;
   }>;
 
   return createPortal(
@@ -381,32 +418,31 @@ function Session({ current, startAt, onExit, onDone }: { current: LessonRun; sta
       <header className={styles.top}>
         <Button tone="neutral" variant="ghost" iconOnly icon={<Icon name="close" />} aria-label="Salir" onClick={() => setLeaving(true)} />
         <ProgressBar value={index + (checked ? 1 : 0)} max={questions.length} tone="warning" className={styles.progress} />
+        <ComboBadge count={run} />
         <span className={styles.counter}>
           {index + 1}/{questions.length}
         </span>
       </header>
 
       <main className={styles.body}>
-        <div className={styles.exercise} ref={area} key={index}>
-          <div className={styles.kind}>
-            <span className={styles.brunoMini}>
-              <Robot hero="bruno" {...bruno.props} voice={false} />
-            </span>
-            <span>{TYPE_LABEL[q.type]}</span>
+        <div className={styles.moment}>
+          <RobotStage hero="bruno" {...bruno.props} voice={false} say={say} bubble={wide ? "top" : "side"} size={wide ? 190 : 72} className={styles.stage} />
+          <div className={styles.exercise} ref={area} key={index}>
+            <div className={styles.kind}>{TYPE_LABEL[q.type]}</div>
+            <Exercise q={q} value={value} onChange={pick} checked={checked} onStep={step} />
+            <Button tone="neutral" variant="ghost" size="sm" className={styles.report} onClick={() => void report()}>
+              Este ejercicio está mal
+            </Button>
           </div>
-          <Exercise q={q} value={value} onChange={setValue} checked={checked} />
-          <Button tone="neutral" variant="ghost" size="sm" className={styles.report} onClick={() => void report()}>
-            Este ejercicio está mal
-          </Button>
         </div>
       </main>
 
-      <footer className={styles.footer} data-state={checked ? (checked.correct ? "right" : "wrong") : undefined}>
+      {(checked || !instant) && <footer className={styles.footer} data-state={checked ? (checked.correct ? "right" : "wrong") : undefined}>
         <div className={styles.footerInner}>
           {checked ? (
             <FeedbackBanner
               kind={checked.correct ? "right" : "wrong"}
-              title={checked.correct ? (checked.score < 1 ? "¡Bien!" : "¡Correcto!") : "Casi"}
+              title={checked.correct ? `${checked.score < 1 ? "¡Bien!" : "¡Correcto!"} +${Math.round(checked.score * 2)} XP` : "Casi"}
               detail={
                 <>
                   {!checked.correct && q.type !== "translate" && q.type !== "match" && (
@@ -434,7 +470,7 @@ function Session({ current, startAt, onExit, onDone }: { current: LessonRun; sta
             </Button>
           )}
         </div>
-      </footer>
+      </footer>}
 
       <Modal open={leaving} onClose={() => setLeaving(false)} title="¿Salir de la lección?" description="Tu progreso queda guardado y puedes continuar cuando quieras.">
         <Modal.Actions>
@@ -447,10 +483,11 @@ function Session({ current, startAt, onExit, onDone }: { current: LessonRun; sta
         </Modal.Actions>
       </Modal>
 
-      <Sheet open={why} onClose={() => setWhy(false)} title="Pregúntale a Bruno" description={q.grammarTopic ? `Tema: ${current.topics.find((t) => t.value === q.grammarTopic)?.label ?? q.grammarTopic}` : undefined}>
+      <Sheet open={why} onClose={() => setWhy(false)} className={styles.whySheet} title="Pregúntale a Bruno" description={q.grammarTopic ? `Tema: ${current.topics.find((t) => t.value === q.grammarTopic)?.label ?? q.grammarTopic}` : undefined}>
         {why && (
           <ChatPanel
             hero="bruno"
+            fill={roomy}
             load={() => lessonsApi.chat(current.attemptId, index)}
             streamPath={lessonsApi.chatPath(current.attemptId, index)}
             suggestions={["¿Por qué es así?", "Dame otro ejemplo", "¿Cuál es la regla?"]}
@@ -481,14 +518,17 @@ function Result({ r, topics, onAgain, onHome }: { r: { score: number; xp: number
   }, []);
   return (
     <div className={styles.result} style={tint("butter")}>
-      <RobotStage hero="bruno" {...bruno.props} bubble="top" size={200} say={great ? "¡Así se entrena, recluta!" : ok ? "¡Bien! Vamos a pulir lo que falló." : "Cada error es un músculo nuevo. ¡Otra!"} />
+      <RobotStage hero="bruno" {...bruno.props} bubble="top" size={spacious ? 280 : 200} say={great ? "¡Así se entrena, recluta!" : ok ? "¡Bien! Vamos a pulir lo que falló." : "Cada error es un músculo nuevo. ¡Otra!"} />
+      <div className={styles.resultBody}>
       <h1 ref={title}>{great ? "¡Excelente!" : ok ? "¡Buen entrenamiento!" : "¡A seguir entrenando!"}</h1>
-      <div className={styles.ring} style={{ "--p": `${r.score}%` } as React.CSSProperties} data-tone={great ? "success" : ok ? "warning" : "danger"}>
-        <span>{r.score}%</span>
+      <div className={styles.resultScore}>
+        <div className={styles.ring} style={{ "--p": `${r.score}%` } as React.CSSProperties} data-tone={great ? "success" : ok ? "warning" : "danger"}>
+          <span>{r.score}%</span>
+        </div>
+        <p className={styles.resultSub}>
+          {r.correct} de {r.total} correctas · <b>+{r.xp} XP</b>
+        </p>
       </div>
-      <p className={styles.resultSub}>
-        {r.correct} de {r.total} correctas · <b>+{r.xp} XP</b>
-      </p>
       <DailyGoal compact />
       {topics.length > 0 && (
         <div className={styles.chips}>
@@ -506,6 +546,7 @@ function Result({ r, topics, onAgain, onHome }: { r: { score: number; xp: number
         <Button tone="warning" size="lg" icon={<Icon name="lessons" size={22} active />} onClick={onAgain}>
           Otra lección
         </Button>
+      </div>
       </div>
     </div>
   );

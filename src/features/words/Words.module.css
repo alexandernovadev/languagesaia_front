@@ -203,7 +203,7 @@
   color: var(--text-3);
 }
 
-@media (min-width: 960px) {
+@media (min-width: 720px) {
   .list {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));

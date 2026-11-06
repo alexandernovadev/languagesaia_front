@@ -195,6 +195,7 @@ function WordDock({ tapped, language, onClose }: { tapped: { word: string; sente
   );
 }
 
+const wide = window.matchMedia("(min-width: 960px)").matches; // same as the two-column .quiz
 const ANSWER_XP = 5;
 const CHAPTER_XP = 10;
 
@@ -226,7 +227,8 @@ function Quiz({ questions, onDone }: { questions: Question[]; onDone: (correct: 
 
   return (
     <section className={styles.quiz}>
-      <RobotStage hero="tula" {...tula.props} say={say} bubble="top" size={130} />
+      <RobotStage hero="tula" {...tula.props} say={say} bubble="top" size={wide ? 220 : 130} />
+      <div className={styles.quizBody}>
       <div>
         <h2 ref={title}>¿Entendiste?</h2>
         <p className={styles.muted}>Cada acierto suma {ANSWER_XP} XP para tu meta de hoy.</p>
@@ -250,6 +252,7 @@ function Quiz({ questions, onDone }: { questions: Question[]; onDone: (correct: 
           {correct} de {questions.length} · +{CHAPTER_XP + correct * ANSWER_XP} XP · Continuar
         </Button>
       )}
+      </div>
     </section>
   );
 }
@@ -362,7 +365,7 @@ export function StoryReader() {
   if (!story) return <Skeleton lines={8} />;
 
   return (
-    <div className={styles.reader}>
+    <div className={styles.reader} data-solo={quiz || undefined}>
       <div className={styles.readerMain}>
       <Link to={MODULES.stories.path} className={styles.back}>
         <Icon name="back" size={18} /> Historias
@@ -427,14 +430,16 @@ export function StoryReader() {
       )}
       </div>
 
-      <WordDock
-        tapped={tapped}
-        language={story.language}
-        onClose={() => {
-          setTapped(null);
-          player.current?.resume();
-        }}
-      />
+      {!quiz && (
+        <WordDock
+          tapped={tapped}
+          language={story.language}
+          onClose={() => {
+            setTapped(null);
+            player.current?.resume();
+          }}
+        />
+      )}
     </div>
   );
 }

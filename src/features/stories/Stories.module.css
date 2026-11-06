@@ -282,6 +282,9 @@
     top: 88px;
     bottom: auto;
   }
+  .reader[data-solo] {
+    grid-template-columns: minmax(0, 1fr);
+  }
   .dock {
     box-shadow: 0 var(--depth) 0 var(--bg-3);
   }
@@ -329,10 +332,23 @@
   margin-left: auto;
 }
 
-.quiz {
+.quiz,
+.quizBody {
   display: flex;
   flex-direction: column;
   gap: var(--sp-4);
+}
+@media (min-width: 960px) {
+  .quiz {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    align-items: start;
+    gap: var(--sp-8);
+  }
+  .quiz > :first-child {
+    position: sticky;
+    top: 88px;
+  }
 }
 .question {
   display: flex;

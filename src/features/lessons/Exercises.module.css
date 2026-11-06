@@ -39,6 +39,7 @@
   min-width: 3.5em;
   margin: 0 0.15em;
   padding: 0 0.4em;
+  line-height: 1.1; /* the sentence's 1.5 pushed the line far below the text */
   text-align: center;
   color: var(--butter);
   border-bottom: 3px dashed var(--butter-deep);
@@ -100,6 +101,19 @@
 .placed:disabled {
   opacity: 1;
   animation: lai-bump var(--t-slow) var(--spring);
+}
+.placed:not(:disabled) {
+  cursor: grab;
+  touch-action: none; /* dragging a word must not scroll the page */
+}
+.placed[data-dragging] {
+  position: relative;
+  z-index: 1;
+  cursor: grabbing;
+  scale: 1.06;
+  border-color: var(--c);
+  transition: scale var(--t-fast) ease;
+  animation: none;
 }
 .line {
   display: flex;
@@ -215,15 +229,23 @@
   color: var(--success);
   border-color: var(--success-deep);
   background: var(--success-soft);
-  box-shadow: none;
+  box-shadow: 0 var(--btn-depth) 0 var(--success-deep);
   opacity: 0.55;
-  animation: lai-pop var(--t-party) var(--spring);
+  transition-delay: 500ms; /* it stays bright while it celebrates, then settles */
+  animation: pair-right 520ms var(--spring);
 }
 .pair[data-state="wrong"] {
+  --shake: 9px;
   color: var(--danger);
-  border-color: var(--danger-deep);
+  border-color: var(--danger);
   background: var(--danger-soft);
+  box-shadow: 0 var(--btn-depth) 0 var(--danger-deep);
   animation: lai-shake 420ms var(--ease-in-out);
+}
+@keyframes pair-right {
+  0% { scale: 1; outline: 0 solid var(--success); }
+  40% { scale: 1.1; outline: 3px solid var(--success); outline-offset: 2px; }
+  100% { scale: 1; outline: 3px solid transparent; outline-offset: 8px; }
 }
 
 /* Find the error */
