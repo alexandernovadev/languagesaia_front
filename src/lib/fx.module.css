@@ -92,3 +92,26 @@
     opacity: 0;
   }
 }
+
+.shard {
+  position: fixed;
+  left: var(--x);
+  top: var(--y);
+  width: 9px;
+  height: 7px;
+  background: var(--rose);
+  clip-path: polygon(50% 0, 100% 100%, 0 80%);
+  animation: crumble 800ms var(--ease-in) both;
+}
+@keyframes crumble {
+  from {
+    opacity: 1;
+    translate: 0 0;
+    rotate: 0deg;
+  }
+  to {
+    opacity: 0;
+    translate: var(--dx) var(--dy);
+    rotate: var(--rot);
+  }
+}

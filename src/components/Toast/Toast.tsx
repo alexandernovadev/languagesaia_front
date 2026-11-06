@@ -8,6 +8,7 @@
  *   toast("Saved to Anki", { tone: "success" });
  *   toast("Your story is ready", { tone: "ai", icon: "✦", duration: 5000 });
  */
+import { appErrors } from "../../lib/errors";
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import type { Tone } from "../types";
 import styles from "./Toast.module.css";
@@ -22,6 +23,7 @@ const emit = () => listeners.forEach((l) => l());
 const ICONS: Partial<Record<Tone, string>> = { success: "✓", danger: "!", info: "i", ai: "✦", warning: "!", brand: "★" };
 
 export function toast(message: ReactNode, opts: { tone?: Tone; icon?: ReactNode; duration?: number } = {}) {
+  if (opts.tone === "danger" && appErrors.showing()) return -1; // the error dialog already says it
   const item: ToastItem = { id: nextId++, message, tone: opts.tone, icon: opts.icon, duration: opts.duration ?? 3000 };
   items = [...items.slice(-2), item]; // never more than 3 on screen
   emit();

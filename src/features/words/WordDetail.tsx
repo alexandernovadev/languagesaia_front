@@ -10,6 +10,7 @@ import { Button, Card, ChatPanel, Chip, EmptyState, Icon, Robot, Segmented, Skel
 import { tint } from "../../components/types";
 import { MODULES } from "../../app/modules";
 import { fx } from "../../lib/fx";
+import { haptics } from "../../lib/haptics";
 import { useSession } from "../../lib/session";
 import { sound } from "../../lib/sound";
 import { DIFFICULTY, WORD_TYPES, wordsApi, type Difficulty, type Word } from "./api";
@@ -94,6 +95,7 @@ export function WordDetail() {
     if (d === "easy") {
       lumi.react("party");
       sound.play("correct");
+      haptics.success();
       if (diffRef.current) fx.confetti(diffRef.current, 18);
     } else lumi.react(d === "hard" ? "sad" : "happy");
     try {

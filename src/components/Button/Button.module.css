@@ -49,6 +49,22 @@
 .root[data-anim="shake"] {
   animation: lai-shake 420ms var(--ease-in-out);
 }
+.root[data-anim="fail"] {
+  animation:
+    lai-shake 420ms var(--ease-in-out),
+    fail-flash 900ms var(--ease-out);
+}
+@keyframes fail-flash {
+  0%,
+  40% {
+    outline: 3px solid var(--danger);
+    outline-offset: 3px;
+  }
+  100% {
+    outline: 3px solid transparent;
+    outline-offset: 8px;
+  }
+}
 
 /* Attention: the main CTA breathes and sends a soft ring, like it's waiting for you */
 .root[data-attention]:not(:disabled, [aria-busy="true"]) {

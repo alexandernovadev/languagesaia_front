@@ -170,7 +170,7 @@
     padding-top: 64px;
   }
   .bubble :global(*) {
-    font-size: 1rem;
+    font-size: var(--fs-body);
   }
   .mobileLogo {
     display: flex;

@@ -122,7 +122,7 @@ export function AdminData() {
   };
 
   const failMessage = (e: unknown) =>
-    e instanceof ApiError && e.status === 400 ? `Este archivo no parece de ${KINDS[kind].lower}: ${String(e.detail ?? "")}` : (e as Error).message;
+    e instanceof ApiError && e.status === 400 ? `Este archivo no parece de ${KINDS[kind].lower}: ${(e.detail as { reason?: string } | undefined)?.reason ?? ""}` : (e as Error).message;
 
   const review = async () => {
     if (!file) return;

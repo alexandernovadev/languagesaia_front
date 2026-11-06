@@ -10,6 +10,7 @@ import { MODULES, type ModuleDef } from "../../app/modules";
 import { wordsApi, type ReviewSummary } from "../../features/words/api";
 import { progress } from "../../lib/progress";
 import { useSession } from "../../lib/session";
+import { haptics } from "../../lib/haptics";
 import { sound } from "../../lib/sound";
 import styles from "./Home.module.css";
 
@@ -31,6 +32,7 @@ function HeroCard({ m, index }: { m: ModuleDef; index: number }) {
       onPointerEnter={() => bot.react("wave")}
       onClick={() => {
         sound.play("tap");
+        haptics.tap();
         bot.react("happy");
         window.setTimeout(() => navigate(m.path), 260);
       }}

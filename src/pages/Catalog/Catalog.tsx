@@ -38,6 +38,7 @@ import {
 } from "../../components";
 import { fx } from "../../lib/fx";
 import { sound } from "../../lib/sound";
+import { DesignDocs } from "./DesignDocs";
 import styles from "./Catalog.module.css";
 
 const QUESTIONS = [
@@ -160,6 +161,8 @@ export function Catalog() {
         </p>
       </header>
 
+      <DesignDocs />
+
       {/* ───────── QUIZ MOMENT ───────── */}
       <Section title="El momento de responder" code="RobotStage · AnswerOption · FeedbackBanner · XP · racha · combo">
         <Card tint="lilac" padding="lg">
@@ -244,7 +247,6 @@ export function Catalog() {
                 setLoading(true);
                 window.setTimeout(() => {
                   setLoading(false);
-                  sound.play("ready");
                 }, 1600);
               }}
             >

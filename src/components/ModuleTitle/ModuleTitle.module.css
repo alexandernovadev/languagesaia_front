@@ -1,0 +1,22 @@
+.root {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.root h1 {
+  font-size: var(--fs-h1);
+}
+.hero {
+  all: unset;
+  flex: none;
+  width: 58px;
+  cursor: pointer;
+}
+.hero:focus-visible {
+  outline: var(--border) solid var(--brand);
+}
+.count {
+  font-family: var(--font-display);
+  font-weight: var(--fw-heavy);
+  color: var(--text-3);
+}

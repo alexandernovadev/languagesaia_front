@@ -10,6 +10,7 @@
  *   const words = await api<Word[]>("/api/words");
  *   await api("/api/words", { method: "POST", body: { word: "serendipity" } });
  */
+import { appErrors } from "./errors";
 import { API_BASE as BASE, session, type Session } from "./session";
 
 export class ApiError extends Error {
@@ -22,7 +23,17 @@ export class ApiError extends Error {
   }
 }
 
-type Options = { method?: string; body?: unknown; auth?: boolean; signal?: AbortSignal };
+type Options = {
+  method?: string;
+  body?: unknown;
+  auth?: boolean;
+  signal?: AbortSignal;
+  /** Background work: a failure doesn't open the error dialog. */
+  silent?: boolean;
+};
+
+/** Failures that aren't the person's doing. A wrong form field is shown next to the field. */
+const worthTelling = (status: number) => status === 0 || status === 409 || status === 429 || status >= 500;
 
 const FRIENDLY: Record<number, string> = {
   0: "No pudimos conectar con Glota. Revisa tu conexión.",
@@ -54,7 +65,7 @@ async function raw<T>(path: string, { method = "GET", body, auth = true, signal 
     session.clear();
   }
 
-  let json: { success?: boolean; data?: T; error?: string; message?: string } = {};
+  let json: { success?: boolean; data?: T; error?: string; message?: string; detail?: { reason?: string; hint?: string } } = {};
   try {
     json = await res.json();
   } catch {
@@ -62,12 +73,25 @@ async function raw<T>(path: string, { method = "GET", body, auth = true, signal 
   }
   if (!res.ok || json.success === false) {
     const status = res.status;
-    throw new ApiError(FRIENDLY[status] ?? FRIENDLY[500], status, json.error ?? json.message);
+    throw new ApiError(FRIENDLY[status] ?? FRIENDLY[500], status, json.detail ?? json.error ?? json.message);
   }
   return json.data as T;
 }
 
-export const api = <T = unknown>(path: string, options: Options = {}) => raw<T>(path, options);
+let failed = 0;
+/** How many calls have failed so far: a Button compares it to know how its work ended. */
+export const failures = () => failed;
+
+export const api = <T = unknown>(path: string, options: Options = {}) =>
+  raw<T>(path, options).catch((e) => {
+    if ((e as Error).name !== "AbortError") failed += 1;
+    const method = options.method ?? "GET";
+    if (e instanceof ApiError && method !== "GET" && !options.silent && worthTelling(e.status)) {
+      const detail = e.detail as { reason?: string; hint?: string } | undefined;
+      appErrors.report({ message: e.message, reason: detail?.reason, hint: detail?.hint, status: e.status, action: `${method} ${path.split("?")[0]}`, time: new Date() });
+    }
+    throw e;
+  });
 
 /** Throws ApiError on bad credentials. Doesn't start the session: the login page celebrates first, then calls session.set(). */
 export const login = (identifier: string, password: string) =>

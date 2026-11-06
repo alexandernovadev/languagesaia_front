@@ -22,8 +22,6 @@ Detalles conocidos que no bloquean, para retomar más adelante.
 
 ## Back: lo que la app ya muestra pero el back no guarda
 
-- **XP, racha y meta diaria**: hoy viven solo en el navegador (`src/lib/progress.ts`). Decidido: guardarlos en el back.
-- **Pronunciación de palabras (voz)**: la voz depende de OpenAI, sin créditos. Elegir otro proveedor de TTS.
 - **Registro público**: no existe; las cuentas las crea el admin.
 
 ## Datos de prueba

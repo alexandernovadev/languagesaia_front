@@ -2,19 +2,20 @@ import { lazy, Suspense } from "react";
 import { createBrowserRouter, Navigate, RouterProvider } from "react-router";
 import { AppShell } from "./app/AppShell";
 import { MODULES } from "./app/modules";
-import { Toaster } from "./components";
+import { ErrorDialog, Toaster } from "./components";
 import { useSession } from "./lib/session";
 import { Home } from "./pages/Home/Home";
 import { Login } from "./pages/Login/Login";
 
 /* Each section is its own download, fetched the first time you open it. */
 const Profile = lazy(() => import("./pages/Profile/Profile").then((m) => ({ default: m.Profile })));
-const Soon = lazy(() => import("./pages/Soon/Soon").then((m) => ({ default: m.Soon })));
 const WordDetail = lazy(() => import("./features/words/WordDetail").then((m) => ({ default: m.WordDetail })));
 const WordsList = lazy(() => import("./features/words/WordsList").then((m) => ({ default: m.WordsList })));
 const Review = lazy(() => import("./features/review/Review").then((m) => ({ default: m.Review })));
 const ExpressionDetail = lazy(() => import("./features/expressions/ExpressionDetail").then((m) => ({ default: m.ExpressionDetail })));
 const ExpressionsList = lazy(() => import("./features/expressions/ExpressionsList").then((m) => ({ default: m.ExpressionsList })));
+const StoriesList = lazy(() => import("./features/stories/StoriesList").then((m) => ({ default: m.StoriesList })));
+const StoryReader = lazy(() => import("./features/stories/StoryReader").then((m) => ({ default: m.StoryReader })));
 const Lessons = lazy(() => import("./features/lessons/Lessons").then((m) => ({ default: m.Lessons })));
 
 const AdminLayout = lazy(() => import("./features/admin/AdminLayout").then((m) => ({ default: m.AdminLayout })));
@@ -36,7 +37,8 @@ const router = createBrowserRouter([
       { path: MODULES.expressions.path, element: <ExpressionsList /> },
       { path: `${MODULES.expressions.path}/:id`, element: <ExpressionDetail /> },
       { path: MODULES.review.path, element: <Review /> },
-      { path: MODULES.stories.path, element: <Soon module={MODULES.stories} /> },
+      { path: MODULES.stories.path, element: <StoriesList /> },
+      { path: `${MODULES.stories.path}/:id`, element: <StoryReader /> },
       { path: MODULES.lessons.path, element: <Lessons /> },
       { path: MODULES.profile.path, element: <Profile /> },
     ],
@@ -62,6 +64,7 @@ export default function App() {
     <>
       {session ? <RouterProvider router={router} /> : <Login />}
       <Toaster />
+      <ErrorDialog />
     </>
   );
 }

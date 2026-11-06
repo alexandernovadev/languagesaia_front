@@ -247,7 +247,7 @@
 }
 .cardIpa {
   font-family: var(--font-ipa);
-  font-size: 1.05rem;
+  font-size: var(--fs-body);
   color: var(--text-3);
 }
 .cardType {
@@ -287,23 +287,23 @@
   min-width: 0;
 }
 .backTitle .cardIpa {
-  font-size: 0.9rem;
+  font-size: var(--fs-small);
 }
 .backTabs [role="radio"] {
   min-height: 30px;
-  font-size: 0.9rem;
+  font-size: var(--fs-small);
 }
 .backWord {
   font-family: var(--font-display);
   font-weight: var(--fw-display);
-  font-size: 1rem;
+  font-size: var(--fs-body);
   color: var(--mint);
 }
 .translation {
   font-family: var(--font-display);
   font-weight: var(--fw-display);
   order: -1;
-  font-size: 1.35rem;
+  font-size: var(--fs-h3);
   line-height: 1.15;
   color: var(--text-1);
   overflow-wrap: anywhere;
@@ -346,7 +346,7 @@
   width: 18px;
   height: 18px;
   border-radius: 5px;
-  font-size: 0.7rem;
+  font-size: var(--fs-caption);
   background: rgb(0 0 0 / 0.12);
 }
 
@@ -421,7 +421,7 @@
   }
   .answers :global(button) {
     padding: 0 var(--sp-2);
-    font-size: 1rem;
+    font-size: var(--fs-body);
   }
   .key {
     display: none;
@@ -434,21 +434,6 @@
 .today b {
   color: var(--mint);
   font-size: var(--fs-h3);
-}
-.switchMode {
-  all: unset;
-  align-self: center;
-  padding: var(--sp-2);
-  color: var(--text-3);
-  font-size: var(--fs-small);
-  text-decoration: underline;
-  cursor: pointer;
-}
-.switchMode:hover {
-  color: var(--text-1);
-}
-.switchMode:focus-visible {
-  outline: var(--border) solid var(--mint);
 }
 .doneNext {
   color: var(--text-2);

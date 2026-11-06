@@ -82,7 +82,7 @@
   opacity: 0.5;
 }
 .modeIcon {
-  font-size: 1.8rem;
+  font-size: var(--fs-h2);
   line-height: 1.2;
 }
 .mode b {
@@ -112,7 +112,7 @@
   display: flex;
   align-items: center;
   gap: var(--sp-2);
-  font-size: 1.2rem;
+  font-size: var(--fs-read);
 }
 .muted {
   color: var(--text-3);
@@ -410,18 +410,6 @@
   font-weight: var(--fw-bold);
 }
 .report {
-  all: unset;
   align-self: center;
   margin-top: var(--sp-4);
-  padding: var(--sp-2);
-  color: var(--text-3);
-  font-size: var(--fs-caption);
-  text-decoration: underline;
-  cursor: pointer;
-}
-.report:focus-visible {
-  outline: var(--border) solid var(--butter);
-}
-.report:hover {
-  color: var(--text-1);
 }

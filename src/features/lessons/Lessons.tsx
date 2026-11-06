@@ -12,7 +12,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router";
-import { DailyGoal,
+import { LevelBadge, DailyGoal,
   Button,
   Card,
   ChatPanel,
@@ -212,7 +212,7 @@ function TopicSheet({ open, onClose, level, onStart }: { open: boolean; onClose:
                 {g.topics.map((t) => (
                   <Chip key={t.value} tint="sky" selected={picked.includes(t.value)} onToggle={() => toggle(t.value)}>
                     {t.label}
-                    <small className={styles.lvl}>{t.level}</small>
+                    <LevelBadge level={t.level} size="sm" />
                   </Chip>
                 ))}
               </div>
@@ -395,9 +395,9 @@ function Session({ current, startAt, onExit, onDone }: { current: LessonRun; sta
             <span>{TYPE_LABEL[q.type]}</span>
           </div>
           <Exercise q={q} value={value} onChange={setValue} checked={checked} />
-          <button type="button" className={styles.report} onClick={() => void report()}>
+          <Button tone="neutral" variant="ghost" size="sm" className={styles.report} onClick={() => void report()}>
             Este ejercicio está mal
-          </button>
+          </Button>
         </div>
       </main>
 

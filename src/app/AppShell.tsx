@@ -116,7 +116,7 @@ export function AppShell() {
               onClick={() => sound.play("tap")}
             >
               <span className={styles.tabIcon}>
-                <Icon name={m.icon} size={center ? 30 : 26} active={active || center} />
+                <Icon name={m.icon} size={center ? 26 : 22} active={active || center} />
               </span>
               <span className={styles.tabLabel}>{m.label}</span>
             </NavLink>

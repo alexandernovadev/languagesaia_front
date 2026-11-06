@@ -75,7 +75,7 @@ export function AddExpressionSheet({ open, onClose, language }: { open: boolean;
       setBusy(false);
       nubo.react("sad");
       sound.play("wrong");
-      const dup = err instanceof ApiError && (err.status === 409 || /duplicate|E11000|exist/i.test(String(err.detail)));
+      const dup = err instanceof ApiError && (err.status === 409 || /duplicate|E11000|exist/i.test(JSON.stringify(err.detail ?? "")));
       setError(dup ? "Ya tienes esa expresión guardada." : (err as Error).message);
     }
   };

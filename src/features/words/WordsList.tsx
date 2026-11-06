@@ -5,7 +5,9 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { Button, Chip, EmptyState, Icon, Segmented, Skeleton } from "../../components";
+import { haptics } from "../../lib/haptics";
+import { sound } from "../../lib/sound";
+import { ModuleTitle, Button, Chip, EmptyState, Icon, Segmented, Skeleton } from "../../components";
 import { MODULES } from "../../app/modules";
 import { tint } from "../../components/types";
 import { useSession } from "../../lib/session";
@@ -29,10 +31,15 @@ function useDebounced<T>(value: T, ms = 300) {
   return v;
 }
 
+const tapped = () => {
+  sound.play("tap");
+  haptics.tap();
+};
+
 export function WordRow({ w, index }: { w: Word; index: number }) {
   const d = DIFFICULTY[w.difficulty] ?? DIFFICULTY.hard;
   return (
-    <Link to={`${MODULES.words.path}/${w._id}`} className={styles.row} style={{ "--i": Math.min(index, 12) } as React.CSSProperties}>
+    <Link to={`${MODULES.words.path}/${w._id}`} onClick={tapped} className={styles.row} style={{ "--i": Math.min(index, 12) } as React.CSSProperties}>
       <span className={styles.thumb}>
         {w.img ? <img src={w.img} alt="" loading="lazy" /> : <span className={styles.letter}>{w.word.charAt(0).toUpperCase()}</span>}
       </span>
@@ -107,10 +114,7 @@ export function WordsList() {
   return (
     <div className={styles.page} style={tint("sky")}>
       <header className={styles.head}>
-        <div className={styles.titleRow}>
-          <h1>Palabras</h1>
-          {state !== "loading" && <span className={styles.count}>{total}</span>}
-        </div>
+        <ModuleTitle hero="lumi" title="Palabras" count={state === "loading" ? undefined : total} />
         <Segmented
           label="Tipo de vocabulario"
           value="words"

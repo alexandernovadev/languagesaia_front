@@ -22,7 +22,8 @@ function inline(text: string, highlight?: string, keyBase = ""): ReactNode[] {
   let last = 0;
   let m: RegExpExecArray | null;
   let i = 0;
-  const pushText = (t: string) => {
+  const pushText = (raw: string) => {
+    const t = raw.replace(/\*+/g, ""); // marks left over from emphasis the AI nested or left open
     if (!highlight) return out.push(t);
     const parts = t.split(new RegExp(`(${highlight.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\w*)`, "gi"));
     parts.forEach((p, j) =>
@@ -64,8 +65,13 @@ function inline(text: string, highlight?: string, keyBase = ""): ReactNode[] {
 }
 
 export function RichText({ text, highlight, className }: { text: string; highlight?: string; className?: string }) {
-  // a heading is its own block, even with text right below it
-  const blocks = text.replace(/^#{1,6}\s+.*$/gm, "\n\n$&\n\n").trim().split(/\n{2,}/);
+  // a heading is its own block, even with text right below it, and so is a list
+  const blocks = text
+    .replace(/^#{1,6}\s+.*$/gm, "\n\n$&\n\n")
+    .replace(/^(?!\s*(?:[-*•]|\d+[.)])\s).+\n(?=\s*(?:[-*•]|\d+[.)])\s)/gm, "$&\n")
+    .replace(/^(\s*(?:[-*•]|\d+[.)])\s.*\n)(?!\s*(?:[-*•]|\d+[.)])\s)(?=\S)/gm, "$1\n")
+    .trim()
+    .split(/\n{2,}/);
   return (
     <div className={cx(styles.root, className)}>
       {blocks.map((block, bi) => {

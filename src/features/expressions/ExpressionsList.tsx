@@ -6,7 +6,9 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { Button, Chip, EmptyState, Icon, Segmented, Skeleton } from "../../components";
+import { haptics } from "../../lib/haptics";
+import { sound } from "../../lib/sound";
+import { ModuleTitle, Button, Chip, EmptyState, Icon, Segmented, Skeleton } from "../../components";
 import { tint } from "../../components/types";
 import { MODULES } from "../../app/modules";
 import { useSession } from "../../lib/session";
@@ -34,7 +36,13 @@ function useDebounced<T>(value: T, ms = 300) {
 function ExpressionRow({ e, index }: { e: Expression; index: number }) {
   const d = DIFFICULTY[e.difficulty] ?? DIFFICULTY.hard;
   return (
-    <Link to={`${MODULES.expressions.path}/${e._id}`} className={styles.row} style={{ "--i": Math.min(index, 12) } as React.CSSProperties}>
+    <Link
+      to={`${MODULES.expressions.path}/${e._id}`}
+      onClick={() => {
+        sound.play("tap");
+        haptics.tap();
+      }}
+      className={styles.row} style={{ "--i": Math.min(index, 12) } as React.CSSProperties}>
       <span className={styles.thumb}>
         {e.img ? (
           <img src={e.img} alt="" loading="lazy" />
@@ -116,10 +124,7 @@ export function ExpressionsList() {
   return (
     <div className={styles.page} style={tint("lilac")}>
       <header className={styles.head}>
-        <div className={styles.titleRow}>
-          <h1>Expresiones</h1>
-          {state !== "loading" && <span className={styles.count}>{total}</span>}
-        </div>
+        <ModuleTitle hero="nubo" title="Expresiones" count={state === "loading" ? undefined : total} />
         <Segmented
           label="Tipo de vocabulario"
           value="expressions"

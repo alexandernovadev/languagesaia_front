@@ -26,7 +26,7 @@ const recordings = new Map<string, Promise<string>>();
 export function wordRecording(wordId: string) {
   const known = recordings.get(wordId);
   if (known) return known;
-  const request = api<{ url: string }>(`/api/words/${wordId}/audio`, { method: "POST" }).then((r) => r.url);
+  const request = api<{ url: string }>(`/api/words/${wordId}/audio`, { method: "POST", silent: true }).then((r) => r.url);
   recordings.set(wordId, request);
   request.catch(() => recordings.delete(wordId));
   return request;
@@ -37,7 +37,7 @@ export function textRecording(text: string, language: string) {
   const key = `${language}:${text}`;
   const known = recordings.get(key);
   if (known) return known;
-  const request = api<{ url: string }>("/api/audio", { method: "POST", body: { text, language } }).then((r) => r.url);
+  const request = api<{ url: string }>("/api/audio", { method: "POST", body: { text, language }, silent: true }).then((r) => r.url);
   recordings.set(key, request);
   request.catch(() => recordings.delete(key));
   return request;

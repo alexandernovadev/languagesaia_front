@@ -9,6 +9,7 @@
  *   fx.confetti(buttonEl);            // 18 pastel pieces from the button
  *   fx.float(buttonEl, "+10 XP");     // number rises and fades
  *   fx.sparkles(robotEl, 9);          // butter stars around the hero
+ *   fx.failure(buttonEl);             // rose shards crack off and fall
  */
 import styles from "./fx.module.css";
 
@@ -76,6 +77,26 @@ export const fx = {
   float(target: Target, text: string, tone: (typeof PASTELS)[number] = "mint") {
     const { x, y } = toPoint(target);
     spawn(styles.float, { "--x": `${x}px`, "--y": `${y - 10}px`, "--c": `var(--${tone})` }, 1100, (el) => (el.textContent = text));
+  },
+
+  /** Something went wrong: rose shards crack off and fall. */
+  failure(target: Target, count = 12) {
+    if (reduced()) return;
+    const { x, y } = toPoint(target);
+    for (let i = 0; i < count; i++) {
+      spawn(
+        styles.shard,
+        {
+          "--x": `${x + (Math.random() * 2 - 1) * 60}px`,
+          "--y": `${y}px`,
+          "--dx": `${(Math.random() * 2 - 1) * 50}px`,
+          "--dy": `${50 + Math.random() * 70}px`,
+          "--rot": `${Math.random() * 300 - 150}deg`,
+        },
+        800,
+        (el) => (el.style.animationDelay = `${i * 15}ms`),
+      );
+    }
   },
 
   /** Twinkling butter stars scattered around a point. */

@@ -7,7 +7,7 @@ import { Card, Icon, ProgressBar } from "../../components";
 import { api } from "../../lib/api";
 import styles from "./ProgressOverview.module.css";
 
-type Totals = { goalDays: number; reviewed: number; lessons: number; bestStreak: number; level: number };
+type Totals = { goalDays: number; reviewed: number; lessons: number; chapters: number; bestStreak: number; level: number };
 type Overview = { today: string; goal: number; days: Array<{ day: string; xp: number }>; totals: Totals };
 
 const ACHIEVEMENTS: Array<{ label: string; metric: keyof Totals; unit: string; targets: number[] }> = [
@@ -15,6 +15,7 @@ const ACHIEVEMENTS: Array<{ label: string; metric: keyof Totals; unit: string; t
   { label: "Constancia", metric: "goalDays", unit: "metas cumplidas", targets: [10, 50, 200] },
   { label: "Memoria", metric: "reviewed", unit: "palabras repasadas", targets: [50, 250, 1000, 5000] },
   { label: "Entrenamiento", metric: "lessons", unit: "lecciones", targets: [1, 10, 50] },
+  { label: "Lectura", metric: "chapters", unit: "capítulos", targets: [1, 10, 50, 200] },
   { label: "Nivel", metric: "level", unit: "de nivel", targets: [5, 10, 20] },
 ];
 

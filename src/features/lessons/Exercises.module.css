@@ -72,7 +72,7 @@
   min-height: 44px;
   padding: 0 var(--sp-4);
   font-family: var(--font-body);
-  font-size: 1.05rem;
+  font-size: var(--fs-body);
   font-weight: var(--fw-semibold);
   letter-spacing: 0;
   color: var(--text-1);
@@ -165,7 +165,7 @@
   flex: none;
   font-family: var(--font-display);
   font-weight: var(--fw-heavy);
-  font-size: 1.8rem;
+  font-size: var(--fs-h2);
   line-height: 1;
   color: var(--success);
   animation: lai-pop var(--t-party) var(--spring);
@@ -189,7 +189,7 @@
   min-height: 56px;
   padding: var(--sp-2) var(--sp-3);
   font-family: var(--font-body);
-  font-size: 1.05rem;
+  font-size: var(--fs-body);
   font-weight: var(--fw-semibold);
   letter-spacing: 0;
   color: var(--text-1);
@@ -237,7 +237,7 @@
   padding: 0 var(--sp-4);
   font-family: var(--font-display);
   font-weight: var(--fw-display);
-  font-size: 1.35rem;
+  font-size: var(--fs-h3);
   letter-spacing: 0;
   color: var(--text-1);
   background: var(--bg-2);

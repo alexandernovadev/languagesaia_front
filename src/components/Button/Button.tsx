@@ -8,7 +8,8 @@
  * - `feedback`: replays a pop (success) or shake (error) every time it changes
  * - `celebrate`: confetti + "correct" sound from the button on click
  * - `attention`: breathes with a soft glow ring (use on the ONE main CTA)
- * - `loading`: text hides, spinner shows, clicks are ignored
+ * - `loading`: text hides, spinner shows, clicks are ignored. When it ends the
+ *   button sparkles, or cracks and shakes if a call failed. `quiet` skips that.
  *
  * @example
  *   <Button onClick={check}>Check</Button>
@@ -17,7 +18,8 @@
  *   <Button size="lg" block attention>Continue</Button>
  *   <Button variant="soft" tone="danger">Delete</Button>
  */
-import { forwardRef, useEffect, useImperativeHandle, type ButtonHTMLAttributes, type ReactNode } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, type ButtonHTMLAttributes, type ReactNode } from "react";
+import { failures } from "../../lib/api";
 import { fx } from "../../lib/fx";
 import { haptics } from "../../lib/haptics";
 import { sound, type SoundName } from "../../lib/sound";
@@ -38,6 +40,8 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** Round icon button (pass `aria-label`). */
   iconOnly?: boolean;
   loading?: boolean;
+  /** No sparkles when `loading` ends: for frequent actions such as playing audio. */
+  quiet?: boolean;
   /** Sound on press. Default `tap`; `false` for silence. */
   sound?: SoundName | false;
   /** Confetti + correct sound on click. */
@@ -57,6 +61,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     icon,
     iconOnly,
     loading,
+    quiet,
     sound: soundName = "tap",
     celebrate,
     feedback,
@@ -72,6 +77,30 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
 ) {
   const [ref, replay] = useReplay<HTMLButtonElement>();
   useImperativeHandle(forwarded, () => ref.current as HTMLButtonElement);
+
+  // how the work ended: sparkles if everything went well, cracks if a call failed
+  const startedAt = useRef<number | null>(null);
+  useEffect(() => {
+    if (loading) {
+      startedAt.current = failures();
+      return;
+    }
+    const before = startedAt.current;
+    startedAt.current = null;
+    const el = ref.current;
+    if (before === null || quiet || !el) return;
+    if (failures() > before) {
+      replay("fail");
+      fx.failure(el);
+      sound.play("wrong");
+      haptics.error();
+    } else {
+      replay("pop");
+      fx.sparkles(el, 10, Math.min(el.offsetWidth / 2 + 20, 120));
+      sound.play("ready");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading]);
 
   useEffect(() => {
     if (feedback === "success") replay("pop");

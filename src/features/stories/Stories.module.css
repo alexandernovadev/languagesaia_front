@@ -1,0 +1,273 @@
+.page {
+  --c: var(--peach);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--sp-3);
+}
+.card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: var(--text-1);
+  text-decoration: none;
+  background: var(--bg-1);
+  border-radius: var(--r-md);
+  animation: lai-reveal var(--t-slow) var(--ease-out) both;
+  animation-delay: calc(var(--i) * 60ms);
+}
+.cover {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 110px;
+  padding: var(--sp-3);
+  font-family: var(--font-display);
+  font-weight: var(--fw-heavy);
+  font-size: var(--fs-small);
+  color: var(--ink);
+  background: linear-gradient(135deg, var(--peach), var(--lilac-deep));
+}
+.cover[data-genre="comedy"],
+.cover[data-genre="romance"] { background: linear-gradient(135deg, var(--butter), var(--rose)); }
+.cover[data-genre="adventure"],
+.cover[data-genre="fantasy"] { background: linear-gradient(135deg, var(--sky), var(--mint)); }
+.cover[data-genre="horror"],
+.cover[data-genre="thriller"] { background: linear-gradient(135deg, var(--rose-deep), var(--lilac-deep)); }
+.cover[data-genre="sci-fi"],
+.cover[data-genre="action"] { background: linear-gradient(135deg, var(--sky-deep), var(--peach)); }
+.cover[data-genre="drama"],
+.cover[data-genre="historical"] { background: linear-gradient(135deg, var(--butter-deep), var(--peach)); }
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  padding: var(--sp-3);
+}
+.cardBody small {
+  color: var(--text-3);
+}
+.bar {
+  display: block;
+  height: 6px;
+  overflow: hidden;
+  background: var(--bg-2);
+  border-radius: var(--r-full);
+}
+.bar i {
+  display: block;
+  height: 100%;
+  background: var(--peach);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.label {
+  font-size: var(--fs-small);
+  color: var(--text-3);
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+.formActions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.reader {
+  --c: var(--peach);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  width: min(680px, 100%);
+  margin: 0 auto;
+}
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  color: var(--text-3);
+  text-decoration: none;
+}
+.readerHead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+.muted {
+  color: var(--text-3);
+  font-size: var(--fs-small);
+}
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  font-size: var(--fs-read);
+  line-height: var(--lh-read);
+}
+.text p {
+  margin: 0;
+}
+.word {
+  all: unset;
+  cursor: pointer;
+  border-radius: 6px;
+}
+.word:hover {
+  background: var(--bg-2);
+}
+.word:focus-visible {
+  outline: 2px solid var(--peach);
+}
+.quote {
+  font-style: italic;
+  font-weight: var(--fw-semibold);
+  color: var(--peach);
+}
+.aside {
+  color: var(--lilac);
+}
+.mine {
+  text-decoration: underline;
+  text-decoration-color: var(--lilac);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+.readerFoot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.switch {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  color: var(--text-3);
+  font-size: var(--fs-small);
+}
+
+.dock {
+  animation: lai-reveal var(--t-base) var(--ease-out);
+  position: sticky;
+  bottom: calc(var(--bar-h) + var(--sp-3));
+  z-index: var(--z-sticky);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--bg-2);
+  border: var(--border) solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.35);
+}
+.dockHead {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-family: var(--font-display);
+  font-size: var(--fs-h3);
+}
+.dockClose {
+  margin-left: auto;
+}
+.dockBody {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+.dockActions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.cardModal {
+  width: min(640px, 100%);
+  max-height: 85dvh;
+  overflow-y: auto;
+}
+.wordCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.wordImage {
+  display: block;
+  width: min(100%, 280px);
+  margin: 0 auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+  border-radius: var(--r-md);
+}
+.wordChat {
+  display: flex;
+  flex-direction: column;
+  height: 58dvh;
+  min-height: 0;
+}
+@media (min-width: 960px) {
+  .dock {
+    bottom: var(--sp-4);
+  }
+}
+.ipa {
+  font-family: var(--font-ipa);
+  font-weight: var(--fw-heavy);
+  color: var(--peach);
+}
+.translation {
+  margin: 0;
+  font-size: var(--fs-body);
+}
+
+.now {
+  color: var(--ink);
+  background: var(--butter);
+}
+
+.player {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--bg-1);
+  border-radius: var(--r-md);
+}
+.speed {
+  margin-left: auto;
+}
+
+.quiz {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+.question {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}

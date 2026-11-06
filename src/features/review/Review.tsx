@@ -162,9 +162,9 @@ function Setup({ onStart }: { onStart: (cfg: Cfg) => void }) {
         >
           {free ? "Empezar práctica" : "Empezar repaso"}
         </Button>
-        <button type="button" className={styles.switchMode} onClick={() => setFree((f) => !f)}>
+        <Button tone="neutral" variant="ghost" size="sm" onClick={() => setFree((f) => !f)}>
           {free ? "Volver al repaso del día" : "Práctica libre: elige tú las palabras"}
-        </button>
+        </Button>
       </div>
     </div>
   );

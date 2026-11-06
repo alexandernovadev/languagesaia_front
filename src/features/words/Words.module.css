@@ -101,7 +101,7 @@
   height: 100%;
   font-family: var(--font-display);
   font-weight: var(--fw-heavy);
-  font-size: 1.8rem;
+  font-size: var(--fs-h2);
   color: var(--c);
 }
 .rowText {
@@ -120,7 +120,7 @@
 .rowWord {
   font-family: var(--font-display);
   font-weight: var(--fw-display);
-  font-size: 1.2rem;
+  font-size: var(--fs-read);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

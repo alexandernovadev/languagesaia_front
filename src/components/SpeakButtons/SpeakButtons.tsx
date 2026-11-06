@@ -43,7 +43,7 @@ export function SpeakButtons({ text, language, wordId, audio, recorded = false, 
   const iconSize = size === "sm" ? 18 : 22;
   return (
     <span className={cx(styles.root, className)} data-size={size}>
-      <Button tone="info" iconOnly size={buttonSize} loading={loading} icon={<Icon name="sound" size={iconSize} active />} aria-label="Escuchar" sound={false} onClick={say(false)} />
+      <Button tone="info" iconOnly size={buttonSize} loading={loading} quiet icon={<Icon name="sound" size={iconSize} active />} aria-label="Escuchar" sound={false} onClick={say(false)} />
       {showSlow && <Button tone="neutral" iconOnly size={buttonSize} disabled={loading} icon={<Icon name="turtle" size={iconSize} />} aria-label="Escuchar despacio" sound={false} onClick={say(true)} />}
     </span>
   );
