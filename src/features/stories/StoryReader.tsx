@@ -13,7 +13,8 @@ import { sound } from "../../lib/sound";
 import { wordsApi, type Word } from "../words/api";
 import { WordInfo } from "../words/WordInfo";
 import { tint, type CefrLevel } from "../../components/types";
-import { GENRES, storiesApi, type Chapter, type Question, type Story, type WordLookup } from "./api";
+import { expressionsApi } from "../expressions/api";
+import { GENRES, storiesApi, type Chapter, type Phrase, type Question, type Story, type WordLookup } from "./api";
 import { Narration, type NarrationHandle } from "./Narration";
 import styles from "./Stories.module.css";
 
@@ -50,9 +51,34 @@ function colored(text: string) {
   return ranges;
 }
 
+const MAX_GAP = 4; // "turned the old light off": the words a phrase can have in the middle
+
+/** Which words of the chapter belong to a phrase, by their position in the text. */
+function phraseMap(chapter: Chapter) {
+  const tokens = (chapter.content.match(/\S+/g) ?? []).map(cleanWord);
+  const map = new Map<number, Phrase>();
+  for (const phrase of chapter.phrases ?? []) {
+    const gap = /\.{2,}|…/.test(phrase.text) ? MAX_GAP : 1;
+    const words = phrase.text.replace(/\.{2,}|…/g, " ").split(/\s+/).map(cleanWord).filter(Boolean);
+    tokens.forEach((token, start) => {
+      if (token !== words[0]) return;
+      const found = [start];
+      for (const word of words.slice(1)) {
+        const last = found[found.length - 1];
+        const next = tokens.slice(last + 1, last + 1 + gap).indexOf(word);
+        if (next < 0) return;
+        found.push(last + 1 + next);
+      }
+      found.filter((at) => !map.has(at)).forEach((at) => map.set(at, phrase));
+    });
+  }
+  return map;
+}
+
 /** Drawn once per chapter: tapping a word or the karaoke never redraws the text. */
-const Paragraphs = memo(function Paragraphs({ chapter, marks, onWord }: { chapter: Chapter; marks: boolean; onWord: (word: string, sentence: string) => void }) {
+const Paragraphs = memo(function Paragraphs({ chapter, marks, onWord }: { chapter: Chapter; marks: boolean; onWord: (word: string, sentence: string, phrase?: Phrase) => void }) {
   const mine = useMemo(() => new Set(chapter.targetVocabulary.map(cleanWord)), [chapter]);
+  const phrases = useMemo(() => phraseMap(chapter), [chapter]);
   let token = -1; // the same whitespace split as the narration's word times
   return (
     <div className={styles.text}>
@@ -67,11 +93,12 @@ const Paragraphs = memo(function Paragraphs({ chapter, marks, onWord }: { chapte
               const range = ranges.find(([a, b]) => m.index >= a && m.index < b);
               const [, before, core, after] = /^([^\p{L}]*)(.*?)([^\p{L}]*)$/su.exec(m[0]) ?? [];
               const className = [styles.word, range?.[2]].filter(Boolean).join(" ");
+              const phrase = phrases.get(token);
               if (!word) return <span key={i} data-t={token}>{m[0]}</span>;
               return (
-                <button key={i} type="button" data-t={token} className={className} onClick={() => onWord(word, paragraph)}>
+                <button key={i} type="button" data-t={token} className={className} onClick={() => onWord(word, paragraph, phrase)}>
                   {before}
-                  <span className={marks && mine.has(word) ? styles.mine : undefined}>{core}</span>
+                  <span className={phrase ? styles.phrase : marks && mine.has(word) ? styles.mine : undefined}>{core}</span>
                   {after}
                 </button>
               );
@@ -119,26 +146,28 @@ function WordCard({ word, onChange }: { word: Word; onChange: (w: Word) => void 
 }
 
 /** Stays over the text without covering it, so you keep reading while it's open. */
+const PHRASE_KINDS: Record<string, string> = { "phrasal verb": "Phrasal verb", idiom: "Modismo", expression: "Expresión" };
+
 /** Words already looked up in this reading: tapping one again is instant. */
 const lookups = new Map<string, WordLookup>();
 
-function WordDock({ tapped, language, onClose }: { tapped: { word: string; sentence: string } | null; language: string; onClose: () => void }) {
+type Tapped = { word: string; sentence: string; phrase?: Phrase };
+
+/** What a word or phrase is, from memory if it was already looked up. */
+function useLookup(text: string | undefined, sentence: string, language: string) {
   const [info, setInfo] = useState<WordLookup | null>(null);
   const [failed, setFailed] = useState(false);
-  const [adding, setAdding] = useState(false);
-  const [card, setCard] = useState<Word | null>(null);
-
-  const key = tapped && `${language}:${tapped.word}`;
+  const key = text && `${language}:${text}`;
 
   useEffect(() => {
-    if (!tapped || !key) return;
+    if (!text || !key) return;
     setFailed(false);
     const known = lookups.get(key);
     setInfo(known ?? null);
     if (known) return;
     let stale = false;
     storiesApi
-      .lookup(tapped.word, tapped.sentence, language)
+      .lookup(text, sentence, language)
       .then((found) => {
         lookups.set(key, found);
         if (!stale) setInfo(found);
@@ -151,30 +180,75 @@ function WordDock({ tapped, language, onClose }: { tapped: { word: string; sente
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
 
-  const add = async () => {
-    if (!info) return;
-    setAdding(true);
+  const update = (next: WordLookup) => {
+    if (key) lookups.set(key, next);
+    setInfo(next);
+  };
+  return { info, failed, update };
+}
+
+function WordDock({ tapped, language, onClose }: { tapped: Tapped | null; language: string; onClose: () => void }) {
+  const phrase = tapped?.phrase;
+  const word = useLookup(tapped?.word, tapped?.sentence ?? "", language);
+  const whole = useLookup(phrase?.base, phrase?.sentence ?? "", language);
+  const [adding, setAdding] = useState<"word" | "phrase" | null>(null);
+  const [card, setCard] = useState<Word | null>(null);
+
+  const addWord = async () => {
+    if (!word.info) return;
+    setAdding("word");
     try {
-      const saved = await wordsApi.generate(info.lemma, language);
-      const added = { ...info, inList: true, wordId: saved._id, audio: saved.audio };
-      if (key) lookups.set(key, added);
-      setInfo(added);
+      const saved = await wordsApi.generate(word.info.lemma, language);
+      word.update({ ...word.info, inList: true, wordId: saved._id, audio: saved.audio });
       toast(`«${saved.word}» guardada`, { tone: "success" });
     } catch (e) {
       toast((e as Error).message, { tone: "danger" });
     } finally {
-      setAdding(false);
+      setAdding(null);
     }
   };
 
-  const openCard = async () => {
-    if (!info?.wordId) return;
+  /** Phrasal verbs are words; idioms and expressions have their own module. */
+  const addPhrase = async () => {
+    if (!phrase || !whole.info) return;
+    setAdding("phrase");
     try {
-      setCard(await wordsApi.get(info.wordId));
+      if (phrase.type === "phrasal verb") {
+        const saved = await wordsApi.generate(phrase.base, language);
+        whole.update({ ...whole.info, inList: true, wordId: saved._id, audio: saved.audio });
+      } else {
+        await expressionsApi.generateAndSave(phrase.base, language);
+        whole.update({ ...whole.info, inList: true });
+      }
+      toast(`«${phrase.base}» guardada`, { tone: "success" });
+    } catch (e) {
+      toast((e as Error).message, { tone: "danger" });
+    } finally {
+      setAdding(null);
+    }
+  };
+
+  const openCard = async (id?: string) => {
+    if (!id) return;
+    try {
+      setCard(await wordsApi.get(id));
     } catch (e) {
       toast((e as Error).message, { tone: "danger" });
     }
   };
+
+  const saveAction = (info: WordLookup, kind: "word" | "phrase", label: string, onSave: () => void) =>
+    info.inList && info.wordId ? (
+      <Button tone="neutral" variant="soft" size="sm" onClick={() => void openCard(info.wordId)}>
+        Ver ficha
+      </Button>
+    ) : info.inList ? (
+      <span className={styles.muted}>Guardada</span>
+    ) : (
+      <Button tone="warning" size="sm" loading={adding === kind} disabled={!!adding && adding !== kind} onClick={onSave}>
+        {label}
+      </Button>
+    );
 
   if (!tapped) {
     return (
@@ -188,27 +262,32 @@ function WordDock({ tapped, language, onClose }: { tapped: { word: string; sente
     <>
       <aside className={styles.dock} aria-label="Palabra">
         <div className={styles.dockHead}>
-          <b>{info?.lemma ?? tapped.word}</b>
-          {info?.ipa && <span className={styles.ipa}>{info.ipa}</span>}
+          <b>{word.info?.lemma ?? tapped.word}</b>
+          {word.info?.ipa && <span className={styles.ipa}>{word.info.ipa}</span>}
           <Button tone="neutral" variant="ghost" size="sm" iconOnly icon={<Icon name="close" size={18} />} aria-label="Cerrar" className={styles.dockClose} onClick={onClose} />
         </div>
-        {failed && <p className={styles.muted}>No pude buscar esta palabra. Inténtalo otra vez.</p>}
-        {!failed && !info && <Skeleton lines={1} />}
-        {info && (
+        {word.failed && <p className={styles.muted}>No pude buscar esta palabra. Inténtalo otra vez.</p>}
+        {!word.failed && !word.info && <Skeleton lines={1} />}
+        {word.info && (
           <div className={styles.dockBody}>
-            <p className={styles.translation}>{info.translation}</p>
+            <p className={styles.translation}>{word.info.translation}</p>
             <div className={styles.dockActions}>
-              <SpeakButtons text={info.lemma} language={language} wordId={info.wordId} audio={info.audio} recorded size="sm" />
-              {info.inList ? (
-                <Button tone="neutral" variant="soft" size="sm" onClick={() => void openCard()}>
-                  Ver ficha
-                </Button>
-              ) : (
-                <Button tone="warning" size="sm" loading={adding} onClick={() => void add()}>
-                  Agregar a mi lista
-                </Button>
-              )}
+              <SpeakButtons text={word.info.lemma} language={language} wordId={word.info.wordId} audio={word.info.audio} recorded size="sm" />
+              {saveAction(word.info, "word", "Agregar a mi lista", () => void addWord())}
             </div>
+          </div>
+        )}
+        {phrase && (
+          <div className={styles.dockPhrase}>
+            <span className={styles.phraseKind}>Aquí es parte de: {PHRASE_KINDS[phrase.type] ?? "Expresión"}</span>
+            <b>{phrase.base}</b>
+            <p className={styles.translation}>En esta frase: {phrase.meaning}</p>
+            {whole.info && (
+              <div className={styles.dockActions}>
+                <SpeakButtons text={phrase.base} language={language} wordId={whole.info.wordId} audio={whole.info.audio} recorded size="sm" />
+                {saveAction(whole.info, "phrase", "Guardar", () => void addPhrase())}
+              </div>
+            )}
           </div>
         )}
       </aside>
@@ -291,11 +370,25 @@ const PICTURE_TRIES = 8;
 const WORDS_PER_MINUTE = 130; // a learner's pace, not a native's
 
 /** What this reading is, at a glance. */
-function StoryDetails({ story, chapter }: { story: Story; chapter?: Chapter }) {
+function StoryDetails({ story, chapter, marks }: { story: Story; chapter?: Chapter; marks: boolean }) {
   const words = chapter?.content.split(/\s+/).length ?? 0;
   const yours = chapter?.targetVocabulary.length ?? 0;
   return (
     <div className={styles.details}>
+      {chapter && (
+        <div className={styles.legend}>
+          {marks && (
+            <span className={styles.legendItem} style={tint("lilac")}>
+              <i className={styles.legendSolid} /> Tus palabras
+            </span>
+          )}
+          {!!chapter.phrases?.length && (
+            <span className={styles.legendItem} style={tint("sky")}>
+              <i className={styles.legendDotted} /> Van juntas: tócalas
+            </span>
+          )}
+        </div>
+      )}
       <div className={styles.detailTags}>
         <LevelBadge level={story.languageLevel as CefrLevel} size="sm" />
         <Chip tint="peach">{GENRES[story.genre] ?? story.genre}</Chip>
@@ -358,7 +451,7 @@ export function StoryReader() {
   const [stuck, setStuck] = useState(false);
   const [done, setDone] = useState<number[]>([]);
   const [marks, setMarks] = useState(savedMarks);
-  const [tapped, setTapped] = useState<{ word: string; sentence: string } | null>(null);
+  const [tapped, setTapped] = useState<Tapped | null>(null);
   const [quiz, setQuiz] = useState(false);
   const textRef = useRef<HTMLDivElement>(null);
   const player = useRef<NarrationHandle>(null);
@@ -395,16 +488,16 @@ export function StoryReader() {
   }, [id]);
 
   const chapter = story?.chapters[index];
-  const onWord = useCallback((word: string, sentence: string) => {
+  const onWord = useCallback((word: string, sentence: string, phrase?: Phrase) => {
     player.current?.pause();
-    setTapped({ word, sentence });
+    setTapped({ word, sentence, phrase });
   }, []);
   const needsChapter = !!story && story.chapters.length === 0 && !writing && !stuck; // only the first one writes itself
   const written = readDraft(draft);
   const picture = chapter?.img || story?.img;
 
-  // the chapter's picture is painted last, a few seconds after the text
-  const waiting = !!chapter && !chapter.img && index === (story?.chapters.length ?? 0) - 1;
+  // the picture and the phrases come a few seconds after the text
+  const waiting = !!chapter && (!chapter.img || !chapter.phrases) && index === (story?.chapters.length ?? 0) - 1;
   useEffect(() => {
     if (!waiting) return;
     let tries = 0;
@@ -412,7 +505,11 @@ export function StoryReader() {
       tries += 1;
       if (tries > PICTURE_TRIES) return window.clearInterval(timer);
       storiesApi.get(id).then((fresh) => {
-        if (fresh.chapters[index]?.img) setStory(fresh);
+        const after = fresh.chapters[index];
+        setStory((now) => {
+          const before = now?.chapters[index];
+          return after?.img !== before?.img || !!after?.phrases !== !!before?.phrases ? fresh : now; // redrawing the text only if it changed
+        });
       }).catch(() => undefined);
     }, PICTURE_POLL_MS);
     return () => window.clearInterval(timer);
@@ -486,7 +583,7 @@ export function StoryReader() {
         </span>
         <Logo size={26} className={styles.barLogo} />
       </div>
-      {!focused && <StoryDetails story={story} chapter={chapter} />}
+      {!focused && <StoryDetails story={story} chapter={chapter} marks={marks} />}
       <header className={styles.readerHead}>
         {writing ? written.title && <h1>{written.title}</h1> : chapter && !quiz && <h1>{chapter.title}</h1>}
       </header>

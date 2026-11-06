@@ -9,12 +9,22 @@ export interface Question {
   answer: number;
 }
 
+export interface Phrase {
+  text: string;
+  base: string;
+  type: string;
+  meaning: string;
+  sentence: string;
+}
+
 export interface Chapter {
   order: number;
   title: string;
   content: string;
   img?: string;
   idea?: string;
+  /** Missing until they've been looked for, a few seconds after the chapter. */
+  phrases?: Phrase[];
   targetVocabulary: string[];
   questions: Question[];
   urlAudio?: string;
