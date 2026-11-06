@@ -520,7 +520,7 @@ export function StoryReader() {
   const [marks, setMarks] = useState(savedMarks);
   const [tapped, setTapped] = useState<Tapped | null>(null);
   const [panel, setPanel] = useState<"word" | "chat">("word");
-  const sideBySide = useMedia("(min-width: 1100px)"); // same as the two-column .reader
+  const sideBySide = useMedia("(min-width: 900px)"); // same as the two-column .reader
   const [quote, setQuote] = useState("");
   const [chatOpen, setChatOpen] = useState(false);
   const [quiz, setQuiz] = useState(false);

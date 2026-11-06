@@ -301,9 +301,7 @@
   margin-top: 26dvh;
 }
 .reader[data-backdrop] .readerBar {
-  background: color-mix(in srgb, var(--bg-0) 92%, transparent);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background: var(--bg-0);
   border-radius: 0 0 var(--r-md) var(--r-md);
   padding-inline: var(--sp-2);
 }
@@ -563,10 +561,10 @@
   }
 }
 /* Wide screens: the word opens beside the text, so it never covers what you read */
-@media (min-width: 1100px) {
+@media (min-width: 900px) {
   .reader {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 340px;
+    grid-template-columns: minmax(0, 70fr) minmax(300px, 30fr);
     align-items: start;
     gap: var(--sp-6);
     width: 100%;

@@ -69,7 +69,9 @@
   padding: var(--sp-6) var(--gutter) calc(var(--bar-h) + var(--sp-10) + env(safe-area-inset-bottom, 0px));
 }
 
+/* Reading has no bars around it: it can use the whole screen */
 .shell[data-reading] .content {
+  max-width: 1480px;
   padding-bottom: var(--sp-10);
 }
 
