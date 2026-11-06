@@ -4,14 +4,15 @@
  */
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import { AIThinking, AnswerOption, Button, ChatPanel, Chip, EmptyState, Icon, Modal, RobotStage, Skeleton, SpeakButtons, StreamingText, toast, useRobotMood } from "../../components";
+import { AIThinking, AnswerOption, Button, ChatPanel, Chip, EmptyState, Icon, LevelBadge, Modal, RobotStage, Skeleton, SpeakButtons, StreamingText, toast, useRobotMood } from "../../components";
 import { MODULES } from "../../app/modules";
 import { fx } from "../../lib/fx";
 import { haptics } from "../../lib/haptics";
 import { sound } from "../../lib/sound";
 import { wordsApi, type Word } from "../words/api";
 import { WordInfo } from "../words/WordInfo";
-import { storiesApi, type Chapter, type Question, type Story, type WordLookup } from "./api";
+import { tint, type CefrLevel } from "../../components/types";
+import { GENRES, storiesApi, type Chapter, type Question, type Story, type WordLookup } from "./api";
 import { Narration, type NarrationHandle } from "./Narration";
 import styles from "./Stories.module.css";
 
@@ -280,6 +281,66 @@ function Quiz({ questions, onDone }: { questions: Question[]; onDone: (correct: 
   );
 }
 
+const MAX_IDEA = 300;
+const WORDS_PER_MINUTE = 130; // a learner's pace, not a native's
+
+/** What this reading is, at a glance. */
+function StoryDetails({ story, chapter }: { story: Story; chapter?: Chapter }) {
+  const words = chapter?.content.split(/\s+/).length ?? 0;
+  const yours = chapter?.targetVocabulary.length ?? 0;
+  return (
+    <div className={styles.details}>
+      <div className={styles.detailTags}>
+        <LevelBadge level={story.languageLevel as CefrLevel} size="sm" />
+        <Chip tint="peach">{GENRES[story.genre] ?? story.genre}</Chip>
+        {words > 0 && (
+          <>
+            <span className={styles.stat} style={tint("sky")}>
+              <Icon name="stories" size={15} active /> {words} palabras
+            </span>
+            <span className={styles.stat} style={tint("butter")}>
+              <Icon name="clock" size={15} /> {Math.max(1, Math.round(words / WORDS_PER_MINUTE))} min
+            </span>
+          </>
+        )}
+        {yours > 0 && (
+          <span className={styles.stat} style={tint("mint")}>
+            <Icon name="words" size={15} active /> {yours} de tu lista
+          </span>
+        )}
+      </div>
+      <p className={styles.premise}>{story.description}</p>
+    </div>
+  );
+}
+
+/** Before each new chapter: you can steer the story, or leave it to Tula. */
+function NextIdea({ last, initial, onWrite }: { last: boolean; initial: string; onWrite: (idea?: string) => void }) {
+  const [idea, setIdea] = useState(initial); // a failed chapter must not lose what you wrote
+  const tula = useRobotMood("wave");
+  return (
+    <section className={styles.quiz}>
+      <RobotStage hero="tula" {...tula.props} say={last ? "¡Último capítulo!" : "¡Tú mandas!"} bubble="top" size={wide ? 220 : 130} />
+      <div className={styles.quizBody}>
+        <div>
+          <h2>{last ? "¿Cómo quieres que termine?" : "¿Qué pasa ahora?"}</h2>
+          <p className={styles.muted}>Escribe tu idea, en el idioma que quieras, y Tula la convierte en el siguiente capítulo.</p>
+        </div>
+        <textarea rows={4} value={idea} maxLength={MAX_IDEA} placeholder="Aparece su hermano con una mala noticia…" aria-label="Tu idea" onChange={(e) => setIdea(e.target.value)} />
+        <span className={styles.ideaCount}>
+          {idea.length}/{MAX_IDEA}
+        </span>
+        <Button tone="warning" block disabled={!idea.trim()} onClick={() => onWrite(idea.trim())}>
+          Escribir con mi idea
+        </Button>
+        <Button tone="neutral" variant="soft" block onClick={() => onWrite()}>
+          Que Tula decida
+        </Button>
+      </div>
+    </section>
+  );
+}
+
 export function StoryReader() {
   const { id = "" } = useParams();
   const navigate = useNavigate();
@@ -295,13 +356,15 @@ export function StoryReader() {
   const [quiz, setQuiz] = useState(false);
   const textRef = useRef<HTMLDivElement>(null);
   const player = useRef<NarrationHandle>(null);
+  const lastIdea = useRef("");
 
-  const write = async () => {
+  const write = async (idea?: string) => {
+    lastIdea.current = idea ?? "";
     setWriting(true);
     setStuck(false);
     setDraft("");
     try {
-      await storiesApi.nextChapter(id, setDraft);
+      await storiesApi.nextChapter(id, setDraft, idea);
       const updated = await storiesApi.get(id);
       setStory(updated);
       setIndex(updated.chapters.length - 1);
@@ -330,8 +393,9 @@ export function StoryReader() {
     player.current?.pause();
     setTapped({ word, sentence });
   }, []);
-  const needsChapter = !!story && !chapter && !writing && !stuck;
+  const needsChapter = !!story && story.chapters.length === 0 && !writing && !stuck; // only the first one writes itself
   const written = readDraft(draft);
+  const focused = quiz || (!chapter && !writing); // no text to tap: the side panel goes away
 
   useEffect(() => {
     if (needsChapter) void write();
@@ -376,19 +440,14 @@ export function StoryReader() {
 
   /** Moves on from a chapter that's already finished. */
   const next = () => {
-    if (story?.chapters[index + 1]) goTo(index + 1);
-    else {
-      setTapped(null);
-      window.scrollTo({ top: 0 });
-      void write();
-    }
+    goTo(index + 1); // if it isn't written yet, this asks what happens next
   };
 
   if (failed) return <EmptyState kind="error" hero="tula" title="No encontré esta historia" action={<Button onClick={() => navigate(MODULES.stories.path)}>Volver a Historias</Button>} />;
   if (!story) return <Skeleton lines={8} />;
 
   return (
-    <div className={styles.reader} data-solo={quiz || undefined}>
+    <div className={styles.reader} data-solo={focused || undefined}>
       <div className={styles.readerMain}>
       <div className={styles.readerBar}>
         <Button tone="neutral" variant="ghost" size="sm" iconOnly icon={<Icon name="close" size={18} />} aria-label="Salir de la lectura" onClick={() => navigate(MODULES.stories.path)} />
@@ -396,6 +455,8 @@ export function StoryReader() {
           {story.title} · Capítulo {writing ? story.chapters.length + 1 : index + 1} de {story.totalChapters}
         </span>
       </div>
+      {!focused && <StoryDetails story={story} chapter={chapter} />}
+      {story.img && !focused && <img className={styles.readerCover} src={story.img} alt="" />}
       <header className={styles.readerHead}>
         {writing ? written.title && <h1>{written.title}</h1> : chapter && <h1>{chapter.title}</h1>}
       </header>
@@ -417,12 +478,19 @@ export function StoryReader() {
         </>
       ) : writing ? (
         <AIThinking title="Tula está escribiendo" tips={["Siguiendo la trama…", "Metiendo tus palabras de hoy…"]} />
-      ) : !chapter ? (
+      ) : !chapter && story.chapters.length === 0 ? (
         <EmptyState kind="error" hero="tula" title="No pude escribir el capítulo" action={<Button onClick={() => void write()}>Intentar de nuevo</Button>} />
+      ) : !chapter ? (
+        <NextIdea last={index + 1 === story.totalChapters} initial={lastIdea.current} onWrite={(idea) => void write(idea)} />
       ) : quiz ? (
         <Quiz questions={chapter.questions} onDone={(correct) => void finish(correct)} />
       ) : (
         <>
+          {chapter.idea && (
+            <p className={styles.ideaNote}>
+              <b>Tu idea:</b> {chapter.idea}
+            </p>
+          )}
           <Narration key={index} ref={player} storyId={id} index={index} chapter={chapter} text={textRef} />
           <div ref={textRef}>
             <Paragraphs
@@ -453,7 +521,7 @@ export function StoryReader() {
       )}
       </div>
 
-      {!quiz && (
+      {!focused && (
         <WordDock
           tapped={tapped}
           language={story.language}

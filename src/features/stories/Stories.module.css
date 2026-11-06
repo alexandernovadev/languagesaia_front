@@ -183,6 +183,68 @@
   padding: var(--sp-3) 0;
   background: var(--bg-0); /* solid: text passing behind it was still readable */
 }
+.ideaCount {
+  align-self: flex-end;
+  margin-top: calc(var(--sp-2) * -1);
+  color: var(--text-3);
+  font-size: var(--fs-caption);
+}
+.ideaNote {
+  margin: 0;
+  padding: var(--sp-2) var(--sp-3);
+  color: var(--text-2);
+  font-size: var(--fs-small);
+  background: var(--c-soft);
+  border-radius: var(--r-sm);
+}
+.ideaNote b {
+  color: var(--c);
+}
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.detailTags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 30px;
+  padding: 0 var(--sp-3);
+  color: var(--c);
+  font-family: var(--font-display);
+  font-weight: var(--fw-display);
+  font-size: var(--fs-small);
+  background: var(--c-soft);
+  border-radius: var(--r-full);
+  box-shadow: 0 var(--depth) 0 color-mix(in oklab, var(--c-deep) 60%, transparent);
+  animation: lai-bump var(--t-slow) var(--spring) both;
+}
+.stat:nth-of-type(2) {
+  animation-delay: 80ms;
+}
+.stat:nth-of-type(3) {
+  animation-delay: 160ms;
+}
+.premise {
+  margin: 0;
+  color: var(--text-2);
+  font-size: var(--fs-small);
+}
+.readerCover {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 7;
+  object-fit: cover;
+  border-radius: var(--r-lg);
+  animation: lai-reveal var(--t-slow) var(--ease-out) both;
+}
 .readerHead {
   display: flex;
   flex-direction: column;

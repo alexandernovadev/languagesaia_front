@@ -13,6 +13,7 @@ export interface Chapter {
   order: number;
   title: string;
   content: string;
+  idea?: string;
   targetVocabulary: string[];
   questions: Question[];
   urlAudio?: string;
@@ -79,7 +80,7 @@ export const storiesApi = {
   create: (data: NewStory) => api<Story>("/api/stories", { method: "POST", body: data }),
   remove: (id: string) => api(`/api/stories/${id}`, { method: "DELETE" }),
   /** Resolves when the chapter is saved. `onText` gets everything written so far. */
-  nextChapter: (id: string, onText: (full: string) => void) => apiStream(`/api/stories/${id}/chapters/next`, {}, (_, full) => onText(full)),
+  nextChapter: (id: string, onText: (full: string) => void, idea?: string) => apiStream(`/api/stories/${id}/chapters/next`, { idea }, (_, full) => onText(full)),
   progress: (id: string) => api<StoryProgress | null>(`/api/stories/${id}/progress`),
   async finishChapter(id: string, chapterIndex: number, correct: number) {
     const { reward } = await api<{ reward: Reward | null }>(`/api/stories/${id}/progress`, { method: "POST", body: { chapterIndex, correct } });
