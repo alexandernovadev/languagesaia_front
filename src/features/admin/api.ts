@@ -34,39 +34,20 @@ export interface SystemInfo {
 
 export type DeletableData = "words" | "expressions" | "lessons" | "exercises" | "stories";
 
-export type DataKind = "words" | "expressions";
-export type DuplicateStrategy = "skip" | "overwrite";
+export type ImportStrategy = "keep" | "replace";
+export type BackupSection = "dictionary" | "expressions" | "stories" | "lessons" | "progress";
 
-interface ImportFailure {
-  index: number;
-  label: string;
-  error: string;
-}
-
-/** What an import would do. Nothing has changed yet. */
-export interface ImportPreview {
+export interface SectionReport {
+  section: BackupSection;
   total: number;
   new: number;
-  duplicates: number;
-  invalid: number;
-  failures: ImportFailure[];
+  existing: number;
 }
 
-export interface ImportOutcome {
-  totalInserted: number;
-  totalUpdated: number;
-  totalSkipped: number;
-  totalErrors: number;
-  /** Words only: expressions report these as errors. */
-  totalInvalid?: number;
-  failures: ImportFailure[];
-}
-
-const upload = <T>(kind: DataKind, file: File, query: string) => {
+const backupFile = (file: File) => {
   const body = new FormData();
-  // the backend only takes application/json, whatever the browser guessed
-  body.append("file", new File([file], file.name, { type: "application/json" }));
-  return api<T>(`/api/${kind}/import-file?${query}`, { method: "POST", body });
+  body.append("file", file);
+  return body;
 };
 
 export const adminApi = {
@@ -75,11 +56,11 @@ export const adminApi = {
   system: () => api<SystemInfo>("/api/labs/system"),
   backupStatus: () => api<BackupStatus>("/api/labs/backup/status"),
   sendBackup: () => api<{ wordsCount: number; expressionsCount: number }>("/api/labs/backup/send-email", { method: "POST" }),
-  /** Wrapped as `{ data }` these are the shapes `/import-file` accepts, so the files can be restored. */
-  exportWords: () => api<{ totalWords: number; exportDate: string; words: unknown[] }>("/api/words/export-file"),
-  exportExpressions: () => api<{ totalExpressions: number; exportDate: string; expressions: unknown[] }>("/api/expressions/export-file"),
-  previewImport: (kind: DataKind, file: File) => upload<ImportPreview>(kind, file, "validateOnly=true"),
-  runImport: (kind: DataKind, file: File, strategy: DuplicateStrategy) => upload<ImportOutcome>(kind, file, `duplicateStrategy=${strategy}`),
+  downloadBackup: () => api<Blob>("/api/labs/backup/download", { file: true }),
+  /** What an import would do. Changes nothing. */
+  previewBackup: (file: File) => api<{ createdAt: string; sections: SectionReport[] }>("/api/labs/backup/preview", { method: "POST", body: backupFile(file) }),
+  importBackup: (file: File, strategy: ImportStrategy) =>
+    api<{ sections: SectionReport[]; failed: number }>(`/api/labs/backup/import?strategy=${strategy}`, { method: "POST", body: backupFile(file) }),
 };
 
 /* ── Diccionario ── */

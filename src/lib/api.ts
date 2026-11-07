@@ -30,6 +30,8 @@ type Options = {
   signal?: AbortSignal;
   /** Background work: a failure doesn't open the error dialog. */
   silent?: boolean;
+  /** The answer is a file, not JSON. */
+  file?: boolean;
 };
 
 /** Failures that aren't the person's doing. A wrong form field is shown next to the field. */
@@ -44,7 +46,7 @@ const FRIENDLY: Record<number, string> = {
   500: "Algo falló de nuestro lado. Inténtalo otra vez.",
 };
 
-async function raw<T>(path: string, { method = "GET", body, auth = true, signal }: Options, retried = false): Promise<T> {
+async function raw<T>(path: string, { method = "GET", body, auth = true, signal, file }: Options, retried = false): Promise<T> {
   const headers: Record<string, string> = { "X-Time-Zone": Intl.DateTimeFormat().resolvedOptions().timeZone };
   const isForm = body instanceof FormData;
   if (body !== undefined && !isForm) headers["Content-Type"] = "application/json";
@@ -61,9 +63,11 @@ async function raw<T>(path: string, { method = "GET", body, auth = true, signal 
 
   if (res.status === 401 && auth && !retried && session.get()?.refreshToken) {
     const ok = await session.refresh();
-    if (ok) return raw<T>(path, { method, body, auth, signal }, true);
+    if (ok) return raw<T>(path, { method, body, auth, signal, file }, true);
     session.clear();
   }
+
+  if (file && res.ok) return (await res.blob()) as T;
 
   let json: { success?: boolean; data?: T; error?: string; message?: string; detail?: { reason?: string; hint?: string } } = {};
   try {
