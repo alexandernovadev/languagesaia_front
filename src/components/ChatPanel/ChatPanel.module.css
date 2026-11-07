@@ -138,10 +138,13 @@
   font-size: var(--fs-small);
 }
 .suggestions {
+  --c: var(--mint);
+  --c-deep: var(--mint-deep);
+  --c-soft: var(--mint-soft);
   display: flex;
   gap: var(--sp-2);
   overflow-x: auto;
-  padding-bottom: 2px;
+  padding-bottom: 6px; /* room for the buttons' bottom edge */
   scrollbar-width: none;
 }
 .suggestion {

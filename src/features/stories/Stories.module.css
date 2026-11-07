@@ -677,6 +677,9 @@
 .readerFoot {
   order: 2;
 }
+.jump {
+  padding-inline: var(--sp-2);
+}
 .timeline {
   flex: 1 1 180px;
   display: flex;

@@ -243,10 +243,10 @@ export const Narration = forwardRef<NarrationHandle, { storyId: string; index: n
       )}
       {duration > 0 && (
         <>
-          <Button tone="neutral" variant="soft" size="sm" sound={false} aria-label={`Atrás ${JUMP_SECONDS} segundos`} onClick={() => seek((audio.current?.currentTime ?? 0) - JUMP_SECONDS)}>
+          <Button tone="success" variant="soft" size="sm" sound={false} className={styles.jump} aria-label={`Atrás ${JUMP_SECONDS} segundos`} onClick={() => seek((audio.current?.currentTime ?? 0) - JUMP_SECONDS)}>
             −{JUMP_SECONDS}s
           </Button>
-          <Button tone="neutral" variant="soft" size="sm" sound={false} aria-label={`Adelante ${JUMP_SECONDS} segundos`} onClick={() => seek((audio.current?.currentTime ?? 0) + JUMP_SECONDS)}>
+          <Button tone="success" variant="soft" size="sm" sound={false} className={styles.jump} aria-label={`Adelante ${JUMP_SECONDS} segundos`} onClick={() => seek((audio.current?.currentTime ?? 0) + JUMP_SECONDS)}>
             +{JUMP_SECONDS}s
           </Button>
           <Button tone="neutral" variant="soft" size="sm" sound={false} onClick={repeatSentence}>
