@@ -74,7 +74,7 @@ function phraseMap(chapter: Chapter) {
 }
 
 /** Drawn once per chapter: tapping a word or the karaoke never redraws the text. */
-const Paragraphs = memo(function Paragraphs({ chapter, marks, onWord }: { chapter: Chapter; marks: boolean; onWord: (word: string, sentence: string, phrase?: Phrase) => void }) {
+const Paragraphs = memo(function Paragraphs({ chapter, marks, onWord }: { chapter: Chapter; marks: boolean; onWord: (word: string, sentence: string, token: number, phrase?: Phrase) => void }) {
   const mine = useMemo(() => new Set(chapter.targetVocabulary.map(cleanWord)), [chapter]);
   const phrases = useMemo(() => phraseMap(chapter), [chapter]);
   let token = -1; // the same whitespace split as the narration's word times
@@ -92,6 +92,7 @@ const Paragraphs = memo(function Paragraphs({ chapter, marks, onWord }: { chapte
               const [, before, core, after] = /^([^\p{L}]*)(.*?)([^\p{L}]*)$/su.exec(m[0]) ?? [];
               const className = [styles.word, range?.[2]].filter(Boolean).join(" ");
               const phrase = phrases.get(token);
+              const at = token;
               if (!word) return <span key={i} data-t={token}>{m[0]}</span>;
               return (
                 // a span, not a button: browsers can't select text across buttons
@@ -101,8 +102,8 @@ const Paragraphs = memo(function Paragraphs({ chapter, marks, onWord }: { chapte
                   tabIndex={0}
                   data-t={token}
                   className={className}
-                  onClick={() => !window.getSelection()?.toString() && onWord(word, paragraph, phrase)}
-                  onKeyDown={(e) => e.key === "Enter" && onWord(word, paragraph, phrase)}
+                  onClick={() => !window.getSelection()?.toString() && onWord(word, paragraph, at, phrase)}
+                  onKeyDown={(e) => e.key === "Enter" && onWord(word, paragraph, at, phrase)}
                 >
                   {before}
                   <span className={phrase ? styles.phrase : marks && mine.has(word) ? styles.mine : undefined}>{core}</span>
@@ -171,7 +172,7 @@ const PHRASE_KINDS: Record<string, string> = { "phrasal verb": "Phrasal verb", i
 /** Words already looked up in this reading: tapping one again is instant. */
 const lookups = new Map<string, WordLookup>();
 
-type Tapped = { word: string; sentence: string; phrase?: Phrase };
+type Tapped = { word: string; sentence: string; token: number; phrase?: Phrase };
 
 /** What a word or phrase is, from memory if it was already looked up. */
 function useLookup(text: string | undefined, sentence: string, language: string) {
@@ -542,7 +543,6 @@ export function StoryReader() {
   const [done, setDone] = useState<number[]>([]);
   const [marks, setMarks] = useState(savedMarks);
   const [tapped, setTapped] = useState<Tapped | null>(null);
-  const [panel, setPanel] = useState<"word" | "chat">("word");
   const sideBySide = useMedia("(min-width: 900px)"); // same as the two-column .reader
   const [quote, setQuote] = useState("");
   const [chatOpen, setChatOpen] = useState(false);
@@ -584,14 +584,12 @@ export function StoryReader() {
   }, [id]);
 
   const chapter = story?.chapters[index];
-  const onWord = useCallback((word: string, sentence: string, phrase?: Phrase) => {
+  const onWord = useCallback((word: string, sentence: string, token: number, phrase?: Phrase) => {
     player.current?.pause();
-    setTapped({ word, sentence, phrase });
-    setPanel("word");
+    setTapped({ word, sentence, token, phrase });
   }, []);
   const ask = useCallback((selected: string) => {
     setQuote(selected);
-    setPanel("chat");
     setChatOpen(true);
   }, []);
   const needsChapter = !!story && story.chapters.length === 0 && !writing && !stuck; // only the first one writes itself
@@ -719,7 +717,7 @@ export function StoryReader() {
               <b>Tu idea:</b> {chapter.idea}
             </p>
           )}
-          <Narration key={index} ref={player} storyId={id} index={index} chapter={chapter} text={textRef} />
+          <Narration key={index} ref={player} storyId={id} index={index} chapter={chapter} text={textRef} from={tapped?.token} />
           <div ref={textRef}>
             <Paragraphs
               chapter={chapter}
@@ -753,16 +751,7 @@ export function StoryReader() {
 
       {!focused && (
         <div className={styles.panel}>
-          {sideBySide && chapter && (
-            <div className={styles.panelTabs} role="tablist" aria-label="Panel">
-              {(["word", "chat"] as const).map((value) => (
-                <button key={value} type="button" role="tab" className={styles.tab} aria-selected={panel === value} onClick={() => setPanel(value)}>
-                  {value === "word" ? "Palabra" : "Tula"}
-                </button>
-              ))}
-            </div>
-          )}
-          <div className={styles.panelBody} hidden={sideBySide && panel !== "word"}>
+          <div className={styles.panelBody}>
             <WordDock
               tapped={tapped}
               language={story.language}
@@ -773,7 +762,7 @@ export function StoryReader() {
             />
           </div>
           {sideBySide && chapter && (
-            <div className={styles.panelChat} hidden={panel !== "chat"}>
+            <div className={styles.panelChat}>
               <ChapterChat key={index} storyId={id} index={index} quote={quote} onQuoteClear={() => setQuote("")} />
             </div>
           )}

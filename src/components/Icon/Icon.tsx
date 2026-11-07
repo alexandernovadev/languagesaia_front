@@ -117,6 +117,8 @@ const G: Record<string, Glyph> = {
   // ── Actions ──
   search: { lines: <><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.5 4.5" /></> },
   plus: { lines: <path d="M12 5v14M5 12h14" /> },
+  play: { lines: <path d="M8 5.5v13l10.5-6.5z" /> },
+  pause: { lines: <path d="M9 5.5v13M15 5.5v13" /> },
   clock: { lines: <><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></> },
   back: { lines: <path d="M15 5 8 12l7 7" /> },
   next: { lines: <path d="m9 5 7 7-7 7" /> },

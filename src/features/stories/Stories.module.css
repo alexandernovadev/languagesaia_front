@@ -370,7 +370,7 @@
 .tulaFab {
   position: fixed;
   right: var(--sp-4);
-  bottom: calc(var(--sp-4) + env(safe-area-inset-bottom, 0px));
+  bottom: calc(var(--sp-16) + var(--sp-8) + env(safe-area-inset-bottom, 0px)); /* above the audio player */
   z-index: var(--z-sticky);
   width: 56px;
   min-height: 56px;
@@ -387,16 +387,18 @@
 }
 /* above the word box while it's open */
 .tulaFab[data-raised] {
-  bottom: calc(150px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(290px + env(safe-area-inset-bottom, 0px));
+}
+/* on a phone the word box sits on top of the player, which stays reachable */
+@media (max-width: 899px) {
+  .reader .dock {
+    bottom: 124px;
+  }
 }
 /* On a phone the panel is only the word box, at the bottom of the text */
 .panel,
 .panelBody {
   display: contents;
-}
-.panelBody[hidden],
-.panelChat[hidden] {
-  display: none;
 }
 .recording {
   color: var(--text-2);
@@ -599,17 +601,10 @@
     border: var(--border) solid var(--line);
     border-radius: var(--r-lg);
   }
-  .panelTabs {
-    flex: none;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    border-bottom: var(--border) solid var(--line);
-  }
   .panelBody {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    min-height: 0;
+    display: block;
+    flex: none;
+    max-height: 45%;
     overflow-y: auto;
   }
   .panelChat {
@@ -617,6 +612,8 @@
     display: flex;
     flex-direction: column;
     min-height: 0;
+    padding-top: var(--sp-3);
+    border-top: var(--border) solid var(--line);
   }
   .dock,
   .dockIdle {
@@ -662,16 +659,42 @@
   background: var(--butter);
 }
 
+/* Stays on screen while you read, so going back never needs a scroll */
 .player {
+  position: sticky;
+  bottom: var(--sp-3);
+  z-index: var(--z-sticky);
+  order: 1;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--sp-3);
+  gap: var(--sp-2) var(--sp-3);
   padding: var(--sp-2) var(--sp-3);
   background: var(--bg-1);
+  border: var(--border) solid var(--line);
   border-radius: var(--r-md);
 }
+.readerFoot {
+  order: 2;
+}
+.timeline {
+  flex: 1 1 180px;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+  color: var(--text-2);
+  font-size: var(--fs-caption);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.timeline input {
+  flex: 1;
+  min-width: 60px;
+}
 .speed {
+  width: auto;
+  min-height: 36px;
   margin-left: auto;
 }
 

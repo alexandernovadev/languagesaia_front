@@ -112,6 +112,7 @@ export function ChatPanel({ hero, load, streamPath, suggestions = [], fill = fal
 
   return (
     <div className={cx(styles.root, fill && styles.fill, className)} style={tint(h.tint)}>
+      <div className={styles.threadWrap}>
       <div ref={scroller} className={styles.thread} aria-live="polite">
         {messages === null && <Skeleton lines={3} />}
         {messages?.length === 0 && (
@@ -133,9 +134,6 @@ export function ChatPanel({ hero, load, streamPath, suggestions = [], fill = fal
             </div>
           ) : (
             <div key={i} className={styles.botRow}>
-              <span className={styles.face}>
-                <Robot hero={hero} mood={last ? bot.mood : "idle"} replay={last ? bot.props.replay : 0} voice={false} />
-              </span>
               <div className={styles.bot}>
                 {waiting ? (
                   <span className={styles.dots} aria-label={`${h.name} está escribiendo`}>
@@ -152,6 +150,12 @@ export function ChatPanel({ hero, load, streamPath, suggestions = [], fill = fal
           );
         })}
         {error && <p className={styles.error}>{error}</p>}
+      </div>
+      {!!messages?.length && (
+        <span className={styles.mascot} aria-hidden="true">
+          <Robot hero={hero} {...bot.props} voice={false} />
+        </span>
+      )}
       </div>
 
       {suggestions.length > 0 && !streaming && (
