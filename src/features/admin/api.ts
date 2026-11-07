@@ -81,3 +81,53 @@ export const adminApi = {
   previewImport: (kind: DataKind, file: File) => upload<ImportPreview>(kind, file, "validateOnly=true"),
   runImport: (kind: DataKind, file: File, strategy: DuplicateStrategy) => upload<ImportOutcome>(kind, file, `duplicateStrategy=${strategy}`),
 };
+
+/* ── Diccionario ── */
+export type DictionaryWord = {
+  _id: string;
+  word: string;
+  language: string;
+  definition: string;
+  examples: string[];
+  synonyms: string[];
+  codeSwitching: string[];
+  type: string[];
+  IPA?: string;
+  img?: string;
+  rank?: number;
+  source?: string;
+  completedAt?: string;
+  hiddenAt?: string;
+  conjugations?: Record<string, Record<string, string>> | null;
+  spanish?: { word?: string; definition?: string };
+  /** How many learners have it. */
+  learners?: number;
+};
+
+export type DictionaryFilters = {
+  language: string;
+  search: string;
+  type: string;
+  source: string;
+  missing: string;
+  hidden: boolean;
+  sort: string;
+  page: number;
+};
+
+const dictionaryQuery = (f: DictionaryFilters) => {
+  const q = new URLSearchParams({ language: f.language, sort: f.sort, page: String(f.page), limit: "40" });
+  for (const key of ["search", "type", "source", "missing"] as const) if (f[key]) q.set(key, f[key]);
+  if (f.hidden) q.set("hidden", "true");
+  return q;
+};
+
+export const dictionaryApi = {
+  list: (f: DictionaryFilters) => api<{ data: DictionaryWord[]; total: number; page: number; pages: number }>(`/api/dictionary?${dictionaryQuery(f)}`),
+  get: (id: string) => api<DictionaryWord>(`/api/dictionary/${id}`),
+  draft: (word: string, language: string) => api<Partial<DictionaryWord>>("/api/dictionary/draft", { method: "POST", body: { word, language } }),
+  create: (word: Partial<DictionaryWord>) => api<DictionaryWord>("/api/dictionary", { method: "POST", body: word }),
+  save: (id: string, word: Partial<DictionaryWord>) => api<DictionaryWord>(`/api/dictionary/${id}`, { method: "PUT", body: word }),
+  hide: (id: string, hidden: boolean) => api<DictionaryWord>(`/api/dictionary/${id}/hidden`, { method: "PUT", body: { hidden } }),
+  remove: (id: string) => api(`/api/dictionary/${id}`, { method: "DELETE" }),
+};

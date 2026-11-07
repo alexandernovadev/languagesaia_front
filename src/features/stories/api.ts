@@ -23,6 +23,8 @@ export interface Chapter {
   content: string;
   img?: string;
   idea?: string;
+  /** Empty until the questions are ready, a few seconds after the chapter. */
+  summary?: string;
   /** Missing until they've been looked for, a few seconds after the chapter. */
   phrases?: Phrase[];
   targetVocabulary: string[];
@@ -62,6 +64,8 @@ export interface WordLookup {
   wordId?: string;
   audio?: string;
   inList: boolean;
+  /** When the tapped word is a form of a verb. */
+  grammar?: { tense: string; persons: string[] };
 }
 
 export interface NewStory {

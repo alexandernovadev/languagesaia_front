@@ -34,6 +34,15 @@ export const Narration = forwardRef<NarrationHandle, { storyId: string; index: n
   const [loading, setLoading] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [rate, setRate] = useState(savedRate);
+  const [seconds, setSeconds] = useState(0);
+
+  // recording a chapter takes a while: the count shows it's moving
+  useEffect(() => {
+    if (!loading) return;
+    setSeconds(0);
+    const timer = window.setInterval(() => setSeconds((s) => s + 1), 1000);
+    return () => window.clearInterval(timer);
+  }, [loading]);
   const audio = useRef<HTMLAudioElement | null>(null);
   const times = useRef<WordTime[]>(chapter.audioAlignment ?? []);
   const url = useRef(chapter.urlAudio);
@@ -139,6 +148,11 @@ export const Narration = forwardRef<NarrationHandle, { storyId: string; index: n
       <Button tone="warning" size="sm" loading={loading} quiet icon={<Icon name="sound" size={18} active />} sound={false} onClick={() => void toggle()}>
         {playing ? "Pausar" : "Narrar"}
       </Button>
+      {loading && (
+        <span className={styles.recording} aria-live="off">
+          Grabando… <b>{seconds} s</b>
+        </span>
+      )}
       <div className={styles.speed}>
         <Segmented label="Velocidad" value={String(rate)} onChange={(v) => changeRate(Number(v))} options={RATES.map((r) => ({ value: String(r), label: `${r}×` }))} />
       </div>

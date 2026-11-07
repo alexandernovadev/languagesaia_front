@@ -398,6 +398,14 @@
 .panelChat[hidden] {
   display: none;
 }
+.recording {
+  color: var(--text-2);
+  font-size: var(--fs-small);
+  font-variant-numeric: tabular-nums;
+}
+.recording b {
+  color: var(--peach);
+}
 .phrase {
   text-decoration: underline dotted;
   text-decoration-color: var(--sky);
@@ -419,6 +427,14 @@
 }
 .dockPhrase .dockActions {
   margin-top: var(--sp-1);
+}
+.formOf {
+  display: block;
+  color: var(--text-3);
+  font-size: var(--fs-small);
+}
+.formOf b {
+  color: var(--text-1);
 }
 .phraseKind {
   display: block;

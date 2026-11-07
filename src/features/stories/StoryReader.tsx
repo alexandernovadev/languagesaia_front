@@ -29,16 +29,13 @@ const savedMarks = () => {
   }
 };
 
-const END_OF_TEXT = "\u0003";
-
 /** The chapter as it arrives: the title on the first line, then the text. */
 function readDraft(full: string) {
-  const written = full.replace(END_OF_TEXT, "").trimStart();
+  const written = full.trimStart();
   const cut = written.indexOf("\n");
   return {
     title: (cut < 0 ? written : written.slice(0, cut)).replace(/[#*"“”]/g, "").trim(),
     text: cut < 0 ? "" : written.slice(cut).trim(),
-    finished: full.includes(END_OF_TEXT),
   };
 }
 
@@ -156,6 +153,19 @@ function WordCard({ word, onChange }: { word: Word; onChange: (w: Word) => void 
 }
 
 /** Stays over the text without covering it, so you keep reading while it's open. */
+const TENSES: Record<string, string> = {
+  presente: "presente",
+  preterito: "pasado",
+  imperfeito: "imperfecto",
+  futuro: "futuro",
+  subjuntivo: "subjuntivo",
+  past: "pasado",
+  participle: "participio",
+  gerund: "gerundio",
+  third: "presente, he / she",
+};
+const PERSONS: Record<string, string> = { eu: "eu", voce: "você", nos: "nós", eles: "eles" };
+
 const PHRASE_KINDS: Record<string, string> = { "phrasal verb": "Phrasal verb", idiom: "Modismo", expression: "Expresión" };
 
 /** Words already looked up in this reading: tapping one again is instant. */
@@ -202,6 +212,7 @@ function WordDock({ tapped, language, onClose }: { tapped: Tapped | null; langua
   const word = useLookup(tapped?.word, tapped?.sentence ?? "", language);
   const whole = useLookup(phrase?.base, phrase?.sentence ?? "", language);
   const [adding, setAdding] = useState<"word" | "phrase" | null>(null);
+  const otherForm = !!word.info && !!tapped && word.info.lemma.toLowerCase() !== tapped.word;
   const [card, setCard] = useState<Word | null>(null);
 
   const addWord = async () => {
@@ -272,18 +283,30 @@ function WordDock({ tapped, language, onClose }: { tapped: Tapped | null; langua
     <>
       <aside className={styles.dock} aria-label="Palabra">
         <div className={styles.dockHead}>
-          <b>{word.info?.lemma ?? tapped.word}</b>
-          {word.info?.ipa && <span className={styles.ipa}>{word.info.ipa}</span>}
+          <b>{tapped.word}</b>
+          {word.info?.ipa && !otherForm && <span className={styles.ipa}>{word.info.ipa}</span>}
           <Button tone="neutral" variant="ghost" size="sm" iconOnly icon={<Icon name="close" size={18} />} aria-label="Cerrar" className={styles.dockClose} onClick={onClose} />
         </div>
         {word.failed && <p className={styles.muted}>No pude buscar esta palabra. Inténtalo otra vez.</p>}
         {!word.failed && !word.info && <Skeleton lines={1} />}
         {word.info && (
           <div className={styles.dockBody}>
-            <p className={styles.translation}>{word.info.translation}</p>
+            <p className={styles.translation}>
+              {otherForm && (
+                <span className={styles.formOf}>
+                  Forma de <b>{word.info.lemma}</b>
+                  {word.info.grammar && ` · ${TENSES[word.info.grammar.tense] ?? word.info.grammar.tense}${word.info.grammar.persons.length ? ` (${word.info.grammar.persons.map((p) => PERSONS[p] ?? p).join(", ")})` : ""}`}
+                </span>
+              )}
+              {word.info.translation}
+            </p>
             <div className={styles.dockActions}>
-              <SpeakButtons text={word.info.lemma} language={language} wordId={word.info.wordId} audio={word.info.audio} recorded size="sm" />
-              {saveAction(word.info, "word", "Agregar a mi lista", () => void addWord())}
+              {otherForm ? (
+                <SpeakButtons text={tapped.word} language={language} recorded size="sm" />
+              ) : (
+                <SpeakButtons text={word.info.lemma} language={language} wordId={word.info.wordId} audio={word.info.audio} recorded size="sm" />
+              )}
+              {saveAction(word.info, "word", otherForm ? `Agregar «${word.info.lemma}»` : "Agregar a mi lista", () => void addWord())}
             </div>
           </div>
         )}
@@ -431,8 +454,8 @@ function ChapterChat({ storyId, index, quote, onQuoteClear }: { storyId: string;
 }
 
 const MAX_IDEA = 300;
-const PICTURE_POLL_MS = 5000;
-const PICTURE_TRIES = 8;
+const EXTRAS_POLL_MS = 3000;
+const EXTRAS_TRIES = 20;
 const WORDS_PER_MINUTE = 130; // a learner's pace, not a native's
 
 /** What this reading is, at a glance. */
@@ -523,6 +546,7 @@ export function StoryReader() {
   const sideBySide = useMedia("(min-width: 900px)"); // same as the two-column .reader
   const [quote, setQuote] = useState("");
   const [chatOpen, setChatOpen] = useState(false);
+  const [gaveUp, setGaveUp] = useState(false);
   const [quiz, setQuiz] = useState(false);
   const textRef = useRef<HTMLDivElement>(null);
   const player = useRef<NarrationHandle>(null);
@@ -534,6 +558,7 @@ export function StoryReader() {
     setStuck(false);
     setDraft("");
     try {
+      setGaveUp(false);
       await storiesApi.nextChapter(id, setDraft, idea);
       const updated = await storiesApi.get(id);
       setStory(updated);
@@ -573,22 +598,24 @@ export function StoryReader() {
   const written = readDraft(draft);
   const picture = chapter?.img || story?.img;
 
-  // the picture and the phrases come a few seconds after the text
-  const waiting = !!chapter && (!chapter.img || !chapter.phrases) && index === (story?.chapters.length ?? 0) - 1;
+  // the questions, the phrases and the picture come a few seconds after the text
+  const waiting = !!chapter && !gaveUp && (!chapter.img || !chapter.phrases || !chapter.summary) && index === (story?.chapters.length ?? 0) - 1;
+  const preparing = waiting && !chapter?.questions.length;
   useEffect(() => {
     if (!waiting) return;
     let tries = 0;
     const timer = window.setInterval(() => {
       tries += 1;
-      if (tries > PICTURE_TRIES) return window.clearInterval(timer);
+      if (tries > EXTRAS_TRIES) return setGaveUp(true);
       storiesApi.get(id).then((fresh) => {
         const after = fresh.chapters[index];
         setStory((now) => {
           const before = now?.chapters[index];
-          return after?.img !== before?.img || !!after?.phrases !== !!before?.phrases ? fresh : now; // redrawing the text only if it changed
+          const changed = after?.img !== before?.img || !!after?.phrases !== !!before?.phrases || after?.summary !== before?.summary;
+          return changed ? fresh : now; // redrawing the text only if something arrived
         });
       }).catch(() => undefined);
-    }, PICTURE_POLL_MS);
+    }, EXTRAS_POLL_MS);
     return () => window.clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [waiting, index]);
@@ -676,10 +703,7 @@ export function StoryReader() {
       )}
 
       {writing && written.title ? (
-        <>
-          <StreamingText text={written.text} streaming={!written.finished} className={styles.draft} />
-          {written.finished && <AIThinking title="Tula está preparando las preguntas" tips={["Releyendo el capítulo…", "Buscando tus palabras…", "Pensando las preguntas…"]} skeletonLines={0} />}
-        </>
+        <StreamingText text={written.text} streaming className={styles.draft} />
       ) : writing ? (
         <AIThinking title="Tula está escribiendo" tips={["Siguiendo la trama…", "Metiendo tus palabras de hoy…"]} />
       ) : !chapter && story.chapters.length === 0 ? (
@@ -708,7 +732,7 @@ export function StoryReader() {
               <input type="checkbox" role="switch" checked={marks} onChange={toggleMarks} /> Marcar mis palabras
             </label>
             {!done.includes(index) ? (
-              <Button tone="warning" block onClick={() => (chapter.questions.length ? setQuiz(true) : void finish(0))}>
+              <Button tone="warning" block loading={preparing} quiet onClick={() => (chapter.questions.length ? setQuiz(true) : void finish(0))}>
                 Terminé el capítulo
               </Button>
             ) : index + 1 < story.totalChapters ? (

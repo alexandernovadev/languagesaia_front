@@ -1,10 +1,10 @@
 /**
  * ExpressionsList — /expresiones. Nubo's collection: search, filter by type
  * (modismo, frase, colocación, jerga, formal, informal) and difficulty,
- * endless list, and "Añadir" opens the AI sheet. Same layout as Palabras,
+ * pages, and "Añadir" opens the AI sheet. Same layout as Palabras,
  * tinted lilac (styles are shared with the words module).
  */
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { haptics } from "../../lib/haptics";
 import { sound } from "../../lib/sound";
@@ -13,6 +13,8 @@ import { tint } from "../../components/types";
 import { MODULES } from "../../app/modules";
 import { useSession } from "../../lib/session";
 import { DIFFICULTY, type Difficulty } from "../words/api";
+import { useVocabularyList } from "../words/useVocabularyList";
+import { ListPager } from "../words/ListPager";
 import styles from "../words/Words.module.css";
 import { AddExpressionSheet } from "./AddExpressionSheet";
 import { EXPRESSION_TYPES, expressionsApi, type Expression } from "./api";
@@ -24,25 +26,18 @@ const DIFF_FILTERS: Array<{ value: Difficulty | ""; label: string; tint: "lilac"
   { value: "easy", label: "Fáciles", tint: "mint" },
 ];
 
-function useDebounced<T>(value: T, ms = 300) {
-  const [v, setV] = useState(value);
-  useEffect(() => {
-    const t = window.setTimeout(() => setV(value), ms);
-    return () => window.clearTimeout(t);
-  }, [value, ms]);
-  return v;
-}
-
-function ExpressionRow({ e, index }: { e: Expression; index: number }) {
+function ExpressionRow({ e, index, last, onOpen }: { e: Expression; index: number; last: boolean; onOpen: (id: string) => void }) {
   const d = DIFFICULTY[e.difficulty] ?? DIFFICULTY.hard;
   return (
     <Link
+      id={e._id}
       to={`${MODULES.expressions.path}/${e._id}`}
       onClick={() => {
         sound.play("tap");
         haptics.tap();
+        onOpen(e._id);
       }}
-      className={styles.row} style={{ "--i": Math.min(index, 12) } as React.CSSProperties}>
+      className={styles.row} data-last={last || undefined} style={{ "--i": Math.min(index, 12) } as React.CSSProperties}>
       <span className={styles.thumb}>
         {e.img ? (
           <img src={e.img} alt="" loading="lazy" />
@@ -70,56 +65,8 @@ function ExpressionRow({ e, index }: { e: Expression; index: number }) {
 export function ExpressionsList() {
   const navigate = useNavigate();
   const language = useSession()?.user.language ?? "en";
-  const [search, setSearch] = useState("");
-  const [difficulty, setDifficulty] = useState<Difficulty | "">("");
-  const [type, setType] = useState("");
-  const q = useDebounced(search.trim());
-
-  const [items, setItems] = useState<Expression[]>([]);
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [pages, setPages] = useState(1);
-  const [state, setState] = useState<"loading" | "ready" | "more" | "error">("loading");
   const [adding, setAdding] = useState(false);
-  const sentinel = useRef<HTMLDivElement>(null);
-
-  const fetchPage = useCallback(
-    async (p: number, signal?: AbortSignal) => {
-      setState(p === 1 ? "loading" : "more");
-      try {
-        const res = await expressionsApi.list({ page: p, limit: 20, search: q, difficulty, type, language }, signal);
-        setItems((prev) => (p === 1 ? res.data : [...prev, ...res.data]));
-        setTotal(res.total);
-        setPages(res.pages);
-        setPage(p);
-        setState("ready");
-      } catch (e) {
-        if ((e as Error).name !== "AbortError") setState("error");
-      }
-    },
-    [q, difficulty, type, language],
-  );
-
-  useEffect(() => {
-    const ctrl = new AbortController();
-    void fetchPage(1, ctrl.signal);
-    return () => ctrl.abort();
-  }, [fetchPage]);
-
-  useEffect(() => {
-    const el = sentinel.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && state === "ready" && page < pages) void fetchPage(page + 1);
-      },
-      { rootMargin: "400px" },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [state, page, pages, fetchPage]);
-
-  const filtering = !!(q || difficulty || type);
+  const { search, difficulty, type, filter, items, total, page, pages, goTo, state, filtering, remember, lastId, retry } = useVocabularyList<Expression>(MODULES.expressions.path, language, expressionsApi.list);
 
   return (
     <div className={styles.page} style={tint("lilac")}>
@@ -137,8 +84,8 @@ export function ExpressionsList() {
       </header>
 
       <div className={styles.tools}>
-        <input type="search" placeholder="Buscar expresión…" value={search} onChange={(e) => setSearch(e.target.value)} aria-label="Buscar expresión" />
-        <select value={type} onChange={(e) => setType(e.target.value)} aria-label="Tipo de expresión" className={styles.typeSelect}>
+        <input type="search" placeholder="Buscar expresión…" value={search} onChange={(e) => filter({ search: e.target.value })} aria-label="Buscar expresión" />
+        <select value={type} onChange={(e) => filter({ type: e.target.value })} aria-label="Tipo de expresión" className={styles.typeSelect}>
           <option value="">Todos los tipos</option>
           {Object.entries(EXPRESSION_TYPES).map(([v, l]) => (
             <option key={v} value={v}>
@@ -153,7 +100,7 @@ export function ExpressionsList() {
 
       <div className={styles.chips} role="group" aria-label="Dificultad">
         {DIFF_FILTERS.map((f) => (
-          <Chip key={f.value || "all"} tint={f.tint} selected={difficulty === f.value} onToggle={() => setDifficulty(f.value)}>
+          <Chip key={f.value || "all"} tint={f.tint} selected={difficulty === f.value} onToggle={() => filter({ difficulty: f.value })}>
             {f.label}
           </Chip>
         ))}
@@ -167,18 +114,18 @@ export function ExpressionsList() {
           hero="nubo"
           title="No pude cargar tus expresiones"
           text="Revisa tu conexión e inténtalo otra vez."
-          action={<Button onClick={() => void fetchPage(1)}>Reintentar</Button>}
+          action={<Button onClick={retry}>Reintentar</Button>}
         />
       )}
 
-      {(state === "ready" || state === "more") && items.length === 0 && (
+      {state === "ready" && items.length === 0 && (
         <EmptyState
           hero="nubo"
           title={filtering ? "No encontré nada" : "Aún no tienes expresiones"}
           text={filtering ? "Prueba con otra búsqueda o quita los filtros." : "Añade la primera: Nubo te explica cuándo y cómo se dice."}
           action={
             filtering ? (
-              <Button tone="neutral" onClick={() => (setSearch(""), setDifficulty(""), setType(""))}>
+              <Button tone="neutral" onClick={() => filter({ search: "", difficulty: "", type: "" })}>
                 Quitar filtros
               </Button>
             ) : (
@@ -190,15 +137,14 @@ export function ExpressionsList() {
         />
       )}
 
-      {items.length > 0 && state !== "loading" && (
+      {items.length > 0 && state === "ready" && (
         <div className={styles.list}>
           {items.map((e, i) => (
-            <ExpressionRow key={e._id} e={e} index={i % 20} />
+            <ExpressionRow key={e._id} e={e} index={i} last={e._id === lastId} onOpen={remember} />
           ))}
         </div>
       )}
-      {state === "more" && <Skeleton rows={2} />}
-      <div ref={sentinel} aria-hidden="true" />
+      {state === "ready" && <ListPager page={page} pages={pages} onPage={goTo} />}
 
       <AddExpressionSheet open={adding} onClose={() => setAdding(false)} language={language} />
     </div>

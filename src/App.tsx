@@ -22,6 +22,9 @@ const AdminLayout = lazy(() => import("./features/admin/AdminLayout").then((m) =
 const AdminSystem = lazy(() => import("./features/admin/AdminSystem").then((m) => ({ default: m.AdminSystem })));
 const AdminBackups = lazy(() => import("./features/admin/AdminBackups").then((m) => ({ default: m.AdminBackups })));
 const AdminDelete = lazy(() => import("./features/admin/AdminDelete").then((m) => ({ default: m.AdminDelete })));
+const AdminDictionary = lazy(() => import("./features/admin/AdminDictionary").then((m) => ({ default: m.AdminDictionary })));
+const AdminDictionaryCard = lazy(() => import("./features/admin/AdminDictionaryCard").then((m) => ({ default: m.AdminDictionaryCard })));
+const AdminDictionaryWord = lazy(() => import("./features/admin/AdminDictionaryWord").then((m) => ({ default: m.AdminDictionaryWord })));
 const AdminData = lazy(() => import("./features/admin/AdminData").then((m) => ({ default: m.AdminData })));
 
 /* Design system showcase: development only, it never ships to production. */
@@ -49,6 +52,10 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="sistema" replace /> },
       { path: "sistema", element: <AdminSystem /> },
+      { path: "diccionario", element: <AdminDictionary /> },
+      { path: "diccionario/nueva", element: <AdminDictionaryWord /> },
+      { path: "diccionario/:id", element: <AdminDictionaryCard /> },
+      { path: "diccionario/:id/editar", element: <AdminDictionaryWord /> },
       { path: "backups", element: <AdminBackups /> },
       { path: "datos", element: <AdminData /> },
       { path: "borrado", element: <AdminDelete /> },

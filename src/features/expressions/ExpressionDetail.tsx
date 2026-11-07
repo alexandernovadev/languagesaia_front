@@ -17,6 +17,7 @@ import { DifficultyPicker } from "../words/WordDetail";
 import styles from "../words/WordDetail.module.css";
 import info from "../words/WordInfo.module.css";
 import { EXPRESSION_TYPES, expressionsApi, type Expression } from "./api";
+import { listUrl } from "../words/useVocabularyList";
 
 export function ExpressionDetail() {
   const { id = "" } = useParams();
@@ -100,7 +101,7 @@ export function ExpressionDetail() {
 
   return (
     <div className={styles.page} style={tint("lilac")}>
-      <Link to={MODULES.expressions.path} className={styles.back}>
+      <Link to={listUrl(MODULES.expressions.path)} className={styles.back}>
         <Icon name="back" size={20} /> Expresiones
       </Link>
 

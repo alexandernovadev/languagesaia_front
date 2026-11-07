@@ -15,6 +15,7 @@ import { useSession } from "../../lib/session";
 import { sound } from "../../lib/sound";
 import { DIFFICULTY, WORD_TYPES, wordsApi, type Difficulty, type Word } from "./api";
 import { WordInfo } from "./WordInfo";
+import { listUrl } from "./useVocabularyList";
 import styles from "./WordDetail.module.css";
 
 export function DifficultyPicker({ value, onChange }: { value: Difficulty; onChange: (d: Difficulty) => void }) {
@@ -108,7 +109,7 @@ export function WordDetail() {
 
   return (
     <div className={styles.page} style={tint("sky")}>
-      <Link to={MODULES.words.path} className={styles.back}>
+      <Link to={listUrl(MODULES.words.path)} className={styles.back}>
         <Icon name="back" size={20} /> Palabras
       </Link>
 

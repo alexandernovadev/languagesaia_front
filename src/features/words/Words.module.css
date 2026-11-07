@@ -80,6 +80,10 @@
 .row:active {
   transform: scale(0.985);
 }
+.row[data-last] {
+  border-color: var(--c);
+  background: color-mix(in srgb, var(--bg-1), var(--c) 8%);
+}
 .thumb {
   flex: none;
   width: 60px;
@@ -220,4 +224,15 @@
   .titleRow h1 {
     font-size: var(--fs-h2);
   }
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-4);
+  color: var(--text-2);
+}
+.pager b {
+  color: var(--text-1);
 }

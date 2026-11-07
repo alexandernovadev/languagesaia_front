@@ -1,6 +1,6 @@
 /**
- * AdminLayout — the frame of /admin. On purpose it looks nothing like the app:
- * a quiet console with straight lines and dense information, no heroes.
+ * AdminLayout — the frame of /admin: the same warm Glota as the rest of the app,
+ * with the sections down the left side.
  * To add a section: add it to SECTIONS and give it a child route in App.tsx.
  */
 import { Suspense } from "react";
@@ -12,6 +12,7 @@ import styles from "./Admin.module.css";
 
 const SECTIONS: Array<{ path: string; label: string; icon: IconName }> = [
   { path: "sistema", label: "Sistema", icon: "settings" },
+  { path: "diccionario", label: "Diccionario", icon: "words" },
   { path: "backups", label: "Backups", icon: "check" },
   { path: "datos", label: "Importar y exportar", icon: "send" },
   { path: "borrado", label: "Borrado", icon: "trash" },

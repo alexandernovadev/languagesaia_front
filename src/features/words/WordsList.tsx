@@ -1,9 +1,9 @@
 /**
- * WordsList — /palabras. Search, filter by difficulty and type, endless list
- * (loads more as you scroll), and "Añadir" opens the AI sheet.
+ * WordsList — /palabras. Search, filter by difficulty and type, pages, and
+ * "Añadir" opens the AI sheet.
  * Only words of the language the user is learning are shown.
  */
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { haptics } from "../../lib/haptics";
 import { sound } from "../../lib/sound";
@@ -12,6 +12,8 @@ import { MODULES } from "../../app/modules";
 import { tint } from "../../components/types";
 import { useSession } from "../../lib/session";
 import { AddWordSheet } from "./AddWordSheet";
+import { useVocabularyList } from "./useVocabularyList";
+import { ListPager } from "./ListPager";
 import { DIFFICULTY, WORD_TYPES, wordsApi, type Difficulty, type Word } from "./api";
 import styles from "./Words.module.css";
 
@@ -22,24 +24,15 @@ const DIFF_FILTERS: Array<{ value: Difficulty | ""; label: string; tint: "lilac"
   { value: "easy", label: "Fáciles", tint: "mint" },
 ];
 
-function useDebounced<T>(value: T, ms = 300) {
-  const [v, setV] = useState(value);
-  useEffect(() => {
-    const t = window.setTimeout(() => setV(value), ms);
-    return () => window.clearTimeout(t);
-  }, [value, ms]);
-  return v;
-}
-
 const tapped = () => {
   sound.play("tap");
   haptics.tap();
 };
 
-export function WordRow({ w, index }: { w: Word; index: number }) {
+function WordRow({ w, index, last, onOpen }: { w: Word; index: number; last: boolean; onOpen: (id: string) => void }) {
   const d = DIFFICULTY[w.difficulty] ?? DIFFICULTY.hard;
   return (
-    <Link to={`${MODULES.words.path}/${w._id}`} onClick={tapped} className={styles.row} style={{ "--i": Math.min(index, 12) } as React.CSSProperties}>
+    <Link id={w._id} to={`${MODULES.words.path}/${w._id}`} onClick={() => (tapped(), onOpen(w._id))} className={styles.row} data-last={last || undefined} style={{ "--i": Math.min(index, 12) } as React.CSSProperties}>
       <span className={styles.thumb}>
         {w.img ? <img src={w.img} alt="" loading="lazy" /> : <span className={styles.letter}>{w.word.charAt(0).toUpperCase()}</span>}
       </span>
@@ -62,54 +55,8 @@ export function WordRow({ w, index }: { w: Word; index: number }) {
 export function WordsList() {
   const navigate = useNavigate();
   const language = useSession()?.user.language ?? "en";
-  const [search, setSearch] = useState("");
-  const [difficulty, setDifficulty] = useState<Difficulty | "">("");
-  const [type, setType] = useState("");
-  const q = useDebounced(search.trim());
-
-  const [items, setItems] = useState<Word[]>([]);
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [pages, setPages] = useState(1);
-  const [state, setState] = useState<"loading" | "ready" | "more" | "error">("loading");
   const [adding, setAdding] = useState(false);
-  const sentinel = useRef<HTMLDivElement>(null);
-
-  const fetchPage = useCallback(
-    async (p: number, signal?: AbortSignal) => {
-      setState(p === 1 ? "loading" : "more");
-      try {
-        const res = await wordsApi.list({ page: p, limit: 20, search: q, difficulty, type, language }, signal);
-        setItems((prev) => (p === 1 ? res.data : [...prev, ...res.data]));
-        setTotal(res.total);
-        setPages(res.pages);
-        setPage(p);
-        setState("ready");
-      } catch (e) {
-        if ((e as Error).name !== "AbortError") setState("error");
-      }
-    },
-    [q, difficulty, type, language],
-  );
-
-  useEffect(() => {
-    const ctrl = new AbortController();
-    void fetchPage(1, ctrl.signal);
-    return () => ctrl.abort();
-  }, [fetchPage]);
-
-  // endless scroll
-  useEffect(() => {
-    const el = sentinel.current;
-    if (!el) return;
-    const io = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting && state === "ready" && page < pages) void fetchPage(page + 1);
-    }, { rootMargin: "400px" });
-    io.observe(el);
-    return () => io.disconnect();
-  }, [state, page, pages, fetchPage]);
-
-  const filtering = !!(q || difficulty || type);
+  const { search, difficulty, type, filter, items, total, page, pages, goTo, state, filtering, remember, lastId, retry } = useVocabularyList<Word>(MODULES.words.path, language, wordsApi.list);
 
   return (
     <div className={styles.page} style={tint("sky")}>
@@ -127,8 +74,8 @@ export function WordsList() {
       </header>
 
       <div className={styles.tools}>
-        <input type="search" placeholder="Buscar palabra…" value={search} onChange={(e) => setSearch(e.target.value)} aria-label="Buscar palabra" />
-        <select value={type} onChange={(e) => setType(e.target.value)} aria-label="Tipo de palabra" className={styles.typeSelect}>
+        <input type="search" placeholder="Buscar palabra…" value={search} onChange={(e) => filter({ search: e.target.value })} aria-label="Buscar palabra" />
+        <select value={type} onChange={(e) => filter({ type: e.target.value })} aria-label="Tipo de palabra" className={styles.typeSelect}>
           <option value="">Todos los tipos</option>
           {Object.entries(WORD_TYPES).map(([v, l]) => (
             <option key={v} value={v}>
@@ -143,7 +90,7 @@ export function WordsList() {
 
       <div className={styles.chips} role="group" aria-label="Dificultad">
         {DIFF_FILTERS.map((f) => (
-          <Chip key={f.value || "all"} tint={f.tint} selected={difficulty === f.value} onToggle={() => setDifficulty(f.value)}>
+          <Chip key={f.value || "all"} tint={f.tint} selected={difficulty === f.value} onToggle={() => filter({ difficulty: f.value })}>
             {f.label}
           </Chip>
         ))}
@@ -157,18 +104,18 @@ export function WordsList() {
           hero="lumi"
           title="No pudimos cargar tus palabras"
           text="Revisa tu conexión e inténtalo otra vez."
-          action={<Button onClick={() => void fetchPage(1)}>Reintentar</Button>}
+          action={<Button onClick={retry}>Reintentar</Button>}
         />
       )}
 
-      {(state === "ready" || state === "more") && items.length === 0 && (
+      {state === "ready" && items.length === 0 && (
         <EmptyState
           hero="lumi"
           title={filtering ? "No encontré nada" : "Aún no tienes palabras"}
           text={filtering ? "Prueba con otra búsqueda o quita los filtros." : "Añade la primera y Lumi te la explica con ejemplos, imagen y todo."}
           action={
             filtering ? (
-              <Button tone="neutral" onClick={() => (setSearch(""), setDifficulty(""), setType(""))}>
+              <Button tone="neutral" onClick={() => filter({ search: "", difficulty: "", type: "" })}>
                 Quitar filtros
               </Button>
             ) : (
@@ -180,15 +127,14 @@ export function WordsList() {
         />
       )}
 
-      {items.length > 0 && state !== "loading" && (
+      {items.length > 0 && state === "ready" && (
         <div className={styles.list}>
           {items.map((w, i) => (
-            <WordRow key={w._id} w={w} index={i % 20} />
+            <WordRow key={w._id} w={w} index={i} last={w._id === lastId} onOpen={remember} />
           ))}
         </div>
       )}
-      {state === "more" && <Skeleton rows={2} />}
-      <div ref={sentinel} aria-hidden="true" />
+      {state === "ready" && <ListPager page={page} pages={pages} onPage={goTo} />}
 
       <AddWordSheet open={adding} onClose={() => setAdding(false)} language={language} />
     </div>

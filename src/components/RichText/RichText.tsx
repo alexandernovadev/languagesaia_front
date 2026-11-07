@@ -16,6 +16,17 @@ import { Fragment, type ReactNode } from "react";
 import { cx } from "../types";
 import styles from "./RichText.module.css";
 
+/**
+ * Whole words only: "a" must not light up every a. Long words also match their
+ * endings (studied, studying); short ones only a plural, or "it" would catch "items".
+ */
+const MIN_STEM = 4;
+const highlightPattern = (word: string) => {
+  const stem = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const ending = word.length >= MIN_STEM ? "\\p{L}*" : "s?";
+  return new RegExp(`(?<!\\p{L})(${stem}${ending})(?!\\p{L})`, "giu");
+};
+
 function inline(text: string, highlight?: string, keyBase = ""): ReactNode[] {
   const out: ReactNode[] = [];
   const re = /(\*\*[^*]+\*\*|\*[^*\s][^*]*\*|`[^`]+`|(?<![\w/:.])\/[^\s/][^/\n]{0,40}\/(?![\w/])|"[^"\n]{1,40}"|“[^”\n]{1,40}”|(?<![\w\]])\([^()\n]{1,60}\))/g;
@@ -25,7 +36,7 @@ function inline(text: string, highlight?: string, keyBase = ""): ReactNode[] {
   const pushText = (raw: string) => {
     const t = raw.replace(/\*+/g, ""); // marks left over from emphasis the AI nested or left open
     if (!highlight) return out.push(t);
-    const parts = t.split(new RegExp(`(${highlight.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\w*)`, "gi"));
+    const parts = t.split(highlightPattern(highlight));
     parts.forEach((p, j) =>
       j % 2 ? (
         out.push(
