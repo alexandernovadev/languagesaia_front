@@ -370,7 +370,7 @@
 .tulaFab {
   position: fixed;
   right: var(--sp-4);
-  bottom: calc(var(--sp-3) + var(--story-player-h, 72px) + var(--sp-3) + env(safe-area-inset-bottom, 0px)); /* above the audio player */
+  bottom: calc(var(--story-player-top, calc(var(--sp-3) + 72px)) + var(--sp-3) + env(safe-area-inset-bottom, 0px)); /* above the audio player, wherever it is */
   z-index: var(--z-sticky);
   width: 56px;
   min-height: 56px;
@@ -387,13 +387,13 @@
 }
 /* above the word box while it's open */
 .tulaFab[data-raised] {
-  bottom: calc(var(--sp-3) + var(--story-player-h, 0px) + var(--sp-2) + var(--story-dock-h, 260px) + var(--sp-3));
+  bottom: calc(var(--story-player-top, var(--sp-3)) + var(--sp-2) + var(--story-dock-h, 260px) + var(--sp-3));
 }
 /* on a phone the word box sits on top of the player (its height is measured), which stays reachable */
 @media (max-width: 899px) {
   .reader .dock {
-    bottom: calc(var(--sp-3) + var(--story-player-h, 0px) + var(--sp-2));
-    max-height: calc(100dvh - var(--story-player-h, 0px) - 120px); /* under the close bar; scrolls if it's long */
+    bottom: calc(var(--story-player-top, var(--sp-3)) + var(--sp-2));
+    max-height: calc(100dvh - var(--story-player-top, 0px) - 120px); /* under the close bar; scrolls if it's long */
     overflow-y: auto;
   }
 }
@@ -733,6 +733,8 @@
 
 /* Tula's "save this" cards, under her answer */
 .saveCards {
+  position: relative;
+  z-index: 1; /* above Tula's floating face: the button stays whole */
   display: flex;
   flex-direction: column;
   gap: var(--sp-2);

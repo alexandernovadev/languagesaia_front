@@ -7,7 +7,6 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState, type RefObject } from "react";
 import { Button, Icon, toast } from "../../components";
 import { sound } from "../../lib/sound";
-import { useHeightVar } from "../../lib/useHeightVar";
 import { storiesApi, type Chapter, type WordTime } from "./api";
 import styles from "./Stories.module.css";
 
@@ -23,6 +22,7 @@ const JUMP_SECONDS = 5;
 const FOLLOW_PAUSE_MS = 4000; // after you scroll by hand, the text stays where you left it
 const TOP_MARGIN = 100; // the close bar
 const BOTTOM_MARGIN = 170; // the player
+const PARAGRAPH_GAP = 16; // a new paragraph stops this far under the close bar
 const SENTENCE_END = /[.!?…]["”»)]*$/;
 
 const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
@@ -56,7 +56,33 @@ export const Narration = forwardRef<NarrationHandle, { storyId: string; index: n
   }, [loading]);
   const audio = useRef<HTMLAudioElement | null>(null);
   const box = useRef<HTMLDivElement>(null);
-  useHeightVar(box, "--story-player-h"); // the word box and Tula stack above it
+  // The word box and Tula stack above the player. It's sticky: at the end of the
+  // chapter it stops and rises with the text, so its real top is measured, not assumed.
+  useEffect(() => {
+    const el = box.current;
+    const root = document.documentElement;
+    if (!el) return;
+    let frame = 0;
+    const update = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const above = window.innerHeight - el.getBoundingClientRect().top;
+        root.style.setProperty("--story-player-top", `${Math.round(Math.min(Math.max(above, 0), window.innerHeight))}px`);
+      });
+    };
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(el);
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+      root.style.removeProperty("--story-player-top");
+    };
+  }, []);
   const times = useRef<WordTime[]>(chapter.audioAlignment ?? []);
   const url = useRef(chapter.urlAudio);
   const spans = useRef<Element[]>([]);
@@ -66,19 +92,30 @@ export const Narration = forwardRef<NarrationHandle, { storyId: string; index: n
 
   const scrolledAt = useRef(0);
 
-  /** The word being read stays on screen, also after jumping far with the bar. */
-  const follow = useCallback((force = false) => {
+  /**
+   * The word being read stays on screen, also after jumping far with the bar.
+   * A new paragraph goes up to the top, so the whole of it is in view as it starts.
+   */
+  const follow = useCallback((force = false, newParagraph = false) => {
     const word = spans.current[current.current];
     if (!word || (!force && Date.now() - scrolledAt.current < FOLLOW_PAUSE_MS)) return;
+    const paragraph = word.closest("p");
+    if (newParagraph && paragraph) {
+      const gap = paragraph.getBoundingClientRect().top - TOP_MARGIN - PARAGRAPH_GAP;
+      if (Math.abs(gap) > PARAGRAPH_GAP) window.scrollTo({ top: window.scrollY + gap, behavior: "smooth" });
+      return;
+    }
     const { top, bottom } = word.getBoundingClientRect();
     if (top < TOP_MARGIN || bottom > window.innerHeight - BOTTOM_MARGIN) word.scrollIntoView({ block: "center", behavior: "smooth" });
   }, []);
 
   const mark = useCallback((next: number) => {
-    spans.current[current.current]?.classList.remove(styles.now);
+    const before = spans.current[current.current];
+    before?.classList.remove(styles.now);
     spans.current[next]?.classList.add(styles.now);
     current.current = next;
-    follow();
+    const paragraph = spans.current[next]?.closest("p");
+    follow(false, !!paragraph && !!before && before.closest("p") !== paragraph);
   }, [follow]);
 
   useEffect(() => {

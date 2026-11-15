@@ -65,9 +65,32 @@ export function ChatPanel({ hero, load, streamPath, suggestions = [], fill = fal
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [streamPath]);
 
+  // Opening the chat shows the latest messages. After you ask, your question goes
+  // to the top and stays there: the answer grows below it, and you read it from the start.
+  const pinQuestion = useRef(false);
+  const opened = useRef(false);
   useEffect(() => {
-    scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" });
+    const box = scroller.current;
+    if (!box || !messages) return;
+    if (!opened.current) {
+      opened.current = true;
+      box.scrollTop = box.scrollHeight;
+      return;
+    }
+    if (!pinQuestion.current) return;
+    const asked = [...box.querySelectorAll(`.${styles.user}`)].pop();
+    if (!asked) return;
+    // until the answer is long enough, the question rises with it; once at the top, it stops there
+    const target = box.scrollTop + asked.getBoundingClientRect().top - box.getBoundingClientRect().top - 8;
+    const reachable = Math.min(target, box.scrollHeight - box.clientHeight);
+    if (reachable > box.scrollTop) box.scrollTop = reachable;
+    if (reachable >= target) pinQuestion.current = false;
   }, [messages]);
+
+  /** You scrolled yourself: the chat stops moving the text. */
+  const letGo = () => {
+    pinQuestion.current = false;
+  };
 
   const send = async (text: string) => {
     const message = text.trim();
@@ -79,6 +102,7 @@ export function ChatPanel({ hero, load, streamPath, suggestions = [], fill = fal
     const body = quote ? { message, selection: quote } : { message };
     const shown = quote ? `«${quote}»\n${message}` : message;
     onQuoteClear?.();
+    pinQuestion.current = true;
     setMessages((m) => [...(m ?? []), { role: "user", content: shown }, { role: "assistant", content: "" }]);
     // if the AI doesn't start answering in 90 s, give up kindly
     const ctrl = new AbortController();
@@ -106,6 +130,7 @@ export function ChatPanel({ hero, load, streamPath, suggestions = [], fill = fal
       bot.react("sad");
     } finally {
       window.clearTimeout(timer);
+      pinQuestion.current = false;
       setStreaming(false);
     }
   };
@@ -118,7 +143,7 @@ export function ChatPanel({ hero, load, streamPath, suggestions = [], fill = fal
   return (
     <div className={cx(styles.root, fill && styles.fill, className)} style={tint(h.tint)}>
       <div className={styles.threadWrap}>
-      <div ref={scroller} className={styles.thread} aria-live="polite">
+      <div ref={scroller} className={styles.thread} aria-live="polite" onWheel={letGo} onTouchMove={letGo}>
         {messages === null && <Skeleton lines={3} />}
         {messages?.length === 0 && (
           <div className={styles.intro}>
