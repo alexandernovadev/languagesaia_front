@@ -42,11 +42,11 @@ export const expressionsApi = {
     signal?: AbortSignal,
   ) => api<Page<Expression>>(`/api/expressions?${qs({ page, limit, search, difficulty, type, language, sortBy: "createdAt", sortOrder: "desc" })}`, { signal }),
   get: (id: string) => api<Expression>(`/api/expressions/${id}`),
-  async generateAndSave(prompt: string, language: string) {
-    const draft = await api<Partial<Expression>>("/api/expressions/generate", { method: "POST", body: { prompt, language } });
-    const created = await api<Expression & { reward: Reward }>("/api/expressions", { method: "POST", body: { ...draft, language: draft.language ?? language } });
-    progress.apply(created.reward);
-    return created;
+  /** By its text: if it's already saved you get that one back (`alreadyExists`), with no AI call and no XP. */
+  async generateAndSave(expression: string, language: string) {
+    const saved = await api<Expression & { alreadyExists: boolean; reward: Reward | null }>("/api/expressions/save", { method: "POST", body: { expression, language } });
+    progress.apply(saved.reward);
+    return saved;
   },
   update: (id: string, data: Partial<Expression>) => api<Expression>(`/api/expressions/${id}`, { method: "PUT", body: data }),
   remove: (id: string) => api(`/api/expressions/${id}`, { method: "DELETE" }),

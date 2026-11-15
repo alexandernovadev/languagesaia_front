@@ -730,3 +730,44 @@
   flex-direction: column;
   gap: var(--sp-2);
 }
+
+/* Tula's "save this" cards, under her answer */
+.saveCards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin: var(--sp-1) 0 var(--sp-2);
+  animation: lai-reveal var(--t-base) var(--ease-out);
+}
+.saveCard {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--sp-2) var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-md);
+  border: var(--border) solid color-mix(in oklab, var(--sky) 45%, transparent);
+  background: color-mix(in oklab, var(--sky) 10%, transparent);
+}
+.saveCard[data-state="saved"],
+.saveCard[data-state="had"] {
+  border-color: color-mix(in oklab, var(--mint) 55%, transparent);
+  background: color-mix(in oklab, var(--mint) 10%, transparent);
+}
+.saveText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.saveText b {
+  color: var(--text-1);
+  font-family: var(--font-display);
+  font-size: var(--fs-h3);
+  overflow-wrap: anywhere;
+}
+.saveDone {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}

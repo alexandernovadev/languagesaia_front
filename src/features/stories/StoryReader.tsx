@@ -242,8 +242,12 @@ function WordDock({ tapped, language, onClose }: { tapped: Tapped | null; langua
         const saved = await wordsApi.generate(phrase.base, language);
         whole.update({ ...whole.info, inList: true, wordId: saved._id, audio: saved.audio });
       } else {
-        await expressionsApi.generateAndSave(phrase.base, language);
+        const saved = await expressionsApi.generateAndSave(phrase.base, language);
         whole.update({ ...whole.info, inList: true });
+        if (saved.alreadyExists) {
+          toast(`«${saved.expression}» ya la tenías`, { tone: "success" });
+          return;
+        }
       }
       toast(`«${phrase.base}» guardada`, { tone: "success" });
     } catch (e) {
@@ -441,8 +445,113 @@ function SelectionAsk({ text, onAsk }: { text: React.RefObject<HTMLDivElement | 
 
 const SUGGESTIONS = ["¿Qué significa esto?", "Tradúcelo", "¿Por qué se dice así?"];
 
+type SaveKind = "word" | "phrasal verb" | "idiom" | "expression";
+const SAVE_KINDS: Record<SaveKind, string> = { word: "Palabra", "phrasal verb": "Phrasal verb", idiom: "Modismo", expression: "Expresión" };
+/** Tula ends a "what does X mean" answer with `[[save: base form | kind]]`, one per thing to save. */
+const SAVE_LINE = /\[\[\s*save:\s*([^|\]]+?)\s*\|\s*([^\]]+?)\s*\]\]/gi;
+
+/** Takes Tula's save lines out of the reply and turns them into cards. */
+const saveCards = (language: string) => (content: string, done: boolean) => {
+  const found = new Map<string, SaveKind>();
+  for (const [, base, kind] of content.matchAll(SAVE_LINE)) {
+    const k = kind.toLowerCase().trim() as SaveKind;
+    found.set(base.trim(), k in SAVE_KINDS ? k : "expression");
+  }
+  // while it streams, a half-written line must not flash on screen
+  const clean = content.replace(SAVE_LINE, "");
+  const text = (done ? clean : clean.replace(/\[\[?[^\]]*$/, "")).trimEnd();
+  if (!done || !found.size) return { text };
+  return {
+    text,
+    extra: (
+      <div className={styles.saveCards}>
+        {[...found].slice(0, 3).map(([base, kind]) => (
+          <SaveCard key={base} base={base} kind={kind} language={language} />
+        ))}
+      </div>
+    ),
+  };
+};
+
+/** "Add it to my words": words and phrasal verbs go to your list, idioms and expressions to Expresiones. */
+function SaveCard({ base, kind, language }: { base: string; kind: SaveKind; language: string }) {
+  const navigate = useNavigate();
+  const [state, setState] = useState<"idle" | "saving" | "saved" | "had">("idle");
+  const [word, setWord] = useState<Word | null>(null);
+  const [expressionId, setExpressionId] = useState("");
+  const [card, setCard] = useState<Word | null>(null);
+  const btn = useRef<HTMLDivElement>(null);
+  const isWord = kind === "word" || kind === "phrasal verb";
+
+  const save = async () => {
+    setState("saving");
+    try {
+      let had: boolean;
+      if (isWord) {
+        const saved = await wordsApi.generate(base, language);
+        setWord(saved);
+        had = saved.alreadyInList;
+      } else {
+        const saved = await expressionsApi.generateAndSave(base, language);
+        setExpressionId(saved._id);
+        had = saved.alreadyExists;
+      }
+      setState(had ? "had" : "saved");
+      if (had) {
+        sound.play("ready");
+        haptics.success();
+      } else {
+        sound.play("levelup");
+        haptics.celebrate();
+        if (btn.current) fx.confetti(btn.current, 30);
+      }
+    } catch (e) {
+      setState("idle");
+      sound.play("wrong");
+      toast((e as Error).message, { tone: "danger" });
+    }
+  };
+
+  const open = async () => {
+    if (expressionId) return navigate(`${MODULES.expressions.path}/${expressionId}`);
+    if (!word) return;
+    try {
+      setCard(await wordsApi.get(word._id));
+    } catch (e) {
+      toast((e as Error).message, { tone: "danger" });
+    }
+  };
+
+  return (
+    <div ref={btn} className={styles.saveCard} data-state={state}>
+      <div className={styles.saveText}>
+        <span className={styles.phraseKind}>{SAVE_KINDS[kind]}</span>
+        <b>{base}</b>
+      </div>
+      {state === "saved" || state === "had" ? (
+        <div className={styles.saveDone}>
+          <span className={styles.muted}>{state === "had" ? "Ya la tenías" : "¡Guardada!"}</span>
+          <Button tone="neutral" variant="soft" size="sm" onClick={() => void open()}>
+            Ver ficha
+          </Button>
+        </div>
+      ) : (
+        <Button tone="warning" size="sm" loading={state === "saving"} onClick={() => void save()}>
+          {isWord ? "Agregar a mis palabras" : "Guardar en expresiones"}
+        </Button>
+      )}
+      {card && (
+        <Modal open onClose={() => setCard(null)} title={card.word} description={card.spanish?.word} className={styles.cardModal}>
+          <WordCard key={card._id} word={card} onChange={setCard} />
+        </Modal>
+      )}
+    </div>
+  );
+}
+
 /** One conversation per chapter: it remembers everything you asked about it. */
-function ChapterChat({ storyId, index, quote, onQuoteClear }: { storyId: string; index: number; quote: string; onQuoteClear: () => void }) {
+function ChapterChat({ storyId, index, language, quote, onQuoteClear }: { storyId: string; index: number; language: string; quote: string; onQuoteClear: () => void }) {
+  const extras = useMemo(() => saveCards(language), [language]);
   return (
     <ChatPanel
       hero="tula"
@@ -453,6 +562,7 @@ function ChapterChat({ storyId, index, quote, onQuoteClear }: { storyId: string;
       onQuoteClear={onQuoteClear}
       suggestions={SUGGESTIONS}
       placeholder="Pregúntale a Tula…"
+      extras={extras}
     />
   );
 }
@@ -766,7 +876,7 @@ export function StoryReader() {
           </div>
           {sideBySide && chapter && (
             <div className={styles.panelChat}>
-              <ChapterChat key={index} storyId={id} index={index} quote={quote} onQuoteClear={() => setQuote("")} />
+              <ChapterChat key={index} storyId={id} index={index} language={story.language} quote={quote} onQuoteClear={() => setQuote("")} />
             </div>
           )}
         </div>
@@ -782,7 +892,7 @@ export function StoryReader() {
             document.body,
           )}
           <Sheet open={chatOpen} onClose={() => setChatOpen(false)} className={styles.askSheet} title="Pregúntale a Tula">
-            {chatOpen && <ChapterChat key={index} storyId={id} index={index} quote={quote} onQuoteClear={() => setQuote("")} />}
+            {chatOpen && <ChapterChat key={index} storyId={id} index={index} language={story.language} quote={quote} onQuoteClear={() => setQuote("")} />}
           </Sheet>
         </>
       )}

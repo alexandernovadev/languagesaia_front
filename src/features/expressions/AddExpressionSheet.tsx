@@ -62,9 +62,9 @@ export function AddExpressionSheet({ open, onClose, language }: { open: boolean;
     try {
       const created = await expressionsApi.generateAndSave(value, language);
       nubo.react("party");
-      sound.play("levelup");
-      if (btn.current) fx.confetti(btn.current, 30);
-      toast(`«${created.expression}» guardada`, { tone: "success" });
+      sound.play(created.alreadyExists ? "ready" : "levelup");
+      if (btn.current && !created.alreadyExists) fx.confetti(btn.current, 30);
+      toast(created.alreadyExists ? `«${created.expression}» ya la tenías` : `«${created.expression}» guardada`, { tone: "success" });
       window.setTimeout(() => {
         setBusy(false);
         setText("");

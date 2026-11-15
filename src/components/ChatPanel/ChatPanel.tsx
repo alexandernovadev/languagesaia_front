@@ -10,7 +10,7 @@
  *     streamPath={`/api/words/${id}/chat/stream`}
  *     suggestions={["Dame otro ejemplo", "¿Cuándo se usa?"]} />
  */
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { Fragment, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { apiStream } from "../../lib/api";
 import { sound } from "../../lib/sound";
 import { Button } from "../Button/Button";
@@ -38,9 +38,14 @@ export interface ChatPanelProps {
   onQuoteClear?: () => void;
   placeholder?: string;
   className?: string;
+  /**
+   * Splits a reply into the text to show and something to put under it, like a
+   * "save this word" card. `done` is false while the reply is still arriving.
+   */
+  extras?: (content: string, done: boolean) => { text: string; extra?: ReactNode };
 }
 
-export function ChatPanel({ hero, load, streamPath, suggestions = [], fill = false, quote, onQuoteClear, placeholder = "Escribe tu pregunta…", className }: ChatPanelProps) {
+export function ChatPanel({ hero, load, streamPath, suggestions = [], fill = false, quote, onQuoteClear, placeholder = "Escribe tu pregunta…", className, extras }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMsg[] | null>(null);
   const [draft, setDraft] = useState("");
   const [streaming, setStreaming] = useState(false);
@@ -127,13 +132,16 @@ export function ChatPanel({ hero, load, streamPath, suggestions = [], fill = fal
         )}
         {messages?.map((m, i) => {
           const last = i === messages.length - 1;
-          const waiting = last && streaming && m.role === "assistant" && !m.content;
+          const live = last && streaming;
+          const shown = m.role === "assistant" && extras ? extras(m.content, !live) : { text: m.content };
+          const waiting = live && m.role === "assistant" && !shown.text;
           return m.role === "user" ? (
             <div key={i} className={styles.user}>
               {m.content}
             </div>
           ) : (
-            <div key={i} className={styles.botRow}>
+            <Fragment key={i}>
+            <div className={styles.botRow}>
               <div className={styles.bot}>
                 {waiting ? (
                   <span className={styles.dots} aria-label={`${h.name} está escribiendo`}>
@@ -142,11 +150,13 @@ export function ChatPanel({ hero, load, streamPath, suggestions = [], fill = fal
                     <i />
                   </span>
                 ) : (
-                  <RichText text={m.content} />
+                  <RichText text={shown.text} />
                 )}
-                {last && streaming && m.content && <span className={styles.caret} aria-hidden="true" />}
+                {live && shown.text && <span className={styles.caret} aria-hidden="true" />}
               </div>
             </div>
+            {shown.extra}
+            </Fragment>
           );
         })}
         {error && <p className={styles.error}>{error}</p>}
