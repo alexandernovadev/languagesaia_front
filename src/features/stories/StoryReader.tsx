@@ -10,6 +10,7 @@ import { MODULES } from "../../app/modules";
 import { fx } from "../../lib/fx";
 import { haptics } from "../../lib/haptics";
 import { sound } from "../../lib/sound";
+import { useHeightVar } from "../../lib/useHeightVar";
 import { useMedia } from "../../lib/useMedia";
 import { wordsApi, type Word } from "../words/api";
 import { WordInfo } from "../words/WordInfo";
@@ -215,6 +216,8 @@ function WordDock({ tapped, language, onClose }: { tapped: Tapped | null; langua
   const [adding, setAdding] = useState<"word" | "phrase" | null>(null);
   const otherForm = !!word.info && !!tapped && word.info.lemma.toLowerCase() !== tapped.word;
   const [card, setCard] = useState<Word | null>(null);
+  const dock = useRef<HTMLElement>(null);
+  useHeightVar(dock, "--story-dock-h", !!tapped); // Tula floats above it
 
   const addWord = async () => {
     if (!word.info) return;
@@ -282,7 +285,7 @@ function WordDock({ tapped, language, onClose }: { tapped: Tapped | null; langua
   }
   return (
     <>
-      <aside className={styles.dock} aria-label="Palabra">
+      <aside ref={dock} className={styles.dock} aria-label="Palabra">
         <div className={styles.dockHead}>
           <b>{tapped.word}</b>
           {word.info?.ipa && !otherForm && <span className={styles.ipa}>{word.info.ipa}</span>}

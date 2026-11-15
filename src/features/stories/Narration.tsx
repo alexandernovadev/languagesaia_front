@@ -7,6 +7,7 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState, type RefObject } from "react";
 import { Button, Icon, toast } from "../../components";
 import { sound } from "../../lib/sound";
+import { useHeightVar } from "../../lib/useHeightVar";
 import { storiesApi, type Chapter, type WordTime } from "./api";
 import styles from "./Stories.module.css";
 
@@ -54,6 +55,8 @@ export const Narration = forwardRef<NarrationHandle, { storyId: string; index: n
     return () => window.clearInterval(timer);
   }, [loading]);
   const audio = useRef<HTMLAudioElement | null>(null);
+  const box = useRef<HTMLDivElement>(null);
+  useHeightVar(box, "--story-player-h"); // the word box and Tula stack above it
   const times = useRef<WordTime[]>(chapter.audioAlignment ?? []);
   const url = useRef(chapter.urlAudio);
   const spans = useRef<Element[]>([]);
@@ -229,7 +232,7 @@ export const Narration = forwardRef<NarrationHandle, { storyId: string; index: n
   };
 
   return (
-    <div className={styles.player}>
+    <div ref={box} className={styles.player}>
       <Button tone="warning" iconOnly loading={loading} quiet icon={<Icon name={playing ? "pause" : "play"} size={22} />} aria-label={playing ? "Pausar" : "Narrar"} sound={false} onClick={() => void toggle()} />
       {loading && (
         <span className={styles.recording} aria-live="off">
