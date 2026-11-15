@@ -66,6 +66,8 @@ export interface WordLookup {
   inList: boolean;
   /** When the tapped word is a form of a verb. */
   grammar?: { tense: string; persons: string[] };
+  /** What the dictionary word means, when the tapped one is another form of it. */
+  lemmaTranslation?: string;
 }
 
 export interface NewStory {

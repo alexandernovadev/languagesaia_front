@@ -292,7 +292,7 @@ function WordDock({ tapped, language, onClose }: { tapped: Tapped | null; langua
       <aside ref={dock} className={styles.dock} aria-label="Palabra">
         <div className={styles.dockHead}>
           <b>{tapped.word}</b>
-          {word.info?.ipa && !otherForm && <span className={styles.ipa}>{word.info.ipa}</span>}
+          {word.info?.ipa && <span className={styles.ipa}>{word.info.ipa}</span>}
           <Button tone="neutral" variant="ghost" size="sm" iconOnly icon={<Icon name="close" size={18} />} aria-label="Cerrar" className={styles.dockClose} onClick={onClose} />
         </div>
         {word.failed && <p className={styles.muted}>No pude buscar esta palabra. Inténtalo otra vez.</p>}
@@ -303,6 +303,7 @@ function WordDock({ tapped, language, onClose }: { tapped: Tapped | null; langua
               {otherForm && (
                 <span className={styles.formOf}>
                   Forma de <b>{word.info.lemma}</b>
+                  {word.info.lemmaTranslation && ` (${word.info.lemmaTranslation})`}
                   {word.info.grammar && ` · ${TENSES[word.info.grammar.tense] ?? word.info.grammar.tense}${word.info.grammar.persons.length ? ` (${word.info.grammar.persons.map((p) => PERSONS[p] ?? p).join(", ")})` : ""}`}
                 </span>
               )}
