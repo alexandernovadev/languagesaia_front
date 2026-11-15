@@ -331,6 +331,7 @@
 .word {
   all: unset;
   cursor: pointer;
+  touch-action: manipulation; /* a double tap reads from the word, it doesn't zoom */
   border-radius: 6px;
 }
 .word:hover {
@@ -733,12 +734,10 @@
 
 /* Tula's "save this" cards, under her answer */
 .saveCards {
-  position: relative;
-  z-index: 1; /* above Tula's floating face: the button stays whole */
   display: flex;
   flex-direction: column;
   gap: var(--sp-2);
-  margin: var(--sp-1) 0 var(--sp-2);
+  margin: var(--sp-1) 52px var(--sp-2) 0; /* Tula floats at the right: the cards leave her room */
   animation: lai-reveal var(--t-base) var(--ease-out);
 }
 .saveCard {

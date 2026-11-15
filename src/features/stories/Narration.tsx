@@ -14,6 +14,8 @@ export interface NarrationHandle {
   /** A word was tapped: stop, and remember to go on. */
   pause: () => void;
   resume: () => void;
+  /** A word was tapped twice: read from it. False when the chapter has no recording yet. */
+  playFrom: (token: number) => boolean;
 }
 
 const RATES = [1, 0.9, 0.8];
@@ -235,7 +237,12 @@ export const Narration = forwardRef<NarrationHandle, { storyId: string; index: n
         void playAudio();
       }
     },
-  }), [pauseAudio, playAudio]);
+    playFrom(token: number) {
+      if (!url.current) return false;
+      void playFrom(token);
+      return true;
+    },
+  }), [pauseAudio, playAudio, playFrom]);
 
   useEffect(
     () => () => {

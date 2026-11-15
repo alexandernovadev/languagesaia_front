@@ -75,9 +75,25 @@ function phraseMap(chapter: Chapter) {
 }
 
 /** Drawn once per chapter: tapping a word or the karaoke never redraws the text. */
-const Paragraphs = memo(function Paragraphs({ chapter, marks, onWord }: { chapter: Chapter; marks: boolean; onWord: (word: string, sentence: string, token: number, phrase?: Phrase) => void }) {
+const DOUBLE_TAP_MS = 280;
+
+const Paragraphs = memo(function Paragraphs({ chapter, marks, onWord, onReplay }: { chapter: Chapter; marks: boolean; onWord: (word: string, sentence: string, token: number, phrase?: Phrase) => void; onReplay: (token: number) => boolean }) {
   const mine = useMemo(() => new Set(chapter.targetVocabulary.map(cleanWord)), [chapter]);
   const phrases = useMemo(() => phraseMap(chapter), [chapter]);
+  // one tap opens the word; two taps read the audio from it, without the word box
+  const lastTap = useRef({ token: -1, at: 0, timer: 0 });
+  const tap = (word: string, sentence: string, at: number, phrase?: Phrase) => {
+    const last = lastTap.current;
+    window.clearTimeout(last.timer);
+    if (last.token === at && Date.now() - last.at < DOUBLE_TAP_MS) {
+      lastTap.current = { token: -1, at: 0, timer: 0 };
+      window.getSelection()?.removeAllRanges(); // a double click selects the word
+      if (!onReplay(at)) onWord(word, sentence, at, phrase); // no recording yet: just the word
+      return;
+    }
+    if (window.getSelection()?.toString()) return;
+    lastTap.current = { token: at, at: Date.now(), timer: window.setTimeout(() => onWord(word, sentence, at, phrase), DOUBLE_TAP_MS) };
+  };
   let token = -1; // the same whitespace split as the narration's word times
   return (
     <div className={styles.text}>
@@ -103,7 +119,7 @@ const Paragraphs = memo(function Paragraphs({ chapter, marks, onWord }: { chapte
                   tabIndex={0}
                   data-t={token}
                   className={className}
-                  onClick={() => !window.getSelection()?.toString() && onWord(word, paragraph, at, phrase)}
+                  onClick={() => tap(word, paragraph, at, phrase)}
                   onKeyDown={(e) => e.key === "Enter" && onWord(word, paragraph, at, phrase)}
                 >
                   {before}
@@ -702,6 +718,11 @@ export function StoryReader() {
     player.current?.pause();
     setTapped({ word, sentence, token, phrase });
   }, []);
+  const onReplay = useCallback((token: number) => {
+    const playing = !!player.current?.playFrom(token);
+    if (playing) setTapped(null);
+    return playing;
+  }, []);
   const ask = useCallback((selected: string) => {
     setQuote(selected);
     setChatOpen(true);
@@ -837,6 +858,7 @@ export function StoryReader() {
               chapter={chapter}
               marks={marks}
               onWord={onWord}
+              onReplay={onReplay}
             />
           </div>
           <div className={styles.readerFoot}>
